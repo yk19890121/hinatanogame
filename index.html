@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#160f44">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="マッチョと いっしょに たしざん・ひきざん！ よこスクロール アクション ゲーム">
+<title>マッチョ さんすうラン！</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='26' width='56' height='12' rx='4' fill='%23aab'/%3E%3Crect x='6' y='14' width='12' height='36' rx='4' fill='%23334'/%3E%3Crect x='46' y='14' width='12' height='36' rx='4' fill='%23334'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <!-- うえの ひょうじ -->
+  <div id="hud" class="hud">
+    <div class="hud-left">
+      <div id="hearts" class="hearts"></div>
+      <div class="pill db-pill">
+        <svg class="db-icon" viewBox="0 0 48 24" aria-hidden="true"><rect x="10" y="9" width="28" height="6" rx="2" fill="#dfe3ee"/><rect x="5" y="2" width="9" height="20" rx="3" fill="#3a3e52"/><rect x="34" y="2" width="9" height="20" rx="3" fill="#3a3e52"/><rect x="0" y="6" width="6" height="12" rx="2" fill="#2a2d3d"/><rect x="42" y="6" width="6" height="12" rx="2" fill="#2a2d3d"/></svg>
+        <span id="dbCount">0</span>
+      </div>
+    </div>
+    <div id="stageChip" class="pill stage-chip"></div>
+    <button id="btnPause" class="round-btn" aria-label="ひとやすみ">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+    </button>
+  </div>
+
+  <!-- もんだい -->
+  <div id="quiz" class="quiz">
+    <div class="quiz-card">
+      <div class="q-row">
+        <div class="q-term"><div class="q-num" id="qA">0</div><div class="dots" id="dA"></div></div>
+        <div class="q-op" id="qOp">＋</div>
+        <div class="q-term"><div class="q-num" id="qB">0</div><div class="dots" id="dB"></div></div>
+        <div class="q-op">＝</div>
+        <div class="q-term"><div class="q-num q-ans" id="qAns">？</div><div class="dots" id="dAns"></div></div>
+      </div>
+      <div class="q-help" id="qHelp"></div>
+    </div>
+    <button id="btnVoice" class="round-btn voice" aria-label="もういちど きく">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+
+  <div id="banner" class="banner"></div>
+
+  <!-- タッチ そうさ -->
+  <div id="touch" class="touch">
+    <div class="tpad">
+      <button id="tLeft" class="tbtn" aria-label="ひだり"><svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8"/></svg></button>
+      <button id="tRight" class="tbtn" aria-label="みぎ"><svg viewBox="0 0 24 24"><path d="m9 4 8 8-8 8"/></svg></button>
+    </div>
+    <button id="tJump" class="tbtn jump" aria-label="ジャンプ"><svg viewBox="0 0 24 24"><path d="M5 15l7-7 7 7"/></svg><span>ジャンプ</span></button>
+  </div>
+
+  <!-- タイトル -->
+  <section id="scrTitle" class="screen title-screen">
+    <div class="title-wrap">
+      <div class="title-sub">ひなたの ゲーム</div>
+      <h1 class="logo">
+        <span class="logo-line l1" data-text="マッチョ"><span>マッチョ</span></span>
+        <span class="logo-line l2" data-text="さんすうラン！"><span>さんすうラン！</span></span>
+      </h1>
+      <p class="title-copy">たしざん・ひきざんで きんにくパワー ぜんかい！</p>
+      <button id="btnPlay" class="btn big pulse">あそぶ</button>
+      <div class="title-tools">
+        <button id="btnSettings" class="round-btn" aria-label="せってい"><svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm8.4 4.6-1.9-.3a6.7 6.7 0 0 1-.6 1.5l1.1 1.6-1.6 1.6-1.6-1.1c-.5.3-1 .5-1.5.6l-.3 1.9h-2.2l-.3-1.9a6.7 6.7 0 0 1-1.5-.6l-1.6 1.1-1.6-1.6 1.1-1.6a6.7 6.7 0 0 1-.6-1.5l-1.9-.3v-2.2l1.9-.3c.1-.5.3-1 .6-1.5L5.1 7.1l1.6-1.6 1.6 1.1c.5-.3 1-.5 1.5-.6l.3-1.9h2.2l.3 1.9c.5.1 1 .3 1.5.6l1.6-1.1 1.6 1.6-1.1 1.6c.3.5.5 1 .6 1.5l1.9.3z"/></svg></button>
+        <button id="btnFull" class="round-btn" aria-label="ぜんがめん"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="howto"><kbd>←</kbd><kbd>→</kbd> いどう　<kbd>スペース</kbd> ジャンプ</div>
+    </div>
+  </section>
+
+  <!-- ステージ えらび -->
+  <section id="scrSelect" class="screen select-screen">
+    <h2 class="screen-title">ステージを えらぼう</h2>
+    <div id="stageGrid" class="stage-grid"></div>
+    <button id="btnSelBack" class="btn ghost">もどる</button>
+  </section>
+
+  <!-- せってい -->
+  <section id="scrSettings" class="screen dim">
+    <div class="panel">
+      <h2>おうちの ひと むけ せってい</h2>
+      <div class="opt">
+        <div class="opt-label">かずの おおきさ</div>
+        <div class="seg" data-key="maxNum"><button data-v="5">5まで</button><button data-v="10">10まで</button><button data-v="18">18まで</button></div>
+        <p class="opt-note">たしざんの こたえ・ひきざんの はじめの かず の さいだい</p>
+      </div>
+      <div class="opt"><div class="opt-label">よみあげ こえ</div><div class="seg" data-key="voice"><button data-v="1">オン</button><button data-v="0">オフ</button></div></div>
+      <div class="opt"><div class="opt-label">かぞえる ●ヒント</div><div class="seg" data-key="hint"><button data-v="1">オン</button><button data-v="0">オフ</button></div></div>
+      <div class="opt"><div class="opt-label">おんがく</div><div class="seg" data-key="music"><button data-v="1">オン</button><button data-v="0">オフ</button></div></div>
+      <div class="opt"><div class="opt-label">こうかおん</div><div class="seg" data-key="sfx"><button data-v="1">オン</button><button data-v="0">オフ</button></div></div>
+      <button id="btnSetBack" class="btn">OK</button>
+    </div>
+  </section>
+
+  <!-- ひとやすみ -->
+  <section id="scrPause" class="screen dim">
+    <div class="panel small">
+      <h2>ひとやすみ</h2>
+      <button id="btnResume" class="btn big">つづける</button>
+      <button id="btnRetry" class="btn">さいしょから</button>
+      <div class="row">
+        <button id="btnToSelect" class="btn ghost">ステージを えらぶ</button>
+        <button id="btnPauseSettings" class="btn ghost">せってい</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- クリア -->
+  <section id="scrClear" class="screen dim">
+    <div class="panel clear">
+      <h2 class="clear-title">ステージ クリア！</h2>
+      <div class="stars" id="clearStars"><span></span><span></span><span></span></div>
+      <div class="clear-stats">
+        <div><b id="cCorrect">0</b><small>もん せいかい</small></div>
+        <div><b id="cDb">0</b><small>こ ダンベル</small></div>
+      </div>
+      <p class="clear-msg" id="cMsg"></p>
+      <button id="btnNext" class="btn big">つぎの ステージへ</button>
+      <div class="row">
+        <button id="btnAgain" class="btn">もういちど</button>
+        <button id="btnClearSel" class="btn ghost">ステージを えらぶ</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="rotate" class="rotate"><div class="phone"></div><p>よこむきに してね</p></div>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/input.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/assets.js"></script>
+<script src="js/sprite-meta.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/hero.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/level.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
