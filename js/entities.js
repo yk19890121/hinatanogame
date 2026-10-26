@@ -605,7 +605,7 @@ class AnswerBlock {
       ctx.stroke();
     }
     const label = this.value == null ? '？' : String(this.value);
-    outlinedText(ctx, label, 0, 2, label.length > 1 ? 34 : 40, wrong ? '#d9dce4' : '#ffffff', wrong ? '#3a3e48' : c.line, 0.24);
+    outlinedText(ctx, label, 0, 2, label.length > 2 ? 26 : label.length > 1 ? 34 : 40, wrong ? '#d9dce4' : '#ffffff', wrong ? '#3a3e48' : c.line, 0.24);
     ctx.restore();
     // はじめての ときは「したから ジャンプ」の やじるし
     if (this.gate.hint && this.gate.active && this.state === 'idle') {

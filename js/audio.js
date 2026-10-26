@@ -333,5 +333,10 @@ const Sound = (() => {
   }
 
   const play = (name) => { if (sfx[name]) sfx[name](); };
-  return { init, play, startMusic, stopMusic, speak, setOption, suspend };
+  // ファイルの おと（media-audio.js）と AudioContext を きょうゆう する
+  const context = () => ac;
+  const output = () => out;
+  const musicPlaying = () => !!timer;
+  const getVoice = () => voice;
+  return { init, play, startMusic, stopMusic, speak, setOption, suspend, duck, context, output, musicPlaying, voice: getVoice };
 })();

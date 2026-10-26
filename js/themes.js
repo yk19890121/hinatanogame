@@ -854,11 +854,10 @@ const THEMES = {
   },
 };
 
-const BOSS_MUSIC = { id: 'boss', bpm: 138, root: 57, prog: [[0, 3, 7], [8, 12, 15], [3, 7, 10], [10, 14, 17]], seed: 41, boss: true };
-
+// ステージの ちけい・はいけい だけを きめる（けいさんの しゅるいは quiz.js の STAGE_MIX、かずの はんいは LEVELS）
 const STAGES = [
-  { theme: 'meadow', name: 'あさの くさはら', ops: ['+'], label: 'たしざん', mark: '＋', enemyRate: 0.35, pitMax: 2 },
-  { theme: 'desert', name: 'ゆうやけ さばく', ops: ['-'], label: 'ひきざん', mark: '－', enemyRate: 0.45, pitMax: 2 },
-  { theme: 'snow', name: 'オーロラの ゆきやま', ops: ['+', '-'], label: 'たしざん・ひきざん', mark: '＋－', enemyRate: 0.5, pitMax: 3 },
-  { theme: 'night', name: 'よぞらの ネオンシティ', ops: ['+', '-'], label: 'たしざん・ひきざん', mark: '＋－', enemyRate: 0.6, pitMax: 3 },
+  { theme: 'meadow', name: 'あさの くさはら', mark: '＋', enemyRate: 0.35, pitMax: 2 },
+  { theme: 'desert', name: 'ゆうやけ さばく', mark: '－', enemyRate: 0.45, pitMax: 2 },
+  { theme: 'snow', name: 'オーロラの ゆきやま', mark: '＋－', enemyRate: 0.5, pitMax: 3 },
+  { theme: 'night', name: 'よぞらの ネオンシティ', mark: '－＋', enemyRate: 0.6, pitMax: 3 },
 ];

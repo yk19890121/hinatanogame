@@ -695,8 +695,10 @@ class Hero {
     // ふみつけ スプリング など
     this.sx = damp(this.sx, 1, 12, dt);
     this.sy = damp(this.sy, 1, 12, dt);
-    this.invuln = Math.max(0, this.invuln - dt);
-    this.power = Math.max(0, this.power - dt);
+    if (!game.cutin) { // カットイン中は パワー・むてきの のこりじかんを へらさない
+      this.invuln = Math.max(0, this.invuln - dt);
+      this.power = Math.max(0, this.power - dt);
+    }
     this.lock = Math.max(0, this.lock - dt);
     this.blinkT -= dt;
     if (this.blinkT <= 0) {

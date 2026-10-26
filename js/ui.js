@@ -24,13 +24,23 @@ const UI = (() => {
     for (const k of ['title', 'select', 'settings', 'pause', 'clear']) screens[k] = $('scr' + k[0].toUpperCase() + k.slice(1));
     click('btnPlay', () => {
       Sound.play('select');
-      show('select');
+      game.openSelect();
     });
     click('btnSettings', () => openSettings('title'));
     click('btnFull', toggleFull);
     click('btnSelBack', () => {
       Sound.play('select');
-      show('title');
+      game.toTitle();
+    });
+    // むずかしさ（きりかえても BGM は あたまに もどさない）
+    $('levelSel').innerHTML = LEVELS.map((L) => `<button data-lv="${L.lv}"><b>${L.label}</b><small>${L.sub}</small></button>`).join('');
+    $('levelSel').addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      b.blur();
+      game.setLevel(Number(b.dataset.lv));
+      Sound.play('select');
+      refreshCards();
     });
     click('btnSetBack', () => {
       Sound.play('select');
@@ -53,9 +63,7 @@ const UI = (() => {
       seg.addEventListener('click', (e) => {
         const b = e.target.closest('button');
         if (!b) return;
-        const key = seg.dataset.key;
-        const v = key === 'maxNum' ? Number(b.dataset.v) : b.dataset.v === '1';
-        game.setSetting(key, v);
+        game.setSetting(seg.dataset.key, b.dataset.v === '1');
         syncSettings();
         Sound.init();
         Sound.play('select');
@@ -94,10 +102,7 @@ const UI = (() => {
   function syncSettings() {
     document.querySelectorAll('.seg').forEach((seg) => {
       const v = game.settings[seg.dataset.key];
-      seg.querySelectorAll('button').forEach((b) => {
-        const bv = seg.dataset.key === 'maxNum' ? Number(b.dataset.v) : b.dataset.v === '1';
-        b.classList.toggle('on', bv === v);
-      });
+      seg.querySelectorAll('button').forEach((b) => b.classList.toggle('on', (b.dataset.v === '1') === v));
     });
   }
 
@@ -120,7 +125,7 @@ const UI = (() => {
       grid.innerHTML = STAGES.map((s, i) => `
         <button class="stage-card" data-i="${i}">
           <div class="thumb theme-${s.theme}"><img alt="" data-thumb="${s.theme}"><span class="num">${i + 1}</span><span class="op">${s.mark}</span></div>
-          <div class="card-body"><div class="card-name">${s.name}</div><div class="card-label">${s.label}</div><div class="card-stars"></div></div>
+          <div class="card-body"><div class="card-name">${s.name}</div><div class="card-label">${STAGE_LABEL[i]}</div><div class="card-stars"></div></div>
         </button>`).join('');
       grid.querySelectorAll('.stage-card').forEach((b) => b.addEventListener('click', () => {
         b.blur();
@@ -141,9 +146,16 @@ const UI = (() => {
       };
       setTimeout(next, 60);
     }
+    // えらんでいる むずかしさ の ★ だけ を かきなおす（ふるい ひょうじを のこさない）
+    const lv = game.levelNo;
+    $('levelSel').querySelectorAll('button').forEach((b) => b.classList.toggle('on', Number(b.dataset.lv) === lv));
+    grid.dataset.lv = lv;
     grid.querySelectorAll('.stage-card').forEach((b) => {
-      const n = game.progress.stars[Number(b.dataset.i)] || 0;
+      const i = Number(b.dataset.i);
+      const n = game.starsFor(lv, i);
       b.querySelector('.card-stars').innerHTML = [0, 1, 2].map((j) => `<i class="${j < n ? 'got' : ''}">★</i>`).join('');
+      b.querySelector('.num').textContent = `${lv}-${i + 1}`;
+      b.setAttribute('aria-label', `レベル${lv} ステージ${i + 1} ${STAGES[i].name}`);
     });
   }
 
@@ -178,6 +190,19 @@ const UI = (() => {
     let html = '';
     for (let i = 0; i < n; i++) html += `<i class="dot ${kind}${i >= n - cross ? ' x' : ''}"></i>`;
     el.innerHTML = html;
+    el.classList.remove('pv-wrap');
+  }
+
+  // かずの ヒント: 9までは ●、10いじょうは 百（100の しかく）・十（10の ぼう）・一（●）の まとまり
+  function amount(el, n, kind, cross = 0) {
+    if (n <= 9) return dots(el, n, cross, kind);
+    const h = Math.floor(n / 100), t = Math.floor((n % 100) / 10), o = n % 10;
+    let html = `<span class="pv${kind === 'minus' ? ' pv-minus' : ''}">`;
+    for (let i = 0; i < h; i++) html += `<i class="pv-h ${kind}"><b>100</b></i>`;
+    if (t) html += `<span class="pv-tens">${`<i class="pv-t ${kind}"></i>`.repeat(t)}</span>`;
+    if (o) html += `<span class="pv-ones">${`<i class="dot ${kind}"></i>`.repeat(o)}</span>`;
+    el.innerHTML = html + '</span>';
+    el.classList.add('pv-wrap');
   }
 
   function showQuiz(q, hint) {
@@ -187,9 +212,12 @@ const UI = (() => {
     $('qOp').textContent = Quiz.opMark(q.op);
     const ans = $('qAns');
     ans.textContent = '？';
-    dots($('dA'), q.a, q.op === '-' ? q.b : 0, 'a');
-    dots($('dB'), q.b, 0, q.op === '-' ? 'minus' : 'b');
+    // ひきざん: ひく かず は ✕ の まとまりで（9まで の ときは ひかれる ●の おしりを ✕）
+    amount($('dA'), q.a, 'a', q.op === '-' && q.a <= 9 ? q.b : 0);
+    amount($('dB'), q.b, q.op === '-' ? 'minus' : 'b');
     $('dAns').innerHTML = '';
+    $('qLegend').classList.toggle('on', q.a >= 10 || q.b >= 10);
+    el.classList.toggle('big', Math.max(q.a, q.b) >= 100 || String(q.a).length + String(q.b).length >= 5);
     $('qHelp').textContent = 'こたえの ブロックを ジャンプで たたこう！';
     el.classList.toggle('nohint', !hint);
     el.classList.remove('solved', 'wrong');
@@ -202,13 +230,13 @@ const UI = (() => {
     el.classList.remove('wrong');
     void el.offsetWidth;
     el.classList.add('wrong');
-    $('qHelp').textContent = 'おしい！ ●を ゆびで かぞえて みよう';
+    $('qHelp').textContent = $('qLegend').classList.contains('on') ? 'おしい！ まとまりと ●を かぞえて みよう' : 'おしい！ ●を ゆびで かぞえて みよう';
   }
 
   function quizSolved(q) {
     const el = $('quiz');
     $('qAns').textContent = q.answer;
-    dots($('dAns'), q.answer, 0, 'ans');
+    amount($('dAns'), q.answer, 'ans'); // のこった かず（こたえ）
     $('qHelp').textContent = 'せいかい！ すごい！';
     el.classList.remove('wrong');
     el.classList.add('solved');
@@ -252,8 +280,9 @@ const UI = (() => {
     $('cCorrect').textContent = r.correct;
     $('cDb').textContent = r.db;
     const msgs = ['よく がんばったね！', 'すごい！ きんにくも さんすうも ばっちり！', 'かんぺき！ きみは さいきょうの マッチョだ！'];
-    $('cMsg').textContent = r.last ? 'ぜんぶ クリア！ きみは さんすうの チャンピオン！' : msgs[r.stars - 1];
-    $('btnNext').textContent = r.last ? 'ステージを えらぶ' : 'つぎの ステージへ';
+    $('cMsg').textContent = r.last ? `レベル${r.lv} ぜんぶ クリア！ きみは さんすうの チャンピオン！` : msgs[r.stars - 1];
+    $('btnNext').textContent = r.last ? 'むずかしさを えらぶ' : 'つぎの ステージへ';
+    $('clearLevel').textContent = `レベル${r.lv}・ステージ${game.stageIdx + 1}`;
     show('clear');
   }
 

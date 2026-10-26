@@ -44,7 +44,7 @@
         <div class="q-op">＝</div>
         <div class="q-term"><div class="q-num q-ans" id="qAns">？</div><div class="dots" id="dAns"></div></div>
       </div>
-      <div class="q-help" id="qHelp"></div>
+      <div class="q-foot"><div class="q-help" id="qHelp"></div><div class="q-legend" id="qLegend"><span><i class="pv-t a"></i>＝10</span><span><i class="pv-h a mini"></i>＝100</span></div></div>
     </div>
     <button id="btnVoice" class="round-btn voice" aria-label="もういちど きく">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -52,6 +52,9 @@
   </div>
 
   <div id="banner" class="banner"></div>
+
+  <!-- せいかいの カットイン（え ＋ うすい あんまく） -->
+  <div id="cutin" class="cutin" aria-hidden="true"><div class="cutin-dim"></div><img id="cutinImg" class="cutin-img" alt=""></div>
 
   <!-- タッチ そうさ -->
   <div id="touch" class="touch">
@@ -83,6 +86,7 @@
   <!-- ステージ えらび -->
   <section id="scrSelect" class="screen select-screen">
     <h2 class="screen-title">ステージを えらぼう</h2>
+    <div class="level-row"><span class="level-cap">むずかしさ</span><div id="levelSel" class="levels"></div></div>
     <div id="stageGrid" class="stage-grid"></div>
     <button id="btnSelBack" class="btn ghost">もどる</button>
   </section>
@@ -91,11 +95,7 @@
   <section id="scrSettings" class="screen dim">
     <div class="panel">
       <h2>おうちの ひと むけ せってい</h2>
-      <div class="opt">
-        <div class="opt-label">かずの おおきさ</div>
-        <div class="seg" data-key="maxNum"><button data-v="5">5まで</button><button data-v="10">10まで</button><button data-v="18">18まで</button></div>
-        <p class="opt-note">たしざんの こたえ・ひきざんの はじめの かず の さいだい</p>
-      </div>
+      <p class="opt-note set-note">かずの むずかしさは「ステージを えらぼう」で えらべます</p>
       <div class="opt"><div class="opt-label">よみあげ こえ</div><div class="seg" data-key="voice"><button data-v="1">オン</button><button data-v="0">オフ</button></div></div>
       <div class="opt"><div class="opt-label">かぞえる ●ヒント</div><div class="seg" data-key="hint"><button data-v="1">オン</button><button data-v="0">オフ</button></div></div>
       <div class="opt"><div class="opt-label">おんがく</div><div class="seg" data-key="music"><button data-v="1">オン</button><button data-v="0">オフ</button></div></div>
@@ -120,6 +120,7 @@
   <!-- クリア -->
   <section id="scrClear" class="screen dim">
     <div class="panel clear">
+      <div id="clearLevel" class="clear-level"></div>
       <h2 class="clear-title">ステージ クリア！</h2>
       <div class="stars" id="clearStars"><span></span><span></span><span></span></div>
       <div class="clear-stats">
@@ -140,7 +141,9 @@
 
 <script src="js/util.js"></script>
 <script src="js/quiz.js"></script>
+<script src="js/media.js"></script>
 <script src="js/audio.js"></script>
+<script src="js/media-audio.js"></script>
 <script src="js/input.js"></script>
 <script src="js/themes.js"></script>
 <script src="js/assets.js"></script>
@@ -150,6 +153,7 @@
 <script src="js/entities.js"></script>
 <script src="js/level.js"></script>
 <script src="js/render.js"></script>
+<script src="js/cutin.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/game.js"></script>
 </body>

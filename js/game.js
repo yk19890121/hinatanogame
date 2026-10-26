@@ -2,8 +2,6 @@
 /* =========================================================
    ゲームの しんぞう（すすみかた・もんだい・カメラ）
    ========================================================= */
-const PHRASES = ['ナイスバルク！', 'キレてる！', 'すごい きんにく！', 'パワー ぜんかい！', 'てんさい マッチョ！', 'マッスル！', 'かたに ジープ のってる！', 'きんにく ばくはつ！'];
-const WRONG_LINES = ['おしい！ もういちど かぞえて みよう！', 'ざんねん！ ゆびで かぞえて みてね！', 'だいじょうぶ！ もういっかい！'];
 const DUST = { meadow: '#f4ead8', desert: '#ffe0b0', snow: '#ffffff', night: '#b8b0e8' };
 
 const Game = {
@@ -26,8 +24,10 @@ const Game = {
   init() {
     this.canvas = document.getElementById('game');
     this.ctx = this.canvas.getContext('2d', { alpha: false });
-    this.settings = Object.assign({ maxNum: 10, voice: true, music: true, sfx: true, hint: true }, Store.get('settings', {}));
-    this.progress = Object.assign({ stars: [0, 0, 0, 0] }, Store.get('progress', {}));
+    this.settings = Object.assign({ voice: true, music: true, sfx: true, hint: true }, Store.get('settings', {}));
+    delete this.settings.maxNum; // ふるい「5まで/10まで/18まで」は むずかしさ に とうごう（つかわない）
+    this.levelNo = clamp(Number(Store.get('level', 1)) || 1, 1, LEVELS.length);
+    this.progress = this.loadProgress();
     this.applySettings();
     this.vignette = Render.edgeCanvas('rgba(10,0,30,0)', 'rgba(10,0,30,0.42)');
     this.powerEdge = Render.edgeCanvas('rgba(255,200,60,0)', 'rgba(255,190,40,0.9)');
@@ -36,15 +36,23 @@ const Game = {
       clearTimeout(this._rt);
       this._rt = setTimeout(() => this.resize(), 150);
     });
-    const unlock = () => Sound.init();
+    // ブラウザの 自動再生せいげん: さいしょの タップ・キーで おとを ゆるして もらう
+    const unlock = () => {
+      Sound.init();
+      MediaAudio.unlock();
+    };
     window.addEventListener('pointerdown', unlock, { capture: true });
     window.addEventListener('touchend', unlock, { capture: true });
     window.addEventListener('keydown', unlock, { capture: true });
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
         if (this.mode === 'play' && !this.ending) this.pause();
+        MediaAudio.setHidden(true);
         Sound.suspend(true);
-      } else if (this.mode !== 'paused') Sound.suspend(false);
+      } else {
+        if (this.mode !== 'paused') Sound.suspend(false);
+        MediaAudio.setHidden(false);
+      }
     });
     window.addEventListener('keydown', (e) => {
       if (e.code !== 'Escape' && e.code !== 'KeyP') return;
@@ -53,15 +61,32 @@ const Game = {
     });
     UI.init(this);
     this.startDemo();
+    MediaAudio.BGM.play('title');
     this.last = performance.now();
     requestAnimationFrame((n) => this.loop(n));
   },
 
   applySettings() {
     const s = this.settings;
-    Sound.setOption('voice', s.voice);
-    Sound.setOption('music', s.music);
-    Sound.setOption('sfx', s.sfx);
+    for (const k of ['voice', 'music', 'sfx']) {
+      Sound.setOption(k, s[k]);
+      MediaAudio.setOption(k, s[k]);
+    }
+  },
+
+  // せいせき: 「むずかしさ-ステージ」ごとに ★を ほぞん（ふるい かたちは バックアップして うつさない）
+  loadProgress() {
+    const old = Store.get('progress', null);
+    if (old && Store.get('progress_v1_backup', null) == null) Store.set('progress_v1_backup', old);
+    const p = Store.get('progress2', null);
+    return p && p.stars && typeof p.stars === 'object' && !Array.isArray(p.stars) ? p : { v: 2, stars: {} };
+  },
+  starKey(lv, stage) { return `${lv}-${stage + 1}`; },
+  starsFor(lv, stage) { return this.progress.stars[this.starKey(lv, stage)] || 0; },
+
+  setLevel(n) {
+    this.levelNo = clamp(n, 1, LEVELS.length);
+    Store.set('level', this.levelNo);
   },
 
   setSetting(k, v) {
@@ -97,6 +122,14 @@ const Game = {
   after(t, fn) { this.timers.push({ t, fn }); },
 
   resetScene() {
+    // まえの ステージの えんしゅつ・こえ・よやくを ぜんぶ とめる（あとから ならない ように）
+    if (this.cutin) this.cutin.cancel();
+    this.cutin = null;
+    MediaAudio.Voice.cancel();
+    MediaAudio.Fireworks.stop(0.25);
+    MediaAudio.setHeld(false);
+    this.fwSound = false;
+    this.fwLeft = 0;
     this.fx = new FX();
     this.projectiles = [];
     this.timers = [];
@@ -126,7 +159,6 @@ const Game = {
     this.demoFlex = 7;
     UI.hud(false);
     UI.hideQuiz();
-    Sound.startMusic(THEMES.meadow.music);
   },
 
   updateDemo(dt) {
@@ -161,21 +193,37 @@ const Game = {
     }
   },
 
+  // タイトル → ステージえらび（えらび画面の BGM を ながす）
+  openSelect() {
+    MediaAudio.BGM.play('select');
+    UI.show('select');
+  },
+
+  // ゲーム中・クリア画面 → ステージえらび（それまでの きょくを とめて あたまから）
   toSelect() {
     if (this.mode !== 'demo') this.startDemo();
-    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    else this.resetScene();
     Sound.suspend(false);
+    MediaAudio.BGM.play('select', { restart: true });
     UI.show('select');
+  },
+
+  // ステージえらび → タイトル（タイトルの おんがくに もどす）
+  toTitle() {
+    MediaAudio.BGM.play('title');
+    UI.show('title');
   },
 
   /* ---------------- ステージ ---------------- */
   startStage(i) {
     Sound.init();
+    MediaAudio.unlock();
     Sound.suspend(false);
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     this.resetScene();
     this.stageIdx = i;
     const st = STAGES[i];
+    const lv = this.levelNo;
     this.level = buildLevel(i);
     this.setTheme(st.theme);
     const L = this.level;
@@ -189,21 +237,23 @@ const Game = {
     Input.reset();
     UI.show(null);
     UI.hud(true);
-    UI.setStage(`${i + 1}. ${st.name}`);
+    UI.setStage(`レベル${lv}・ステージ${i + 1}`);
     UI.setHearts(3, 3);
     UI.setDb(0);
     UI.hideQuiz();
-    UI.banner(`ステージ ${i + 1}`, st.name);
-    Sound.startMusic(this.theme.music);
-    this.after(0.4, () => Sound.speak('よーい、スタート！'));
+    UI.banner(`レベル${lv}・ステージ ${i + 1}`, st.name);
+    // ステージ番号に あった きょくを あたまから（むずかしさが ちがっても おなじ きょく）
+    MediaAudio.BGM.play(`stage${i + 1}`, { restart: true });
+    Cheers.preload(3);
+    this.after(0.4, () => MediaAudio.Voice.play('start'));
   },
 
   pause() {
     if (this.mode !== 'play') return;
     this.mode = 'paused';
     UI.show('pause');
+    MediaAudio.setHeld(true); // BGM・こえ・はなび を とめる（さいかいで つづきから）
     Sound.suspend(true);
-    if ('speechSynthesis' in window) speechSynthesis.cancel();
   },
 
   resume() {
@@ -211,6 +261,7 @@ const Game = {
     this.mode = 'play';
     UI.show(null);
     Sound.suspend(false);
+    MediaAudio.setHeld(false);
     Input.reset();
   },
 
@@ -250,19 +301,25 @@ const Game = {
   update(dt) {
     if (this.mode === 'paused' || this.mode === 'boot') return;
     this.time += dt;
-    for (let i = this.timers.length - 1; i >= 0; i--) {
-      const tm = this.timers[i];
-      tm.t -= dt;
-      if (tm.t <= 0) {
-        this.timers.splice(i, 1);
-        tm.fn();
+    // せいかいの カットイン中は せかいを とめる（てき・ボス・タイマー・パワーの のこりじかん）
+    if (this.cutin) this.cutin.update(dt);
+    const frozen = !!this.cutin;
+    if (!frozen) {
+      for (let i = this.timers.length - 1; i >= 0; i--) {
+        const tm = this.timers[i];
+        tm.t -= dt;
+        if (tm.t <= 0) {
+          this.timers.splice(i, 1);
+          tm.fn();
+        }
       }
     }
     const L = this.level, h = this.hero;
     if (this.mode === 'demo') this.updateDemo(dt);
     const prevY = h.y;
-    h.update(dt, this);
-    if (this.mode === 'play') this.updatePlay(dt, prevY);
+    h.update(dt, this); // そうさは ロック中。ちゃくち だけ する
+    if (this.mode === 'play' && !frozen) this.updatePlay(dt, prevY);
+    else if (frozen) for (const b of L.blocks) b.update(dt);
     if (this.ending) this.updateFireworks(dt);
     for (const p of this.projectiles) p.update(dt, this);
     if (this.projectiles.length) this.projectiles = this.projectiles.filter((p) => !p.done);
@@ -321,7 +378,7 @@ const Game = {
     for (const g of L.gates) {
       g.update(dt);
       if (g.boss) g.boss.update(dt, this);
-      if (!g.active && g.state === 'locked' && h.x > g.triggerX) this.activateGate(g);
+      if (!g.active && g.state === 'locked' && h.x > g.triggerX && !this.ending) this.activateGate(g);
     }
     const G = L.goal;
     if (G && !G.reached) {
@@ -397,7 +454,7 @@ const Game = {
       h.hearts = h.maxHearts;
       pos = this.checkpoint;
       UI.banner('だいじょうぶ！', 'もういっかい がんばろう！');
-      Sound.speak('だいじょうぶ！ もういっかい！');
+      MediaAudio.Voice.play('wrongRetry', { interrupt: true }); // 「大丈夫！大丈夫！もう一回！」
     }
     h.x = pos.x;
     h.y = pos.y - 1;
@@ -419,15 +476,15 @@ const Game = {
     if (g.kind === 'boss') {
       UI.banner('ボス あらわる！', 'さんすうパワーで やっつけろ！', 'boss');
       g.boss.play('roar');
-      Sound.startMusic(BOSS_MUSIC);
-      Sound.speak('ボスが あらわれた！ さんすう パワーで やっつけよう！');
+      // BGM は ステージの きょくの まま。とうじょうボイス → もんだいの よみあげ の じゅん
+      MediaAudio.Voice.play('bossAppear', { interrupt: true });
       this.after(2.6, () => this.newQuestion(g));
     } else this.newQuestion(g);
   },
 
   newQuestion(g) {
     if (g.state !== 'locked') return;
-    const q = Quiz.make(this.level.stage.ops, this.settings.maxNum);
+    const q = Quiz.make(this.levelNo, this.stageIdx);
     g.quiz = q;
     g.firstTry = true;
     g.blocks.forEach((b, i) => {
@@ -437,12 +494,12 @@ const Game = {
     });
     Sound.play('pop');
     UI.showQuiz(q, this.settings.hint);
-    this.after(0.25, () => Sound.speak(Quiz.askText(q)));
+    MediaAudio.Voice.say(Quiz.askText(q)); // ほかの こえの あとに よむ（かさならない）
   },
 
   repeatQuestion() {
     const g = this.activeGate;
-    if (g && g.quiz && !this.answering) Sound.speak(Quiz.askText(g.quiz));
+    if (g && g.quiz && !this.answering && !this.cutin) MediaAudio.Voice.say(Quiz.askText(g.quiz), { interrupt: true });
   },
 
   onHeadHit(h, what) {
@@ -487,12 +544,8 @@ const Game = {
         this.fx.dust(o.x + o.w / 2, o.y + o.h / 2, 6, 0);
       }
     });
-    Sound.play('correct');
     UI.quizSolved(q);
-    const phrase = pick(PHRASES);
     this.fx.text('せいかい！', h.x, GROUND_Y - 190, { size: 56, life: 1.6 });
-    this.after(0.45, () => this.fx.text(phrase, h.x, GROUND_Y - 250, { size: 40, life: 1.7, top: '#ffffff', bot: '#8aeaff', stroke: '#062a5a' }));
-    Sound.speak(`せいかい！ ${Quiz.answerText(q)} ${phrase}`);
     h.vx = 0;
     h.forced = 'flex';
     h.lock = 99;
@@ -500,12 +553,20 @@ const Game = {
     this.zoomTarget = 1.15;
     this.focus = { x: h.x - this.camX, y: GROUND_Y - 130 };
     this.fx.confetti(h.x, GROUND_Y - 110, 40);
-    this.after(1.0, () => {
-      h.forced = 'punch';
-      Sound.play('whoosh');
-      const tx = g.kind === 'boss' ? g.boss.x - g.boss.w * 0.4 : g.x;
-      this.projectiles.push(new Projectile(h.x + 40, h.y - 74, tx, (x, y) => this.gateHit(g, x, y)));
-    });
+    // 正解.wav → カットイン（え＋おうえんボイス）→ おわったら 1かいだけ こうげきへ
+    const correctVoice = MediaAudio.Voice.play('correct', { interrupt: true });
+    const pair = Cheers.next();
+    if (!pair) console.warn('[cutin] つかえる えが ないので カットインを はぶきます');
+    this.cutin = new CutIn(correctVoice, pair, () => this.afterCutin(g));
+  },
+
+  afterCutin(g) {
+    const h = this.hero;
+    this.cutin = null;
+    h.forced = 'punch';
+    Sound.play('whoosh');
+    const tx = g.kind === 'boss' ? g.boss.x - g.boss.w * 0.4 : g.x;
+    this.projectiles.push(new Projectile(h.x + 40, h.y - 74, tx, (x, y) => this.gateHit(g, x, y)));
   },
 
   wrong(b) {
@@ -516,7 +577,8 @@ const Game = {
     Sound.play('wrong');
     this.fx.text('おしい！', b.x + b.w / 2, b.y - 24, { size: 34, life: 1.1, top: '#ffffff', bot: '#ffb3c6', stroke: '#5a0a2a' });
     UI.quizWrong();
-    Sound.speak(pick(WRONG_LINES));
+    // いまは おなじ もんだいを つづけるので「もう一回！」（「次行こう！」は もんだいを かえる ときよう）
+    MediaAudio.Voice.play('wrongRetry', { interrupt: true });
   },
 
   gateHit(g, x, y) {
@@ -550,7 +612,7 @@ const Game = {
     } else this.after(0.5, () => this.defeatBoss(g));
   },
 
-  finishAnswer(g, opened) {
+  finishAnswer(g, opened, givePower = true) {
     const h = this.hero;
     h.forced = null;
     h.lock = 0;
@@ -559,9 +621,12 @@ const Game = {
     if (!opened) return;
     this.activeGate = null;
     UI.hideQuiz();
+    if (!givePower) return;
+    const wasOn = h.power > 0;
     h.power = 6;
     Sound.play('power');
     this.fx.text('パワー アップ！', h.x, GROUND_Y - 200, { size: 40, top: '#fff6b0', bot: '#ffb21e' });
+    if (!wasOn) MediaAudio.Voice.play('power'); // パワー全開に なった しゅんかんに 1かい だけ
   },
 
   defeatBoss(g) {
@@ -579,10 +644,9 @@ const Game = {
     for (let i = 0; i < 9; i++) L.dumbbells.push({ x: boss.x - 160 + i * 40, y: GROUND_Y - 110 - Math.sin((i / 8) * Math.PI) * 90, taken: false, phase: i });
     this.checkpoint = { x: boss.x, y: GROUND_Y };
     this.after(0.7, () => {
-      this.finishAnswer(g, true);
-      Sound.startMusic(this.theme.music);
+      this.finishAnswer(g, true, false); // ボスの あとは パワー全開に しない（こえが かさならない）
       UI.banner('ボスを たおした！', 'ゴールへ すすめ！');
-      Sound.speak('すごい！ ボスを たおしたよ！ ゴールへ すすめ！');
+      MediaAudio.Voice.play('bossDown', { interrupt: true });
     });
   },
 
@@ -600,34 +664,50 @@ const Game = {
     h.vx = 0;
     h.facing = 1;
     h.invuln = 0;
-    Sound.stopMusic();
-    Sound.play('clear');
-    Sound.speak('ステージ クリア！ やったね！');
+    // クリア確定: プレイの きょく → クリアの きょく（あたまから）。クリアボイスは 1かい
+    MediaAudio.BGM.play('clear', { restart: true });
+    MediaAudio.Voice.play('clear', { interrupt: true });
     this.zoomTarget = 1.12;
     this.focus = { x: h.x - this.camX, y: h.y - 90 };
     this.fx.confetti(h.x, h.y - 110, 80, 1.3);
     this.fwT = 0.3;
+    this.fwLeft = 9;      // はなびの えんしゅつの ながさ
+    this.fwSound = false; // はなびの おとは さいしょの 1ぱつで 1かい だけ
+    this.fwStopped = false;
     UI.hideQuiz();
     const st = this.stats;
     const ratio = st.total ? st.first / st.total : 1;
     const stars = ratio >= 0.85 ? 3 : ratio >= 0.5 ? 2 : 1;
-    this.progress.stars[this.stageIdx] = Math.max(this.progress.stars[this.stageIdx] || 0, stars);
-    Store.set('progress', this.progress);
+    const key = this.starKey(this.levelNo, this.stageIdx);
+    this.progress.stars[key] = Math.max(this.progress.stars[key] || 0, stars);
+    Store.set('progress2', this.progress);
     this.after(2.8, () => {
       this.mode = 'clear';
       UI.hud(false);
-      UI.showClear({ stars, correct: st.correct, db: st.db, last: this.stageIdx >= STAGES.length - 1 });
+      // けっか画面に きりかわっても BGM・こえ・はなびの おとは そのまま（やりなおさない）
+      UI.showClear({ stars, correct: st.correct, db: st.db, last: this.stageIdx >= STAGES.length - 1, lv: this.levelNo });
     });
   },
 
   updateFireworks(dt) {
+    if (this.fwLeft <= 0) {
+      if (!this.fwStopped) { // えんしゅつが おわったら おとも みじかく フェードアウト
+        this.fwStopped = true;
+        MediaAudio.Fireworks.stop(1.0);
+      }
+      return;
+    }
+    this.fwLeft -= dt;
     this.fwT -= dt;
     if (this.fwT > 0) return;
+    if (!this.fwSound) {
+      this.fwSound = true;
+      MediaAudio.Fireworks.start();
+    }
     const x = this.camX + rand(0.15, 0.85) * this.viewW, y = rand(90, 300);
     const c = pick(['#ffe14a', '#ff4f8a', '#3fd4ff', '#7dff6a', '#ff8af0']);
     this.fx.sparkle(x, y, 44, c, 400);
     this.fx.flash(x, y, c, 130, 0.5);
-    Sound.play('firework');
     this.fwT = rand(0.35, 0.7);
   },
 
