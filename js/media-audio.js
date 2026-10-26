@@ -33,9 +33,13 @@ const MediaAudio = (() => {
     const el = new Audio();
     el.preload = 'auto';
     el.setAttribute('playsinline', '');
-    return { el, base, duck: 1, fade: 1, gain: null, src: null };
+    return { el, base, track: 1, duck: 1, fade: 1, gain: null, src: null };
   }
-  const bgmCh = channel(0.5), voiceCh = channel(1), fwCh = channel(0.75);
+  const bgmCh = channel(1), voiceCh = channel(1), fwCh = channel(0.75);
+  // きょく ごとの おおきさ あわせ（はかった 平均音量: ステージ曲 ≒ -17.7dB、クリア曲だけ ≒ -14.8dB と おおきい）
+  const TRACK_GAIN = { clear: 0.75 };
+  // こえの あいだの BGM・はなび（うたも ある ていど きこえる くらいに さげる）
+  const DUCK_BGM = 0.6, DUCK_FW = 0.5;
 
   function connect(ch) {
     const ac = Sound.context();
@@ -49,7 +53,7 @@ const MediaAudio = (() => {
   }
 
   function level(ch, enabled, smooth = 0.06) {
-    const v = enabled ? ch.base * ch.duck * ch.fade : 0;
+    const v = enabled ? ch.base * ch.track * ch.duck * ch.fade : 0;
     const ac = Sound.context();
     if (ch.gain && ac) ch.gain.gain.setTargetAtTime(v, ac.currentTime, smooth);
     else ch.el.volume = clamp(v, 0, 1);
@@ -86,6 +90,7 @@ const MediaAudio = (() => {
         return;
       }
       this.cur = id;
+      bgmCh.track = TRACK_GAIN[id] || 1;
       bgmCh.el.loop = true;
       setSrc(bgmCh, MEDIA.bgm[id].src); // まえの きょくの よみこみは ここで うちきり（あとから ならない）
       bgmCh.fade = 1;
@@ -252,8 +257,8 @@ const MediaAudio = (() => {
 
   function setDuck(on) {
     ducked = on;
-    bgmCh.duck = on ? 0.32 : 1;
-    fwCh.duck = on ? 0.4 : 1;
+    bgmCh.duck = on ? DUCK_BGM : 1;
+    fwCh.duck = on ? DUCK_FW : 1;
     // もどす ときも その ときの せってい を みる（オフに した おとを かってに ならさない）
     level(bgmCh, opt.music, 0.12);
     level(fwCh, opt.sfx, 0.12);
