@@ -283,7 +283,24 @@ const UI = (() => {
     $('cMsg').textContent = r.last ? `レベル${r.lv} ぜんぶ クリア！ きみは さんすうの チャンピオン！` : msgs[r.stars - 1];
     $('btnNext').textContent = r.last ? 'むずかしさを えらぶ' : 'つぎの ステージへ';
     $('clearLevel').textContent = `レベル${r.lv}・ステージ${game.stageIdx + 1}`;
+    renderLog(r.log || []);
     show('clear');
+  }
+
+  // でた じゅんに「しき ＝ こたえ」と ○／× → ○
+  function renderLog(log) {
+    const list = $('clearLog');
+    if (!log.length) {
+      list.innerHTML = '<li class="empty">もんだいは なかったよ</li>';
+      return;
+    }
+    const mark = (e) => {
+      if (!e.solved) return '<span class="ng">ー</span>';
+      if (e.miss) return '<span class="ng">×</span><span class="arrow">→</span><span class="ok">○</span>';
+      return '<span class="ok">○</span>';
+    };
+    list.innerHTML = log.map((e) => `<li${e.miss ? ' class="miss"' : ''}><span class="q">${e.a} ${Quiz.opMark(e.op)} ${e.b} ＝ ${e.answer}${e.boss ? '<small class="boss-tag">ボス</small>' : ''}</span><span class="r">${mark(e)}</span></li>`).join('');
+    list.scrollTop = 0;
   }
 
   return { init, show, hud, setHearts, setDb, setStage, showQuiz, quizWrong, quizSolved, hideQuiz, setHint, banner, showClear };

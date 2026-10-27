@@ -575,6 +575,32 @@ body.touchy.playing:not(.in-menu) .touch { display: flex; }
 .clear-stats small { font-weight: 800; font-size: calc(var(--u) * 2.4); color: #8a7ab8; }
 .clear-msg { margin: 0; font-weight: 900; font-size: calc(var(--u) * 3.2); color: #ff5a2a; text-align: center; }
 
+/* クリア: ひだりに けっかと ボタン、みぎに もんだいの いちらん（いちらんの たかさは ひだりに あわせて なかで スクロール） */
+.panel.clear { flex-direction: row; align-items: stretch; gap: calc(var(--u) * 3); max-width: 98vw; padding: calc(var(--u) * 3.2); }
+.clear-main { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 1.8); flex: none; }
+.clear-main .btn.big { padding-left: calc(var(--u) * 6); padding-right: calc(var(--u) * 6); }
+.clear-log { display: flex; flex-direction: column; flex: 0 1 auto; width: max(240px, calc(var(--u) * 66)); min-width: 0; min-height: calc(var(--u) * 34); border-radius: calc(var(--u) * 2.4); background: #fff; box-shadow: inset 0 0 0 2px #e2ddf4; overflow: hidden; }
+.clear-log-head { display: flex; justify-content: space-between; padding: calc(var(--u) * 1) calc(var(--u) * 2.4); background: #ece9f8; font-weight: 900; font-size: max(12px, calc(var(--u) * 2.2)); color: #7a6aa8; }
+.clear-log-body { position: relative; flex: 1 1 auto; }
+.clear-log-list { position: absolute; inset: 0; margin: 0; padding: calc(var(--u) * 0.6) 0; list-style: none; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.clear-log-list li { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 1.4); padding: calc(var(--u) * 0.9) calc(var(--u) * 1.8); font-weight: 900; font-size: max(16px, calc(var(--u) * 3.2)); line-height: 1.2; white-space: nowrap; }
+.clear-log-list li + li { border-top: 1px dashed #e2ddf4; }
+.clear-log-list li.miss { background: #fff6f8; }
+.clear-log-list li.empty { justify-content: center; color: #8a7ab8; font-size: max(14px, calc(var(--u) * 2.6)); }
+.clear-log-list .q { font-variant-numeric: tabular-nums; }
+.boss-tag { margin-left: calc(var(--u) * 1); padding: 0.1em 0.5em; border-radius: 999px; background: linear-gradient(180deg, #ff8aa8, #e0306a); color: #fff; font-size: max(10px, calc(var(--u) * 1.8)); vertical-align: 0.2em; }
+.clear-log-list .r { display: flex; align-items: center; gap: 0.25em; font-size: 1.1em; }
+.clear-log-list .ok, .clear-log-list .ng { -webkit-text-stroke: 0.07em currentColor; } /* ○ の せんを ふとく */
+.clear-log-list .ok { color: #18943c; }
+.clear-log-list .ng { color: #e0306a; }
+.clear-log-list .arrow { color: #a89cc8; font-size: 0.8em; }
+@media (max-width: 640px) { .clear-log-list li { font-size: 15px; } } /* ちいさい スマホの よこむき */
+@media (max-aspect-ratio: 1/1) {
+  .panel.clear { flex-direction: column; align-items: center; }
+  .clear-log { width: 100%; min-height: 0; }
+  .clear-log-body { flex: none; height: calc(var(--u) * 30); }
+}
+
 /* ---------------- たてむき ---------------- */
 .rotate { position: absolute; inset: 0; z-index: 40; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 28px; background: linear-gradient(#160f44, #3a1868); font-weight: 900; font-size: 26px; }
 .phone { width: 70px; height: 120px; border: 6px solid #fff; border-radius: 16px; animation: rot 2.2s ease-in-out infinite; }

@@ -3,6 +3,9 @@
    ゲームの しんぞう（すすみかた・もんだい・カメラ）
    ========================================================= */
 const DUST = { meadow: '#f4ead8', desert: '#ffe0b0', snow: '#ffffff', night: '#b8b0e8' };
+// ダンベル声援: がめんの かず（stats.db）とは べつに かぞえる。10 → 20 → 35こ で 1しゅう（35で 0に もどす）
+const DB_CHEER = { 10: 'itemDb1', 20: 'itemDb2', 35: 'itemDb3' }, DB_CYCLE = 35;
+const BOSS_NEXT = 1.0; // ボスに あたってから つぎの もんだい まで（びょう）
 
 const Game = {
   mode: 'boot',
@@ -61,7 +64,8 @@ const Game = {
     });
     UI.init(this);
     this.startDemo();
-    MediaAudio.BGM.play('title');
+    // タイトルから ステージえらびまで おなじ きょく（自動再生が だめな ときは さいしょの タップで ならす）
+    MediaAudio.BGM.play('select');
     this.last = performance.now();
     requestAnimationFrame((n) => this.loop(n));
   },
@@ -193,24 +197,26 @@ const Game = {
     }
   },
 
-  // タイトル → ステージえらび（えらび画面の BGM を ながす）
+  // タイトル → ステージえらび（おなじ きょくを とめずに つづける）
   openSelect() {
     MediaAudio.BGM.play('select');
     UI.show('select');
   },
 
-  // ゲーム中・クリア画面 → ステージえらび（それまでの きょくを とめて あたまから）
+  // ゲーム中・クリア画面 → ステージえらび
+  // クリアの あと: クリアの きょくを その いちから つづける / とちゅうで やめた: えらび画面の きょくへ
   toSelect() {
+    const afterClear = this.mode === 'clear';
     if (this.mode !== 'demo') this.startDemo();
     else this.resetScene();
     Sound.suspend(false);
-    MediaAudio.BGM.play('select', { restart: true });
+    MediaAudio.BGM.play(afterClear ? 'clear' : 'select');
     UI.show('select');
   },
 
-  // ステージえらび → タイトル（タイトルの おんがくに もどす）
+  // ステージえらび → タイトル（えらび画面の きょく。もう ながれていれば その まま）
   toTitle() {
-    MediaAudio.BGM.play('title');
+    MediaAudio.BGM.play('select');
     UI.show('title');
   },
 
@@ -233,6 +239,8 @@ const Game = {
     this.camX = 0;
     this.checkpoint = { x: 3 * T, y: GROUND_Y };
     this.stats = { db: 0, correct: 0, first: 0, total: 0 };
+    this.qlog = [];   // でた もんだいと けっか（おちても のこす。つぎの ステージ・さいしょから で からに）
+    this.dbCheer = 0; // ダンベル声援の かず（がめんの かずとは べつ）
     this.mode = 'play';
     Input.reset();
     UI.show(null);
@@ -341,6 +349,7 @@ const Game = {
 
   updatePlay(dt, prevY) {
     const L = this.level, h = this.hero;
+    let cheer = null; // この しゅんかんに ならす アイテム声援（プロテインが ゆうせん）
     for (const d of L.dumbbells) {
       if (d.taken || Math.abs(d.x - h.x) > 36 || d.y < h.y - h.h - 22 || d.y > h.y + 12) continue;
       d.taken = true;
@@ -349,6 +358,9 @@ const Game = {
       Sound.play('coin');
       this.fx.sparkle(d.x, d.y, 8, '#ffe14a', 200);
       this.fx.ring(d.x, d.y, '#fff2a0', 6, 34, 0.3, 4);
+      this.dbCheer++;
+      if (DB_CHEER[this.dbCheer]) cheer = DB_CHEER[this.dbCheer];
+      if (this.dbCheer >= DB_CYCLE) this.dbCheer = 0; // ならせなくても ここで 1しゅう おわり
     }
     for (const p of L.proteins) {
       if (p.taken || Math.abs(p.x - h.x) > 38 || p.y < h.y - h.h - 24 || p.y > h.y + 14) continue;
@@ -358,7 +370,10 @@ const Game = {
       Sound.play('heal');
       this.fx.sparkle(p.x, p.y, 16, '#ff7aa8', 260);
       this.fx.text('げんき もりもり！', p.x, p.y - 50, { size: 30, top: '#ffffff', bot: '#ff9ac0', stroke: '#5a0a2a' });
+      cheer = 'itemProtein'; // たいりょくが まんタンでも とれたら ならす
     }
+    // ほかの こえが なっている・まっている ときは はぶく（あとから ならさない）
+    if (cheer) MediaAudio.Item.play(cheer);
     for (const s of L.springs) {
       s.update(dt);
       if (h.vy >= 0 && Math.abs(h.x - s.x) < 40 && prevY <= s.top + 14 && h.y >= s.top - 1) {
@@ -487,6 +502,10 @@ const Game = {
     const q = Quiz.make(this.levelNo, this.stageIdx);
     g.quiz = q;
     g.firstTry = true;
+    g.qNo = (g.qNo || 0) + 1;
+    // けっか画面の いちらん用（おなじ もんだいへの やりなおしは この 1ぎょうに まとめる）
+    g.log = { a: q.a, op: q.op, b: q.b, answer: q.answer, boss: g.kind === 'boss', miss: false, solved: false };
+    this.qlog.push(g.log);
     g.blocks.forEach((b, i) => {
       b.value = q.choices[i];
       b.state = 'idle';
@@ -533,6 +552,7 @@ const Game = {
     this.stats.total++;
     this.stats.correct++;
     if (g.firstTry) this.stats.first++;
+    g.log.solved = true;
     b.state = 'gone';
     const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
     this.fx.sparkle(cx, cy, 26, this.theme.block.glow, 420);
@@ -572,6 +592,7 @@ const Game = {
   wrong(b) {
     const g = b.gate;
     g.firstTry = false;
+    g.log.miss = true; // さいしょの こたえで まちがえた（あとで せいかいしても「× → ○」）
     b.state = 'wrong';
     b.shake = 0.5;
     Sound.play('wrong');
@@ -607,8 +628,13 @@ const Game = {
     Sound.play('bossHit');
     this.fx.text(pick(['いたーい！', 'ぐはっ！', 'ひえ〜！']), boss.x, boss.y - boss.h - 20, { size: 42, top: '#ffffff', bot: '#ffb0c8', stroke: '#4a0a2a' });
     if (boss.hp > 0) {
+      // ひるむ ところを みせて、あたってから やく 1びょうで つぎの もんだい（でた ときから こたえられる）
+      const no = g.qNo;
       this.after(0.6, () => this.finishAnswer(g, false));
-      this.after(3.2, () => this.newQuestion(g));
+      this.after(BOSS_NEXT, () => {
+        if (g.qNo !== no || g.state !== 'locked' || boss.dead) return; // もう つぎが でている・たおした
+        this.newQuestion(g);
+      });
     } else this.after(0.5, () => this.defeatBoss(g));
   },
 
@@ -685,7 +711,7 @@ const Game = {
       this.mode = 'clear';
       UI.hud(false);
       // けっか画面に きりかわっても BGM・こえ・はなびの おとは そのまま（やりなおさない）
-      UI.showClear({ stars, correct: st.correct, db: st.db, last: this.stageIdx >= STAGES.length - 1, lv: this.levelNo });
+      UI.showClear({ stars, correct: st.correct, db: st.db, last: this.stageIdx >= STAGES.length - 1, lv: this.levelNo, log: this.qlog });
     });
   },
 

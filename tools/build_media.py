@@ -1,6 +1,6 @@
 """素材ZIPを 展開した フォルダから、ゲーム用の 音声・画像 一覧を つくる
 
-つかいかた:  python tools/build_media.py <素材フォルダ>
+つかいかた:  python tools/build_media.py <素材フォルダ> [追加の素材フォルダ ...]
   - 元の ファイル名（日本語）→ 英数字の ファイル名 に コピー（assets/bgm, assets/sfx, assets/voice）
   - 元の カットイン画像は source/cutin/ に そのまま 保管
   - WAV は 元を source/voice/ に 保管し、前後の 無音を けずった ゲーム用を assets/voice/ に（tools/trim_voices.py）
@@ -15,13 +15,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
 N = lambda s: unicodedata.normalize("NFC", s)
 
+# キー → (元の ファイル名, assets/bgm/ の ファイル名)。曲を さしかえた ときは ファイル名も かえる（ふるい キャッシュが のこらない ように）
 BGM = {
-    "select": "ステージセレクトBGM.mp3",
-    "stage1": "ステージ1_お願いマッスル.mp3",
-    "stage2": "ステージ2_マッチョメン.mp3",
-    "stage3": "ステージ3_ボンジョビ.mp3",
-    "stage4": "ステージ4_アイオブザタイガー.mp3",
-    "clear": "ステージクリアしたときのBGM.mp3",
+    "select": ("ステージ選択 2.mp3", "menu"),                       # タイトル・ステージえらび（2つめの 素材で さしかえ）
+    "stage1": ("ステージ1_お願いマッスル.mp3", "stage1"),
+    "stage2": ("ステージ2_マッチョメン.mp3", "stage2"),
+    "stage3": ("ステージ3_ボンジョビ.mp3", "stage3"),
+    "stage4": ("ステージ4_アイオブザタイガー.mp3", "stage4"),
+    "clear": ("ステージクリア後(ステージ選ぶ.mp3", "afterclear"),  # ゴール → けっか → クリアごの ステージえらび
 }
 SFX = {"fireworks": "ステージクリアの花時の音_花火大会.mp3"}  # 「花時」は ZIP の じっさいの 名前
 VOICE = {
@@ -33,6 +34,11 @@ VOICE = {
     "wrongRetry": "間違えたとき_大丈夫！大丈夫！もう一回！.wav",
     "wrongNext": "間違えたとき_大丈夫！大丈夫！次行こう！.wav",
     "power": "パワー全開.wav",
+    # プレイ中の アイテム声援（2つめの 素材）
+    "itemDb1": "キレてるよ！キレてるよ！.wav",
+    "itemDb2": "仕上がってる仕上がってる.wav",
+    "itemDb3": "はーい！！サイドチェストーーー！！！.wav",
+    "itemProtein": "ハイ、ここでプロテイン.wav",
 }
 # 画像の 末尾番号 → (テロップ, 応援ボイスの ファイル名)
 CHEERS = {
@@ -62,8 +68,9 @@ CHEERS = {
 def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
-    src = sys.argv[1]
-    files = {N(f): os.path.join(src, f) for f in os.listdir(src)}
+    files = {}
+    for src in sys.argv[1:]:
+        files.update({N(f): os.path.join(src, f) for f in os.listdir(src)})
 
     def need(name):
         p = files.get(N(name))
@@ -82,8 +89,8 @@ def main():
         return rel.replace(os.sep, "/")
 
     media = {"bgm": {}, "sfx": {}, "voice": {}, "cheers": []}
-    for k, name in BGM.items():
-        media["bgm"][k] = {"src": copy(name, f"assets/bgm/{k}.mp3"), "orig": N(name)}
+    for k, (name, fn) in BGM.items():
+        media["bgm"][k] = {"src": copy(name, f"assets/bgm/{fn}.mp3"), "orig": N(name)}
     for k, name in SFX.items():
         media["sfx"][k] = {"src": copy(name, f"assets/sfx/{k}.mp3"), "orig": N(name)}
     def put_voice(name, key):

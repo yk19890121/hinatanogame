@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261027c">
+<link rel="stylesheet" href="css/style.css?v=20261028a">
 </head>
 <body>
 <div id="app">
@@ -120,18 +120,25 @@
   <!-- クリア -->
   <section id="scrClear" class="screen dim">
     <div class="panel clear">
-      <div id="clearLevel" class="clear-level"></div>
-      <h2 class="clear-title">ステージ クリア！</h2>
-      <div class="stars" id="clearStars"><span></span><span></span><span></span></div>
-      <div class="clear-stats">
-        <div><b id="cCorrect">0</b><small>もん せいかい</small></div>
-        <div><b id="cDb">0</b><small>こ ダンベル</small></div>
+      <div class="clear-main">
+        <div id="clearLevel" class="clear-level"></div>
+        <h2 class="clear-title">ステージ クリア！</h2>
+        <div class="stars" id="clearStars"><span></span><span></span><span></span></div>
+        <div class="clear-stats">
+          <div><b id="cCorrect">0</b><small>もん せいかい</small></div>
+          <div><b id="cDb">0</b><small>こ ダンベル</small></div>
+        </div>
+        <p class="clear-msg" id="cMsg"></p>
+        <button id="btnNext" class="btn big">つぎの ステージへ</button>
+        <div class="row">
+          <button id="btnAgain" class="btn">もういちど</button>
+          <button id="btnClearSel" class="btn ghost">ステージを えらぶ</button>
+        </div>
       </div>
-      <p class="clear-msg" id="cMsg"></p>
-      <button id="btnNext" class="btn big">つぎの ステージへ</button>
-      <div class="row">
-        <button id="btnAgain" class="btn">もういちど</button>
-        <button id="btnClearSel" class="btn ghost">ステージを えらぶ</button>
+      <!-- でた もんだいの いちらん（ながい ときは この なかだけ スクロール） -->
+      <div class="clear-log">
+        <div class="clear-log-head"><span>もんだい</span><span>けっか</span></div>
+        <div class="clear-log-body"><ol id="clearLog" class="clear-log-list"></ol></div>
       </div>
     </div>
   </section>
@@ -139,22 +146,22 @@
   <div id="rotate" class="rotate"><div class="phone"></div><p>よこむきに してね</p></div>
 </div>
 
-<script src="js/util.js?v=20261027c"></script>
-<script src="js/quiz.js?v=20261027c"></script>
-<script src="js/media.js?v=20261027c"></script>
-<script src="js/audio.js?v=20261027c"></script>
-<script src="js/media-audio.js?v=20261027c"></script>
-<script src="js/input.js?v=20261027c"></script>
-<script src="js/themes.js?v=20261027c"></script>
-<script src="js/assets.js?v=20261027c"></script>
-<script src="js/sprite-meta.js?v=20261027c"></script>
-<script src="js/sprites.js?v=20261027c"></script>
-<script src="js/hero.js?v=20261027c"></script>
-<script src="js/entities.js?v=20261027c"></script>
-<script src="js/level.js?v=20261027c"></script>
-<script src="js/render.js?v=20261027c"></script>
-<script src="js/cutin.js?v=20261027c"></script>
-<script src="js/ui.js?v=20261027c"></script>
-<script src="js/game.js?v=20261027c"></script>
+<script src="js/util.js?v=20261028a"></script>
+<script src="js/quiz.js?v=20261028a"></script>
+<script src="js/media.js?v=20261028a"></script>
+<script src="js/audio.js?v=20261028a"></script>
+<script src="js/media-audio.js?v=20261028a"></script>
+<script src="js/input.js?v=20261028a"></script>
+<script src="js/themes.js?v=20261028a"></script>
+<script src="js/assets.js?v=20261028a"></script>
+<script src="js/sprite-meta.js?v=20261028a"></script>
+<script src="js/sprites.js?v=20261028a"></script>
+<script src="js/hero.js?v=20261028a"></script>
+<script src="js/entities.js?v=20261028a"></script>
+<script src="js/level.js?v=20261028a"></script>
+<script src="js/render.js?v=20261028a"></script>
+<script src="js/cutin.js?v=20261028a"></script>
+<script src="js/ui.js?v=20261028a"></script>
+<script src="js/game.js?v=20261028a"></script>
 </body>
 </html>

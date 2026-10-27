@@ -3,8 +3,8 @@
 const MEDIA = {
   "bgm": {
     "select": {
-      "src": "assets/bgm/select.mp3",
-      "orig": "ステージセレクトBGM.mp3"
+      "src": "assets/bgm/menu.mp3",
+      "orig": "ステージ選択 2.mp3"
     },
     "stage1": {
       "src": "assets/bgm/stage1.mp3",
@@ -23,8 +23,8 @@ const MEDIA = {
       "orig": "ステージ4_アイオブザタイガー.mp3"
     },
     "clear": {
-      "src": "assets/bgm/clear.mp3",
-      "orig": "ステージクリアしたときのBGM.mp3"
+      "src": "assets/bgm/afterclear.mp3",
+      "orig": "ステージクリア後(ステージ選ぶ.mp3"
     }
   },
   "sfx": {
@@ -113,6 +113,46 @@ const MEDIA = {
         2.045
       ],
       "origDuration": 2.28
+    },
+    "itemDb1": {
+      "src": "assets/voice/itemDb1.wav",
+      "orig": "キレてるよ！キレてるよ！.wav",
+      "duration": 2.17,
+      "trim": [
+        0.22,
+        2.39
+      ],
+      "origDuration": 2.72
+    },
+    "itemDb2": {
+      "src": "assets/voice/itemDb2.wav",
+      "orig": "仕上がってる仕上がってる.wav",
+      "duration": 2.23,
+      "trim": [
+        0.2,
+        2.43
+      ],
+      "origDuration": 2.6
+    },
+    "itemDb3": {
+      "src": "assets/voice/itemDb3.wav",
+      "orig": "はーい！！サイドチェストーーー！！！.wav",
+      "duration": 2.265,
+      "trim": [
+        0.185,
+        2.45
+      ],
+      "origDuration": 2.72
+    },
+    "itemProtein": {
+      "src": "assets/voice/itemProtein.wav",
+      "orig": "ハイ、ここでプロテイン.wav",
+      "duration": 2.11,
+      "trim": [
+        0.175,
+        2.285
+      ],
+      "origDuration": 2.44
     }
   },
   "cheers": [
