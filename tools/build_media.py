@@ -3,11 +3,13 @@
 つかいかた:  python tools/build_media.py <素材フォルダ>
   - 元の ファイル名（日本語）→ 英数字の ファイル名 に コピー（assets/bgm, assets/sfx, assets/voice）
   - 元の カットイン画像は source/cutin/ に そのまま 保管
-  - WAV の 長さを はかって js/media.js（ID・パス・セリフ・元ファイル名・長さ・有効）を 書き出す
+  - WAV は 元を source/voice/ に 保管し、前後の 無音を けずった ゲーム用を assets/voice/ に（tools/trim_voices.py）
+  - けずった あとの 長さ（と けずった 位置）を js/media.js（ID・パス・セリフ・元ファイル名・長さ・有効）に 書き出す
   - ファイル名は 下の 表で 1対1 に きめうち（実行時の 推測や 部分一致は しない）
   - 濁点などの Unicode 表記ゆれ（NFC/NFD）は NFC に そろえて 照合
 """
 import json, os, re, shutil, sys, unicodedata, wave
+import trim_voices
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -84,9 +86,17 @@ def main():
         media["bgm"][k] = {"src": copy(name, f"assets/bgm/{k}.mp3"), "orig": N(name)}
     for k, name in SFX.items():
         media["sfx"][k] = {"src": copy(name, f"assets/sfx/{k}.mp3"), "orig": N(name)}
+    def put_voice(name, key):
+        copy(name, f"source/voice/{key}.wav")  # 元の 音（そのまま）
+        info = trim_voices.analyze(os.path.join(REPO, "source", "voice", f"{key}.wav"))
+        rel = f"assets/voice/{key}.wav"
+        os.makedirs(os.path.join(REPO, "assets", "voice"), exist_ok=True)
+        trim_voices.write(info, os.path.join(REPO, rel))           # まえ・うしろの 無音を けずった ゲーム用
+        return rel, {"duration": wav_len(os.path.join(REPO, rel)), "trim": [round(info["start"], 3), round(info["end"], 3)], "origDuration": round(info["dur"], 3)}
+
     for k, name in VOICE.items():
-        rel = copy(name, f"assets/voice/{k}.wav")
-        media["voice"][k] = {"src": rel, "orig": N(name), "duration": wav_len(os.path.join(REPO, rel))}
+        rel, meta = put_voice(name, k)
+        media["voice"][k] = {"src": rel, "orig": N(name), **meta}
     pngs = {}
     for f, p in files.items():
         m = re.search(r"-(\d+)\.png$", f)
@@ -98,13 +108,15 @@ def main():
             sys.exit(f"画像 -{n}.png が ない")
         img_name, img_path = pngs[n]
         shutil.copyfile(img_path, os.path.join(REPO, "source", "cutin", img_name))  # 元画像を 保管
-        rel = copy(voice, f"assets/voice/cheer{n:02d}.wav")
+        rel, meta = put_voice(voice, f"cheer{n:02d}")
         media["cheers"].append({
             "id": n,
             "image": f"assets/cutin/cutin{n:02d}.webp",
             "voice": rel,
             "line": line,
-            "duration": wav_len(os.path.join(REPO, rel)),
+            "duration": meta["duration"],
+            "trim": meta["trim"],
+            "origDuration": meta["origDuration"],
             "enabled": True,
             "origImage": img_name,
             "origVoice": N(voice),

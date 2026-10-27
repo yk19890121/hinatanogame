@@ -1,8 +1,8 @@
 'use strict';
 /* =========================================================
    せいかいの カットイン（マッチョの え ＋ おうえんボイス）
-   正解.wav → ひだりしたから スライドイン → まんなかで とまって おうえんボイス
-   → ボイスが おわったら みぎうえへ スライドアウト → おわったら つぎの しょり
+   正解.wav → スライドイン かいし と どうじに おうえんボイス → まんなかで とまって ボイスを つづける
+   → ボイスが おわったら すぐ みぎうえへ スライドアウト → おわったら つぎの しょり
    ゲームの じかんで うごくので、ポーズ中は いっしょに とまる
    ========================================================= */
 
@@ -11,7 +11,6 @@ const Cheers = {
   bag: [],
   last: null,
   img: {},
-  warm: {},
   failed: new Set(),
   byId(id) { return MEDIA.cheers.find((c) => c.id === id); },
   usable() { return MEDIA.cheers.filter((c) => c.enabled && !this.failed.has(c.id)).map((c) => c.id); },
@@ -32,11 +31,8 @@ const Cheers = {
     };
     im.src = c.image;
     this.img[id] = im;
-    // こえも さきに よんで キャッシュに いれておく
-    const a = new Audio();
-    a.preload = 'auto';
-    a.src = c.voice;
-    this.warm[id] = a;
+    // こえも さきに メモリへ（はじめての 正解でも よみこみ待ちが ない ように）
+    MediaAudio.preload(c.voice);
   },
   preload(n = 3) {
     if (this.bag.length < n) this.refill();
@@ -67,6 +63,7 @@ class CutIn {
     this.state = 'wait';
     this.t = 0;
     this.cheer = null;
+    this.vt = 0; // こえを ならしはじめてからの じかん
     this.root = document.getElementById('cutin');
     this.el = document.getElementById('cutinImg');
     this.dim = this.root.querySelector('.cutin-dim');
@@ -100,11 +97,14 @@ class CutIn {
 
   update(dt) {
     this.t += dt;
+    if (this.cheer) this.vt += dt;
     switch (this.state) {
       case 'wait': { // 正解.wav が おわるまで
         const lim = (MEDIA.voice.correct.duration || 1.5) + 1.2;
         if (this.correct.done || this.t > lim) {
           if (!this.pair) return this.finish();
+          // スライドインの はじまりと いっしょに 声援（まんなかで もういちど ならす ことは しない）
+          this.cheer = MediaAudio.Voice.playSrc(this.pair.voice, this.pair.duration);
           this.go('in');
         }
         break;
@@ -113,17 +113,16 @@ class CutIn {
         this.apply(Math.min(1, this.t / CUTIN_IN));
         if (this.t >= CUTIN_IN) {
           this.apply(1);
-          this.cheer = MediaAudio.Voice.playSrc(this.pair.voice, this.pair.duration);
-          this.go('hold');
+          this.go('hold'); // みじかい 声援が もう おわっていても hold で すぐ でていく
         }
         break;
-      case 'hold': { // まんなかで おうえんボイスが おわるまで（ひょうじ じかんは こえの ながさ しだい）
+      case 'hold': { // まんなかで おうえんボイスが おわるまで（じかんは こえを ならしはじめてから はかる）
         const h = this.cheer;
         let leave = false;
-        if (h.done && h.ok) leave = true;
-        else if (h.done && h.skipped) leave = this.t >= (this.pair.duration || CUTIN_FALLBACK); // こえ オフ
-        else if (h.done) leave = this.t >= CUTIN_FALLBACK;                                        // さいせい エラー
-        else if (this.t > (this.pair.duration || CUTIN_FALLBACK) + 4) leave = true;               // ねんのため
+        if (h.done && h.ok) leave = true;                                                          // じっさいの さいせい しゅうりょう
+        else if (h.done && h.skipped) leave = this.vt >= (this.pair.duration || CUTIN_FALLBACK); // こえ オフ: 音声の 長さぶん
+        else if (h.done) leave = this.vt >= CUTIN_FALLBACK;                                        // さいせい エラー: 3びょう
+        else if (this.vt > (this.pair.duration || CUTIN_FALLBACK) + 4) leave = true;              // ねんのため
         if (leave) this.go('out');
         break;
       }

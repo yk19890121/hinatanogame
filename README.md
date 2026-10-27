@@ -125,7 +125,7 @@
 | 19 | そのポーズで地球揺らす気かい！ | 本気の筋肉応援ポーズ-19.png | そのポーズで地球揺らす気かい！.wav |
 | 20 | デカすぎて画面に収まらない！ | 真顔ボディビルダーの爆熱応援文字-20.png | デカすぎて画面に収まらない！.wav |
 
-ゲーム内は `assets/cutin/cutinNN.webp`（緑背景を 除去した 透過WebP）と `assets/voice/cheerNN.wav`。元の 画像は `source/cutin/` に そのまま 保管しています。
+ゲーム内は `assets/cutin/cutinNN.webp`（緑背景を 除去した 透過WebP）と `assets/voice/cheerNN.wav`（前後の 無音を けずった もの。元の 音は `source/voice/`）。声援は 画像が スライドインを はじめると 同時に 鳴りはじめ、声が おわると すぐ 画像が 出ていきます。元の 画像は `source/cutin/` に そのまま 保管しています。
 
 ※ 3番: 画像の テロップは「できる**よ**」、音声は「できる**ぞ**ーー」でした。音声を 確認して「ぞ」と 判断したので、画像の「よ」だけを 同じ デザインで「ぞ」に 描きかえています（人物・ほかの 文字は そのまま）。手なおし版は `source/cutin_edit/`、作り方は `tools/fix_cutin3.py`。
 
@@ -163,7 +163,8 @@ tools/                素材を 作り直す ツール（下記）
 
 ```
 pip install pillow numpy
-python tools/build_media.py <素材.zipを 展開した フォルダ>         # 音の コピー・js/media.js・元画像の 保管
+python tools/build_media.py <素材.zipを 展開した フォルダ>         # 音の コピー（元は source/voice/、前後の 無音を けずった ゲーム用は assets/voice/）・js/media.js・元画像の 保管
+python tools/trim_voices.py                                        # 声の はじまり・おわり の 位置を ひょうじ（けずる 位置の 確認）
 python tools/fix_cutin3.py source/cutin/本気の背中と爆発的な文字-3.png source/cutin_edit/本気の背中と爆発的な文字-3_できるぞ.png
 python tools/process_cutins.py source/cutin source/cutin_edit         # 緑背景の 除去 → assets/cutin/
 python tools/process_sprites.py マッチョの画像.webp ボスの画像.webp     # キャラの コマ分割
@@ -173,4 +174,4 @@ python tools/process_sprites.py マッチョの画像.webp ボスの画像.webp 
 
 ### 更新するとき
 
-ブラウザに 古い ファイルが 残らないように、`index.html` の `?v=20261027b` を 新しい 日付に 変えてから push してください（音や 画像は 名前が 変わるときだけ 気にすれば OK）。
+ブラウザに 古い ファイルが 残らないように、`index.html` の `?v=20261027c` を 新しい 日付に 変えてから push してください（音や 画像は 名前が 変わるときだけ 気にすれば OK）。

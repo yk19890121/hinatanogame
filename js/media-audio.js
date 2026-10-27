@@ -110,6 +110,44 @@ const MediaAudio = (() => {
     },
   };
 
+  /* ---------------- ボイスの さきよみ（メモリに ほどいて おき、すぐ ならせる ように） ---------------- */
+  let voiceBus = null; // ボイス用の おとの 出口（WebAudio）
+  const Buffers = {
+    map: new Map(),
+    load(src) {
+      if (!src || this.map.has(src)) return;
+      const e = { buf: null, ab: null, failed: false };
+      this.map.set(src, e);
+      // file:// では fetch できないので そのときは <audio> で ならす（失敗あつかい）
+      fetch(src).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status))).then((ab) => {
+        e.ab = ab;
+        this.decode(e);
+      }).catch(() => { e.failed = true; });
+    },
+    decode(e) {
+      const ac = Sound.context();
+      if (!ac || !e.ab || e.decoding) return; // AudioContext は さいしょの タップで できる
+      e.decoding = true;
+      ac.decodeAudioData(e.ab.slice(0)).then((b) => { e.buf = b; }, () => { e.failed = true; });
+    },
+    decodeAll() { this.map.forEach((e) => this.decode(e)); },
+    get(src) {
+      const e = this.map.get(src);
+      if (!e) return null;
+      if (!e.buf) this.decode(e);
+      return e.buf;
+    },
+  };
+  function ensureVoiceBus() {
+    const ac = Sound.context();
+    if (!voiceBus && ac) {
+      voiceBus = ac.createGain();
+      voiceBus.gain.value = voiceCh.base;
+      voiceBus.connect(Sound.output());
+    }
+    return voiceBus;
+  }
+
   /* ---------------- ボイス（じゅんばんに 1ほんずつ） ---------------- */
   const Voice = {
     q: [],
@@ -175,9 +213,19 @@ const MediaAudio = (() => {
         } catch (e) { this.finish(h, 'error'); }
         return;
       }
+      // さきよみ ずみなら メモリから すぐ ならす（よみこみ待ち なし）
+      const ac = Sound.context();
+      const buf = Buffers.get(h.src);
+      if (buf && ac && ac.state === 'running' && ensureVoiceBus()) {
+        h.buf = buf;
+        h.offset = 0;
+        this.startBuffer(h);
+        return;
+      }
       const el = voiceCh.el;
       el.onended = () => this.finish(h, 'ok');
       el.onerror = () => this.finish(h, 'error');
+      el.onplaying = () => { if (h.audibleAt == null) h.audibleAt = performance.now(); };
       el.loop = false;
       setSrc(voiceCh, h.src);
       level(voiceCh, true, 0.01);
@@ -185,9 +233,28 @@ const MediaAudio = (() => {
       if (p && p.catch) p.catch((e) => { if (this.cur === h && e && e.name !== 'AbortError') this.finish(h, 'error'); });
       this.arm(h, (h.duration || 4) + 2);
     },
+    startBuffer(h) {
+      const ac = Sound.context();
+      const node = ac.createBufferSource();
+      node.buffer = h.buf;
+      node.connect(voiceBus);
+      node.onended = () => { if (h.node === node && this.cur === h) this.finish(h, 'ok'); }; // じっさいの さいせい しゅうりょう
+      h.node = node;
+      h.startedAt = ac.currentTime - h.offset;
+      node.start(0, h.offset);
+      if (h.audibleAt == null) h.audibleAt = performance.now();
+      this.arm(h, h.buf.duration - h.offset + 2);
+    },
+    stopNode(h) {
+      if (!h || !h.node) return;
+      const n = h.node;
+      h.node = null; // onended で おわり あつかい しない
+      try { n.stop(); } catch (e) { /* もう とまっている */ }
+    },
     cancel() {
       const all = this.q.splice(0);
       if (this.cur) all.push(this.cur);
+      this.stopNode(this.cur);
       this.cur = null;
       clearTimeout(this.watchdog);
       voiceCh.el.onended = voiceCh.el.onerror = null;
@@ -206,11 +273,19 @@ const MediaAudio = (() => {
         this.cur = null;
         this.q.unshift(h);
         h.started = false;
+      } else if (h.buf) { // メモリの おと: いまの いちを おぼえて とめる（さいかいで つづきから）
+        if (h.node) {
+          h.offset = Math.min(h.buf.duration, Sound.context().currentTime - h.startedAt);
+          this.stopNode(h);
+        }
       } else voiceCh.el.pause();
     },
     resume() {
       const h = this.cur;
-      if (h && h.src) {
+      if (h && h.buf) {
+        if (!h.node && Sound.context() && Sound.context().state === 'running') this.startBuffer(h);
+        else if (!h.node) setTimeout(() => { if (!blocked() && this.cur === h) this.resume(); }, 50); // AudioContext の さいかい まち
+      } else if (h && h.src) {
         tryPlay(voiceCh);
         const left = (h.duration || 4) - (voiceCh.el.currentTime || 0);
         this.arm(h, left + 2);
@@ -297,6 +372,8 @@ const MediaAudio = (() => {
   // さいしょの タップ・キー（ユーザー操作）の なかで よぶ
   function unlock() {
     [bgmCh, voiceCh, fwCh].forEach(connect);
+    ensureVoiceBus();
+    Buffers.decodeAll();
     if (unlocked) return;
     unlocked = true;
     for (const ch of [voiceCh, fwCh]) {
@@ -314,5 +391,20 @@ const MediaAudio = (() => {
     return { bgm: { want: BGM.want, cur: BGM.cur, ...s(bgmCh) }, voice: { ...s(voiceCh), cur: Voice.cur && (Voice.cur.key || Voice.cur.src || 'tts'), queued: Voice.q.length }, fw: { playing: Fireworks.playing, ...s(fwCh) }, ducked, synthTitle: Sound.musicPlaying() };
   };
 
-  return { BGM, Voice, Fireworks, setOption, setHeld, setHidden, unlock, state, get ducked() { return ducked; } };
+  // こえを さきよみ（イベントボイスは はじめに ぜんぶ、声援は つかう まえに すこしずつ）
+  const preload = (src) => Buffers.load(src);
+  Object.values(MEDIA.voice).forEach((v) => preload(v.src));
+  const isReady = (src) => !!Buffers.get(src);
+  // かくにん用: ボイスの 出口に つないだ アナライザー（じっさいに 声が でているか はかる）
+  const tapVoice = () => {
+    const ac = Sound.context();
+    if (!ac || !ensureVoiceBus()) return null;
+    const an = ac.createAnalyser();
+    an.fftSize = 512;
+    voiceBus.connect(an);
+    voiceCh.gain && voiceCh.gain.connect(an);
+    return an;
+  };
+
+  return { BGM, Voice, Fireworks, setOption, setHeld, setHidden, unlock, state, preload, isReady, tapVoice, get ducked() { return ducked; } };
 })();
