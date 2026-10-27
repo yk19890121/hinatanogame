@@ -33,8 +33,9 @@ const MEDIA = {
       "orig": "ステージクリアの花時の音_花火大会.mp3"
     },
     "cutinIn": {
-      "src": "assets/sfx/cutinIn.mp3",
-      "orig": "sword001.mp3"
+      "src": "assets/sfx/syakiin.mp3",
+      "orig": "Onoma-Syakiin02-1(Dry).mp3",
+      "start": 0.08
     }
   },
   "voice": {

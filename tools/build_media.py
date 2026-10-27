@@ -25,8 +25,10 @@ BGM = {
     "clear": ("ステージクリア後(ステージ選ぶ.mp3", "afterclear"),  # ゴール → けっか → クリアごの ステージえらび
 }
 SFX = {
-    "fireworks": "ステージクリアの花時の音_花火大会.mp3",  # 「花時」は ZIP の じっさいの 名前
-    "cutinIn": "sword001.mp3",                             # 正解カットインの スライドインの 音（3つめの 素材）
+    "fireworks": ("ステージクリアの花時の音_花火大会.mp3", "fireworks"),  # 「花時」は ZIP の じっさいの 名前
+    # 正解カットインの スライドインの「シャキーン」（ZIP の Dry 版。Delay 版は 余韻が 3びょう ちかく 声援に かぶる）
+    # 音の はじまりが 0.105びょう めなので、0.08びょう から ならす（mp3 の デコーダーの ずれ ぶん 余白を のこす）
+    "cutinIn": ("Onoma-Syakiin02-1(Dry).mp3", "syakiin", 0.08),
 }
 VOICE = {
     "start": "スタート.wav",
@@ -94,8 +96,10 @@ def main():
     media = {"bgm": {}, "sfx": {}, "voice": {}, "cheers": []}
     for k, (name, fn) in BGM.items():
         media["bgm"][k] = {"src": copy(name, f"assets/bgm/{fn}.mp3"), "orig": N(name)}
-    for k, name in SFX.items():
-        media["sfx"][k] = {"src": copy(name, f"assets/sfx/{k}.mp3"), "orig": N(name)}
+    for k, (name, fn, *start) in SFX.items():
+        media["sfx"][k] = {"src": copy(name, f"assets/sfx/{fn}.mp3"), "orig": N(name)}
+        if start:
+            media["sfx"][k]["start"] = start[0]  # ここから ならす（あたまの 無音を とばす）
     def put_voice(name, key):
         copy(name, f"source/voice/{key}.wav")  # 元の 音（そのまま）
         info = trim_voices.analyze(os.path.join(REPO, "source", "voice", f"{key}.wav"))

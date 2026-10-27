@@ -404,8 +404,8 @@ const MediaAudio = (() => {
 
   /* ---------------- みじかい こうかおん（カットインの「シュッ」など） ---------------- */
   // メモリに さきよみして すぐ ならす。こうかおん オフ・ポーズ中は ならさない（ポーズで とめて つづきは ならさない）
-  // おおきさ: 剣の 音は もとが とても 大きい（はじめの 0.2びょう ≒ -2dB）ので、声援の ことばが かくれない ように さげる
-  const SFX_GAIN = { cutinIn: 0.3 };
+  // おおきさ: 声援の ことばが かくれない ように すこし さげる（シャキーン ≒ -20dB が 0.5びょう つづく）
+  const SFX_GAIN = { cutinIn: 0.7 };
   const Sfx = {
     cur: [],
     play(key) {
@@ -422,12 +422,13 @@ const MediaAudio = (() => {
         node.connect(g);
         node.onended = () => { this.cur = this.cur.filter((n) => n !== node); };
         this.cur.push(node);
-        node.start();
+        node.start(0, m.start || 0); // あたまの 無音は とばす
         return;
       }
       // まだ メモリに ない（file:// など）: <audio> で
       sfxCh.track = SFX_GAIN[key] || 1;
       setSrc(sfxCh, m.src);
+      try { sfxCh.el.currentTime = m.start || 0; } catch (e) { /* まだ よみこみ中 */ }
       level(sfxCh, true, 0.01);
       tryPlay(sfxCh);
     },
