@@ -1,7 +1,7 @@
 'use strict';
 /* =========================================================
    せいかいの カットイン（マッチョの え ＋ おうえんボイス）
-   正解.wav → スライドイン かいし と どうじに おうえんボイス → まんなかで とまって ボイスを つづける
+   正解.wav → スライドイン かいし と どうじに 剣の「シュッ」と おうえんボイス → まんなかで とまって ボイスを つづける
    → ボイスが おわったら すぐ みぎうえへ スライドアウト → おわったら つぎの しょり
    ゲームの じかんで うごくので、ポーズ中は いっしょに とまる
    ========================================================= */
@@ -103,7 +103,8 @@ class CutIn {
         const lim = (MEDIA.voice.correct.duration || 1.5) + 1.2;
         if (this.correct.done || this.t > lim) {
           if (!this.pair) return this.finish();
-          // スライドインの はじまりと いっしょに 声援（まんなかで もういちど ならす ことは しない）
+          // スライドインの はじまりと いっしょに「シュッ」と 声援（まんなかで もういちど ならす ことは しない）
+          MediaAudio.Sfx.play('cutinIn');
           this.cheer = MediaAudio.Voice.playSrc(this.pair.voice, this.pair.duration);
           this.go('in');
         }
@@ -153,5 +154,6 @@ class CutIn {
     this.onDone = null;
     this.apply(2);
     if (this.cheer && !this.cheer.done) MediaAudio.Voice.cancel();
+    if (this.cheer) MediaAudio.Sfx.stop();
   }
 }

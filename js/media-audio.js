@@ -36,7 +36,7 @@ const MediaAudio = (() => {
     el.setAttribute('playsinline', '');
     return { el, base, track: 1, duck: 1, fade: 1, gain: null, src: null };
   }
-  const bgmCh = channel(1), voiceCh = channel(1), itemCh = channel(1), fwCh = channel(0.75);
+  const bgmCh = channel(1), voiceCh = channel(1), itemCh = channel(1), sfxCh = channel(1), fwCh = channel(0.75);
   // きょく ごとの おおきさ あわせ（はかった 平均音量: ステージ曲 ≒ -18.4dB、えらび画面の 曲 ≒ -16.4dB、クリアごの 曲 ≒ -19.0dB）
   const TRACK_GAIN = { select: 0.8 };
   // こえの あいだの BGM・はなび（うたも ある ていど きこえる くらいに さげる）
@@ -402,6 +402,41 @@ const MediaAudio = (() => {
     },
   };
 
+  /* ---------------- みじかい こうかおん（カットインの「シュッ」など） ---------------- */
+  // メモリに さきよみして すぐ ならす。こうかおん オフ・ポーズ中は ならさない（ポーズで とめて つづきは ならさない）
+  // おおきさ: 剣の 音は もとが とても 大きい（はじめの 0.2びょう ≒ -2dB）ので、声援の ことばが かくれない ように さげる
+  const SFX_GAIN = { cutinIn: 0.3 };
+  const Sfx = {
+    cur: [],
+    play(key) {
+      const m = MEDIA.sfx[key];
+      if (!opt.sfx || blocked()) return;
+      const ac = Sound.context();
+      const buf = Buffers.get(m.src);
+      if (buf && ac && ac.state === 'running') {
+        const g = ac.createGain();
+        g.gain.value = SFX_GAIN[key] || 1;
+        g.connect(Sound.output());
+        const node = ac.createBufferSource();
+        node.buffer = buf;
+        node.connect(g);
+        node.onended = () => { this.cur = this.cur.filter((n) => n !== node); };
+        this.cur.push(node);
+        node.start();
+        return;
+      }
+      // まだ メモリに ない（file:// など）: <audio> で
+      sfxCh.track = SFX_GAIN[key] || 1;
+      setSrc(sfxCh, m.src);
+      level(sfxCh, true, 0.01);
+      tryPlay(sfxCh);
+    },
+    stop() {
+      this.cur.splice(0).forEach((n) => { try { n.stop(); } catch (e) { /* もう とまっている */ } });
+      sfxCh.el.pause();
+    },
+  };
+
   /* ---------------- はなびの おと（1かい だけ・くりかえさない） ---------------- */
   let fwFade = null;
   const Fireworks = {
@@ -456,7 +491,10 @@ const MediaAudio = (() => {
     opt[k] = v;
     if (k === 'music') BGM.refresh();
     if (k === 'voice' && !v) Voice.cancel();
-    if (k === 'sfx' && !v) Fireworks.stop(0.2);
+    if (k === 'sfx' && !v) {
+      Fireworks.stop(0.2);
+      Sfx.stop();
+    }
     if (k === 'sfx') level(fwCh, v);
   }
 
@@ -474,6 +512,7 @@ const MediaAudio = (() => {
       bgmCh.el.pause();
       Voice.pause();
       Item.pause();
+      Sfx.stop();
       if (Fireworks.playing) fwCh.el.pause();
     } else {
       BGM.refresh();
@@ -485,12 +524,12 @@ const MediaAudio = (() => {
 
   // さいしょの タップ・キー（ユーザー操作）の なかで よぶ
   function unlock() {
-    [bgmCh, voiceCh, itemCh, fwCh].forEach(connect);
+    [bgmCh, voiceCh, itemCh, sfxCh, fwCh].forEach(connect);
     ensureVoiceBus();
     Buffers.decodeAll();
     if (unlocked) return;
     unlocked = true;
-    for (const ch of [voiceCh, itemCh, fwCh]) {
+    for (const ch of [voiceCh, itemCh, sfxCh, fwCh]) {
       if (ch.src) continue;
       ch.el.src = SILENT;
       const p = ch.el.play();
@@ -508,6 +547,7 @@ const MediaAudio = (() => {
   // こえを さきよみ（イベントボイスは はじめに ぜんぶ、声援は つかう まえに すこしずつ）
   const preload = (src) => Buffers.load(src);
   Object.values(MEDIA.voice).forEach((v) => preload(v.src));
+  preload(MEDIA.sfx.cutinIn.src);
   const isReady = (src) => !!Buffers.get(src);
   // かくにん用: ボイスの 出口に つないだ アナライザー（じっさいに 声が でているか はかる）
   const tapVoice = () => {
@@ -520,5 +560,5 @@ const MediaAudio = (() => {
     return an;
   };
 
-  return { BGM, Voice, Item, Fireworks, setOption, setHeld, setHidden, unlock, state, preload, isReady, tapVoice, get ducked() { return ducked; } };
+  return { BGM, Voice, Item, Sfx, Fireworks, setOption, setHeld, setHidden, unlock, state, preload, isReady, tapVoice, get ducked() { return ducked; } };
 })();
