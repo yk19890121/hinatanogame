@@ -6,7 +6,10 @@ const MEDIA = {
       "src": "assets/bgm/afterclear.mp3",
       "orig": "ステージクリア後(ステージ選ぶ.mp3",
       "lufs": -18.3,
-      "gain": 1.023
+      "gain": 1.023,
+      "start": 0.0,
+      "end": 54.83,
+      "duration": 54.83
     }
   },
   "bgmPool": [
@@ -15,119 +18,170 @@ const MEDIA = {
       "src": "assets/bgm/bgm-deda8fb5.mp3",
       "orig": "BGM_お願いマッスル.mp3",
       "lufs": -18.2,
-      "gain": 1.012
+      "gain": 1.012,
+      "start": 0.0,
+      "end": 219.9,
+      "duration": 220.81
     },
     {
       "id": "bgm-5c1c0698",
       "src": "assets/bgm/bgm-5c1c0698.mp3",
       "orig": "BGM_アイオブザタイガー.mp3",
       "lufs": -18.4,
-      "gain": 1.035
+      "gain": 1.035,
+      "start": 0.0,
+      "end": 243.62,
+      "duration": 243.62
     },
     {
       "id": "bgm-8c145807",
       "src": "assets/bgm/bgm-8c145807.mp3",
       "orig": "BGM_ボンジョビ.mp3",
       "lufs": -17.9,
-      "gain": 0.977
+      "gain": 0.977,
+      "start": 0.0,
+      "end": 199.29,
+      "duration": 199.29
     },
     {
       "id": "bgm-9aaab297",
       "src": "assets/bgm/bgm-9aaab297.mp3",
       "orig": "BGM_マッチョメン.mp3",
       "lufs": -18.1,
-      "gain": 1.0
+      "gain": 1.0,
+      "start": 0.0,
+      "end": 329.85,
+      "duration": 329.85
     },
     {
       "id": "bgm-1adcec37",
       "src": "assets/bgm/bgm-1adcec37.mp3",
       "orig": "bgm そうるどアウト.mp3",
       "lufs": -18.3,
-      "gain": 1.023
+      "gain": 1.023,
+      "start": 0.75,
+      "end": 89.0,
+      "duration": 89.36
     },
     {
       "id": "bgm-e4aa4822",
       "src": "assets/bgm/bgm-e4aa4822.mp3",
       "orig": "bgm なんだかんだ.mp3",
       "lufs": -17.9,
-      "gain": 0.977
+      "gain": 0.977,
+      "start": 0.7,
+      "end": 184.27,
+      "duration": 184.27
     },
     {
       "id": "bgm-92a09220",
       "src": "assets/bgm/bgm-92a09220.mp3",
       "orig": "bgm めちゃマッチョ.mp3",
       "lufs": -18.1,
-      "gain": 1.0
+      "gain": 1.0,
+      "start": 1.85,
+      "end": 205.84,
+      "duration": 205.84
     },
     {
       "id": "bgm-540451ee",
       "src": "assets/bgm/bgm-540451ee.mp3",
       "orig": "bgm アラウンドザ・ワールド.mp3",
       "lufs": -17.5,
-      "gain": 0.933
+      "gain": 0.933,
+      "start": 0.75,
+      "end": 219.8,
+      "duration": 222.01
     },
     {
       "id": "bgm-714b6949",
       "src": "assets/bgm/bgm-714b6949.mp3",
       "orig": "bgm イケナイ太陽.mp3",
       "lufs": -17.8,
-      "gain": 0.966
+      "gain": 0.966,
+      "start": 0.65,
+      "end": 255.37,
+      "duration": 255.37
     },
     {
       "id": "bgm-f33f718c",
       "src": "assets/bgm/bgm-f33f718c.mp3",
       "orig": "bgm カンナムスタイル.mp3",
       "lufs": -17.6,
-      "gain": 0.944
+      "gain": 0.944,
+      "start": 3.1,
+      "end": 218.15,
+      "duration": 218.15
     },
     {
       "id": "bgm-8c3ff95e",
       "src": "assets/bgm/bgm-8c3ff95e.mp3",
       "orig": "bgm カンフーファイト.mp3",
       "lufs": -18.1,
-      "gain": 1.0
+      "gain": 1.0,
+      "start": 0.95,
+      "end": 180.64,
+      "duration": 180.64
     },
     {
       "id": "bgm-ac31c8d2",
       "src": "assets/bgm/bgm-ac31c8d2.mp3",
       "orig": "bgm カーリー.mp3",
       "lufs": -20.1,
-      "gain": 1.259
+      "gain": 1.259,
+      "start": 0.5,
+      "end": 142.81,
+      "duration": 142.81
     },
     {
       "id": "bgm-9f843c7b",
       "src": "assets/bgm/bgm-9f843c7b.mp3",
       "orig": "bgm ゲットワイルド.mp3",
       "lufs": -18.0,
-      "gain": 0.989
+      "gain": 0.989,
+      "start": 1.8,
+      "end": 234.2,
+      "duration": 236.12
     },
     {
       "id": "bgm-764de1fd",
       "src": "assets/bgm/bgm-764de1fd.mp3",
       "orig": "bgm プロジェクトA.mp3",
       "lufs": -17.4,
-      "gain": 0.923
+      "gain": 0.923,
+      "start": 1.1,
+      "end": 141.65,
+      "duration": 142.11
     },
     {
       "id": "bgm-2482b720",
       "src": "assets/bgm/bgm-2482b720.mp3",
       "orig": "bgm レインオンミー.mp3",
       "lufs": -18.4,
-      "gain": 1.035
+      "gain": 1.035,
+      "start": 1.15,
+      "end": 182.8,
+      "duration": 184.4
     },
     {
       "id": "bgm-8da1a950",
       "src": "assets/bgm/bgm-8da1a950.mp3",
       "orig": "bgm 歌舞伎.mp3",
       "lufs": -18.1,
-      "gain": 1.0
+      "gain": 1.0,
+      "start": 2.55,
+      "end": 146.39,
+      "duration": 146.39
     },
     {
       "id": "bgm-4c5aff6a",
       "src": "assets/bgm/bgm-4c5aff6a.mp3",
       "orig": "bgm 漢歌.mp3",
       "lufs": -23.1,
-      "gain": 1.6
+      "gain": 1.6,
+      "start": 1.55,
+      "end": 114.21,
+      "duration": 114.21
     }
   ],
   "sfx": {
@@ -145,10 +199,10 @@ const MEDIA = {
       "orig": "ほら貝を吹き鳴らす.mp3",
       "duration": 4.152
     },
-    "rareDon": {
-      "src": "assets/sfx/don.mp3",
-      "orig": "ドーン.mp3",
-      "duration": 3.808
+    "rareAppear": {
+      "src": "assets/sfx/inori.mp3",
+      "orig": "教会の祈り.mp3",
+      "duration": 6.746
     },
     "rareMuscle": {
       "src": "assets/sfx/muscle.mp3",

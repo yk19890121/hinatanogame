@@ -38,7 +38,7 @@ const MediaAudio = (() => {
   }
   const voiceCh = channel(1), itemCh = channel(1), sfxCh = channel(1), fwCh = channel(0.75);
   // こえの あいだの BGM・はなび（うたも ある ていど きこえる くらいに さげる）
-  const DUCK_BGM = 0.6, DUCK_FW = 0.5;
+  const DUCK_BGM = 0.6, DUCK_FW = 0.5, DUCK_RARE = 0.3;
 
   function connectTo(ch, dest) {
     const ac = Sound.context();
@@ -48,6 +48,9 @@ const MediaAudio = (() => {
       ch.gain = ac.createGain();
       node.connect(ch.gain);
       ch.gain.connect(dest);
+      // ここからは 音量を WebAudio の つまみで きめる。つなぐ まえに <audio> の 音量を 0 に して いても もとに もどす
+      //（<audio> の 音量は つないだ あとも かかる ため、0 の ままだと ずっと むおん）
+      ch.el.volume = 1;
     } catch (e) { ch.gain = null; }
   }
 
@@ -89,8 +92,10 @@ const MediaAudio = (() => {
   function applyPlayer(p, smooth = 0.03) {
     const v = p.vol * (p.track || 1);
     const ac = Sound.context();
-    if (p.gain && ac) p.gain.gain.setTargetAtTime(v, ac.currentTime, smooth);
-    else p.el.volume = clamp(v * bgmDuck * (opt.music ? 1 : 0), 0, 1);
+    if (p.gain && ac) {
+      p.gain.gain.setTargetAtTime(v, ac.currentTime, smooth);
+      if (p.el.volume !== 1) p.el.volume = 1;
+    } else p.el.volume = clamp(v * bgmDuck * (opt.music ? 1 : 0), 0, 1);
   }
   function applyBus(smooth = 0.12) {
     const ac = Sound.context();
@@ -156,8 +161,13 @@ const MediaAudio = (() => {
       p.looping = false;
       p.vol = 0;
       fade(p, 1, FADE_IN);
+      p.start = t.start || 0; // 曲の あたまの 無音は とばす（フェードインが 無音の あいだに おわらない ように）
+      p.end = t.end || 0;
       if (p.src !== t.src) setSrc(p, t.src); // ループの ときは よみこみずみの おなじ ファイル
-      else try { p.el.currentTime = 0; } catch (e) { /* まだ よみこみ中 */ }
+      const seek = () => { try { p.el.currentTime = p.start; } catch (e) { /* まだ よみこみ中 */ } };
+      const token = (p.seekToken = {});
+      if (p.el.readyState >= 1) seek();
+      else p.el.addEventListener('loadedmetadata', () => { if (p.seekToken === token && p.el.currentTime < p.start) seek(); }, { once: true });
       p.el.loop = false;
       p.fresh = true;
       applyPlayer(p, 0.005);
@@ -183,9 +193,10 @@ const MediaAudio = (() => {
       if (!m) return;
       const d = m.el.duration;
       if (!Number.isFinite(d) || d <= 0) return;
-      if (d < LOOP_MIN) { m.el.loop = true; return; }
-      // おわりの 2びょう まえで おなじ 曲を あたまから かさねて ループ
-      if (!m.el.paused && m.el.currentTime >= d - FADE_OUT) this.switchTo(m.id, { loop: true });
+      const end = m.end > 0 ? Math.min(m.end, d) : d; // おしりの 無音の まえを「おわり」と する
+      if (end - (m.start || 0) < LOOP_MIN) { m.el.loop = true; return; }
+      // おわりの 2びょう まえで おなじ 曲を あたまから かさねて ループ（つなぎめに 無音を つくらない）
+      if (!m.el.paused && m.el.currentTime >= end - FADE_OUT) this.switchTo(m.id, { loop: true });
     },
     refresh() { // せってい・ポーズ・タブ の じょうたいに あわせる
       applyBus();
@@ -197,7 +208,7 @@ const MediaAudio = (() => {
       for (const p of players) {
         if (p.role === 'idle' || !p.el.paused) continue;
         // まだ いちども ならせて いなかった（自動再生の せいげん など）→ あたまから フェードイン
-        if (p.role === 'main' && p.fresh && (p.el.currentTime || 0) < 0.05) {
+        if (p.role === 'main' && p.fresh && (p.el.currentTime || 0) < (p.start || 0) + 0.05) {
           p.vol = 0;
           fade(p, 1, FADE_IN);
         }
@@ -507,12 +518,14 @@ const MediaAudio = (() => {
     },
   };
 
-  /* ---------------- こうかおん（カットインの「シャキーン」、レア演出の ほら貝・マッスル群・ドーン） ---------------- */
+  /* ---------------- こうかおん（カットインの「シャキーン」、レア演出の ほら貝・マッスル群・教会の祈り） ---------------- */
   // メモリに さきよみして すぐ ならす。こうかおん オフの ときは ならさない。ポーズで とめて、さいかいで つづきから
-  // おおきさ: 声援・セリフの ことばが かくれない ように
-  //   シャキーン ≒ -14 LUFS → 0.7 / ほら貝 ≒ -15 LUFS（セリフと かさならない）→ 0.8
-  //   ドーン ≒ -20 LUFS（セリフと どうじ）→ 0.6 / マッスル群の 足音 ≒ -25 LUFS（ずっと ひくい）→ 1.5
-  const SFX_GAIN = { cutinIn: 0.7, rareHorn: 0.8, rareDon: 0.6, rareMuscle: 1.5 };
+  // おおきさ（もとの 大きさ → ならす 大きさ）
+  //   シャキーン ≒ -14 LUFS → 0.7（声援の ことばが かくれない ように）
+  //   ほら貝 ≒ -15 LUFS → 1.8 ≒ -10 LUFS（セリフと かさならないので めだたせる）
+  //   レア登場（教会の祈り）≒ -16 LUFS → 2.0 ≒ -10 LUFS（大きめ。セリフと おなじ くらい）
+  //   マッスル群の 足音 ≒ -25 LUFS → 1.3（ほら貝を かくさない）
+  const SFX_GAIN = { cutinIn: 0.7, rareHorn: 1.8, rareAppear: 2.0, rareMuscle: 1.3 };
   const Sfx = {
     cur: [], // { key, buf, node, gain, offset, startedAt }
     play(key) {
@@ -632,7 +645,7 @@ const MediaAudio = (() => {
     duckBy[who] = v;
     const on = duckBy.voice || duckBy.item || duckBy.rare;
     ducked = on;
-    bgmDuck = on ? DUCK_BGM : 1;
+    bgmDuck = duckBy.rare ? DUCK_RARE : on ? DUCK_BGM : 1; // レア演出の あいだは もっと さげて ほら貝・登場の 音を めだたせる
     fwCh.duck = on ? DUCK_FW : 1;
     // もどす ときも その ときの せってい を みる（オフに した おとを かってに ならさない）
     applyBus(0.12);

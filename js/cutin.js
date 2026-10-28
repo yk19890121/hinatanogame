@@ -4,7 +4,7 @@
    通常: 正解.wav → スライドイン かいし と どうじに「シャキーン」と おうえんボイス → まんなかで とまって ボイスを つづける
          → ボイスが おわったら すぐ みぎうえへ スライドアウト → おわったら つぎの しょり
    レア: 正解.wav → すこし くらく ＋ ほら貝 → マッスル群の 動画 → 動画の おわりと かさねて あかるく しながら
-         レアの え が スライドイン ＋ ドーン ＋ セリフ → セリフが おわったら スライドアウト
+         レアの え が スライドイン ＋ 登場の 音（教会の祈り）＋ セリフ → セリフが おわったら スライドアウト
    ゲームの じかんで うごくので、ポーズ中は いっしょに とまる
    ========================================================= */
 
@@ -259,7 +259,7 @@ class CutIn {
     if (this.rare) {
       MediaAudio.Sfx.fade('rareHorn', 0.2); // ほら貝の よいんは みじかく けす
       MediaAudio.Sfx.fade('rareMuscle', RARE_CROSS);
-      MediaAudio.Sfx.play('rareDon');
+      MediaAudio.Sfx.play('rareAppear');
       this.cross = 0;
     } else MediaAudio.Sfx.play('cutinIn');
     this.cheer = this.pair.voice
@@ -330,7 +330,11 @@ class CutIn {
         else if (h.done && h.skipped) leave = this.vt >= (this.pair.duration || CUTIN_FALLBACK); // こえ オフ: 音声の 長さぶん
         else if (h.done) leave = this.vt >= CUTIN_FALLBACK;                                        // さいせい エラー: 3びょう
         else if (this.vt > (this.pair.duration || CUTIN_FALLBACK) + 4) leave = true;              // ねんのため
-        if (leave) this.go('out');
+        if (leave) {
+          this.go('out');
+          // 登場の 音（教会の祈り）は セリフより ながいので、退場に あわせて みじかく けす
+          if (this.rare) MediaAudio.Sfx.fade('rareAppear', 0.6);
+        }
         break;
       }
       case 'out':

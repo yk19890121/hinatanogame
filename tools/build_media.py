@@ -28,7 +28,8 @@ SFX = {
     "cutinIn": ("Onoma-Syakiin02-1(Dry).mp3", "syakiin", 0.08),
     # レア演出（「BGM・SE」フォルダ）。"auto" = 音の はじまりを しらべて その 0.02びょう まえから ならす
     "rareHorn": ("ほら貝を吹き鳴らす.mp3", "horagai", "auto"),
-    "rareDon": ("ドーン.mp3", "don", "auto"),
+    # レア画像の 登場（「ドーン.mp3」から さしかえ）
+    "rareAppear": ("教会の祈り.mp3", "inori", "auto"),
 }
 VOICE = {
     "start": "スタート.wav",
@@ -115,6 +116,23 @@ def loudness(path):
     return float(m[-1])
 
 
+def music_bounds(path):
+    """曲の 音が ある はんい（あたま・おしりの 無音を のぞく）。-60dBFS を こえる ところ ±0.05びょう"""
+    import numpy as np
+    tmp = decode_wav(path)
+    with wave.open(tmp) as w:
+        sr, ch, n = w.getframerate(), w.getnchannels(), w.getnframes()
+        x = np.frombuffer(w.readframes(n), np.int16).reshape(-1, ch).astype(np.float32) / 32768
+    os.remove(tmp)
+    hop = int(sr * 0.05)
+    fr = np.abs(x).max(axis=1)[: n // hop * hop].reshape(-1, hop)
+    db = 20 * np.log10(np.sqrt((fr ** 2).mean(axis=1)) + 1e-9)
+    on = np.nonzero(db > -60)[0]
+    start = max(0.0, on[0] * 0.05 - 0.05)
+    end = min(n / sr, (on[-1] + 1) * 0.05 + 0.05)
+    return round(start, 2), round(end, 2), round(n / sr, 2)
+
+
 def decode_wav(path):
     """mp3 → 一時 WAV（44.1kHz・16bit）。ブラウザと おなじく エンコーダーの 遅延は ffmpeg が とりのぞく"""
     fd, tmp = tempfile.mkstemp(suffix=".wav")
@@ -163,9 +181,12 @@ def main():
     clear_lufs = loudness(need(BGM_CLEAR[0]))
     target = sorted(r[2] for r in rows)[len(rows) // 2]
     gain = lambda L: round(min(1.6, max(0.25, 10 ** ((target - L) / 20))), 3)
+    # start / end: 曲の あたま・おしりの 無音は とばす（フェードインが 無音の あいだに おわったり、ループの つなぎめが むおんに ならない ように）
     for name, src, L in rows:
-        media["bgmPool"].append({"id": os.path.splitext(os.path.basename(src))[0], "src": src, "orig": name, "lufs": L, "gain": gain(L)})
-    media["bgm"]["clear"] = {"src": clear_src, "orig": N(BGM_CLEAR[0]), "lufs": clear_lufs, "gain": gain(clear_lufs)}
+        s, e, d = music_bounds(need(name))
+        media["bgmPool"].append({"id": os.path.splitext(os.path.basename(src))[0], "src": src, "orig": name, "lufs": L, "gain": gain(L), "start": s, "end": e, "duration": d})
+    s, e, d = music_bounds(need(BGM_CLEAR[0]))
+    media["bgm"]["clear"] = {"src": clear_src, "orig": N(BGM_CLEAR[0]), "lufs": clear_lufs, "gain": gain(clear_lufs), "start": s, "end": e, "duration": d}
     media["bgmTargetLufs"] = target
 
     for k, (name, fn, start) in SFX.items():
@@ -233,7 +254,7 @@ def main():
         fp.write(js)
     print(f"bgm候補 {len(media['bgmPool'])}（基準 {target:.1f} LUFS）, sfx {len(media['sfx'])}, voice {len(media['voice'])}, cheers {len(media['cheers'])}（レア {len(RARE)}）")
     for b in media["bgmPool"] + [dict(media["bgm"]["clear"], id="clear")]:
-        print(f"  {b['id']:14s} {b['lufs']:6.1f} LUFS  x{b['gain']:.2f}  {b['orig']}")
+        print(f"  {b['id']:14s} {b['lufs']:6.1f} LUFS  x{b['gain']:.2f}  音 {b['start']:5.2f}〜{b['end']:6.2f}/{b['duration']:6.2f}s  {b['orig']}")
     for k, v in media["sfx"].items():
         print(f"  sfx {k:10s} start {v.get('start', 0)}  {v['orig']}")
     for c in media["cheers"]:
