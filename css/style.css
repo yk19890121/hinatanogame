@@ -364,6 +364,18 @@ body.quizzing .stage-chip { opacity: 0; }
 .cutin { position: absolute; inset: 0; z-index: 15; pointer-events: none; display: none; overflow: hidden; }
 .cutin.on { display: block; }
 .cutin-dim { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at center, rgba(12, 6, 36, 0.45), rgba(12, 6, 36, 0.75)); }
+.cutin.rare .cutin-dim { background: #000; } /* レア: くろい うすい まく（せなかの けしきは みえる） */
+/* レアの マッスル群（いちばん うえ・まえ。たてよこの わりあいは そのまま、はみださない） */
+.muscle-fx {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(100vw, calc(100vh * 752 / 416));
+  aspect-ratio: 752 / 416;
+  transform: translateX(-50%);
+  display: none;
+}
+.muscle-fx.on { display: block; }
 .cutin-img {
   position: absolute;
   left: 50%;

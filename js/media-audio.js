@@ -1,8 +1,8 @@
 'use strict';
 /* =========================================================
    ファイルの おと（BGM・ボイス・はなびの おと）
-   BGM=おんがく / ボイス=よみあげ こえ / アイテム声援 / はなび=こうかおん
-   - BGM は つねに 1きょく（ひとつの <audio> を つかいまわす）。おなじ きょくの まま がめんを かえても とめない
+   BGM=おんがく / ボイス=よみあげ こえ / アイテム声援 / こうかおん / はなび
+   - BGM は ランダム選曲。きりかえと ループは クロスフェード（かさなるのは 2きょく まで）。おなじ きょくの まま がめんを かえても とめない
    - ボイスは じゅんばんに 1ほんずつ（WAV と もんだいの よみあげを おなじ れつで）
    - アイテム声援は ボイスより うしろ（ボイスが あれば はぶく・ボイスが きたら ゆずる）
    - こえの あいだは BGM と はなびを ちいさく する（つづけて しゃべる ときは もどさない）
@@ -36,20 +36,18 @@ const MediaAudio = (() => {
     el.setAttribute('playsinline', '');
     return { el, base, track: 1, duck: 1, fade: 1, gain: null, src: null };
   }
-  const bgmCh = channel(1), voiceCh = channel(1), itemCh = channel(1), sfxCh = channel(1), fwCh = channel(0.75);
-  // きょく ごとの おおきさ あわせ（はかった 平均音量: ステージ曲 ≒ -18.4dB、えらび画面の 曲 ≒ -16.4dB、クリアごの 曲 ≒ -19.0dB）
-  const TRACK_GAIN = { select: 0.8 };
+  const voiceCh = channel(1), itemCh = channel(1), sfxCh = channel(1), fwCh = channel(0.75);
   // こえの あいだの BGM・はなび（うたも ある ていど きこえる くらいに さげる）
   const DUCK_BGM = 0.6, DUCK_FW = 0.5;
 
-  function connect(ch) {
+  function connectTo(ch, dest) {
     const ac = Sound.context();
-    if (!useGraph || !ac || ch.gain) return;
+    if (!useGraph || !ac || !dest || ch.gain) return;
     try {
       const node = ac.createMediaElementSource(ch.el);
       ch.gain = ac.createGain();
       node.connect(ch.gain);
-      ch.gain.connect(Sound.output());
+      ch.gain.connect(dest);
     } catch (e) { ch.gain = null; }
   }
 
@@ -73,40 +71,147 @@ const MediaAudio = (() => {
 
   const blocked = () => hidden || held;
 
-  /* ---------------- BGM ---------------- */
-  const BGM = {
-    want: null, // いまの がめんに あう きょく
-    cur: null,  // <audio> に はいっている きょく
-    play(id, { restart = false } = {}) {
-      this.want = id;
-      Sound.stopMusic(); // まえの じどう作曲の おんがくは もう つかわない（かさねない）
-      if (!id) {
-        this.cur = null;
-        bgmCh.el.pause();
-        return;
+  /* ---------------- BGM（ランダム選曲・クロスフェード・ループ） ----------------
+     - 候補（MEDIA.bgmPool）を シャッフルして じゅんばんに。ひとまわり したら シャッフルしなおし（つなぎめでも おなじ 曲は つづかない）
+     - きりかえ: まえの 曲は 2びょうで フェードアウト、あたらしい 曲は すぐ 0.5びょうで フェードイン（むおんの すきま なし）
+     - おなじ 曲の ループも おなじ（おわりの 2びょうを フェードアウト しながら、あたまを 0.5びょうで フェードイン）
+     - <audio> 3つを つかいまわす。かさなるのは 2きょく まで（3きょくめが きたら いちばん ふるい フェードアウト中の 曲を すぐ とめる）
+     - フェード（曲ごと）と こえの あいだの 音量さげ（BGM全体）は べつの つまみ なので ぶつからない */
+  const FADE_IN = 0.5, FADE_OUT = 2;
+  const LOOP_MIN = FADE_OUT * 2 + FADE_IN; // これより みじかい 曲は ふつうの ループ（フェードが かさならない ように）
+  let bgmBus = null; // BGM全体の 音量（オン・オフ と こえの あいだの さげ）
+  let bgmDuck = 1;
+  const players = [0, 1, 2].map(() => Object.assign(channel(1), { id: null, role: 'idle', vol: 0, from: 0, to: 0, ft: 0, fdur: 0, looping: false, fresh: false }));
+  const trackOf = (id) => (id === 'clear' ? MEDIA.bgm.clear : MEDIA.bgmPool.find((t) => t.id === id));
+  // すすみぐあい 0→1。フェードアウトは はじめ はやめに さげる（2きょくの あいだ 大きく なりすぎない。のこりは (1-p)²）
+  const curve = (p, out) => (out ? 1 - (1 - p) * (1 - p) : p);
+
+  function applyPlayer(p, smooth = 0.03) {
+    const v = p.vol * (p.track || 1);
+    const ac = Sound.context();
+    if (p.gain && ac) p.gain.gain.setTargetAtTime(v, ac.currentTime, smooth);
+    else p.el.volume = clamp(v * bgmDuck * (opt.music ? 1 : 0), 0, 1);
+  }
+  function applyBus(smooth = 0.12) {
+    const ac = Sound.context();
+    if (bgmBus && ac) bgmBus.gain.setTargetAtTime(opt.music ? bgmDuck : 0, ac.currentTime, smooth);
+    players.forEach((p) => applyPlayer(p));
+  }
+  function stopPlayer(p) {
+    p.role = 'idle';
+    p.id = null;
+    p.vol = 0;
+    p.el.pause();
+    applyPlayer(p, 0.01);
+  }
+  function fade(p, to, dur) {
+    p.from = p.vol;
+    p.to = to;
+    p.ft = 0;
+    p.fdur = dur;
+  }
+
+  const Bag = {
+    list: [],
+    pick(avoid) {
+      const ids = MEDIA.bgmPool.map((t) => t.id);
+      if (!this.list.length) {
+        this.list = shuffle(ids);
+        if (this.list.length > 1 && this.list[0] === avoid) this.list.push(this.list.shift());
       }
-      if (this.cur === id && !restart) {
-        if (opt.music && !blocked() && bgmCh.el.paused) tryPlay(bgmCh); // おなじ きょくは あたまに もどさない
-        return;
-      }
-      this.cur = id;
-      bgmCh.track = TRACK_GAIN[id] || 1;
-      bgmCh.el.loop = true;
-      setSrc(bgmCh, MEDIA.bgm[id].src); // まえの きょくの よみこみは ここで うちきり（あとから ならない）
-      bgmCh.fade = 1;
-      level(bgmCh, opt.music, 0.01);
-      if (opt.music && !blocked()) tryPlay(bgmCh);
-    },
-    refresh() { // せってい・ポーズ・タブ の じょうたいに あわせる
-      level(bgmCh, opt.music);
-      if (!opt.music || blocked()) {
-        bgmCh.el.pause();
-        return;
-      }
-      if (this.want && this.cur !== this.want) this.play(this.want);
-      else if (this.cur && bgmCh.el.paused) tryPlay(bgmCh);
+      return this.list.shift();
     },
   };
+
+  const BGM = {
+    cur: null,      // いま ながしている 曲（'clear' か 候補の id）
+    lastPick: null, // さいごに ランダムで えらんだ 曲
+    main() { return players.find((p) => p.role === 'main') || null; },
+    // ランダムに あたらしい 曲へ（タイトル・ステージ開始・とちゅうで やめた とき）
+    shuffle() {
+      const id = Bag.pick(this.lastPick || this.cur);
+      this.lastPick = id;
+      this.switchTo(id);
+    },
+    // 'clear' など きまった 曲。おなじ 曲が ながれていれば つづける（restart で あたまから）
+    play(id, { restart = false } = {}) {
+      if (this.cur === id && !restart) return this.refresh();
+      this.switchTo(id);
+    },
+    switchTo(id, { loop = false } = {}) {
+      Sound.stopMusic(); // まえの じどう作曲の おんがくは もう つかわない
+      const old = this.main();
+      // 3きょく かさならない ように、まえから フェードアウト中の 曲は すぐ とめる
+      players.filter((p) => p.role === 'out').forEach(stopPlayer);
+      if (old) {
+        old.role = 'out';
+        fade(old, 0, FADE_OUT);
+      }
+      const p = players.find((x) => x.role === 'idle');
+      const t = trackOf(id);
+      this.cur = id;
+      p.role = 'main';
+      p.id = id;
+      p.track = t.gain || 1;
+      p.looping = false;
+      p.vol = 0;
+      fade(p, 1, FADE_IN);
+      if (p.src !== t.src) setSrc(p, t.src); // ループの ときは よみこみずみの おなじ ファイル
+      else try { p.el.currentTime = 0; } catch (e) { /* まだ よみこみ中 */ }
+      p.el.loop = false;
+      p.fresh = true;
+      applyPlayer(p, 0.005);
+      if (opt.music && !blocked()) tryPlay(p);
+    },
+    // 0.04びょう ごと（ポーズ中・タブが かくれている あいだは すすめない）
+    tick(dt) {
+      for (const p of players) {
+        if (p.role === 'idle') continue;
+        if (p.fresh) { // まだ なりはじめて いない（よみこみ中）: フェードインは なりはじめてから。消える がわは すぐ とめる
+          if (p.role === 'out') stopPlayer(p);
+          continue;
+        }
+        if (p.fdur > 0 && p.ft < p.fdur) {
+          p.ft = Math.min(p.fdur, p.ft + dt);
+          const k = curve(p.ft / p.fdur, p.to < p.from);
+          p.vol = p.from + (p.to - p.from) * k;
+          applyPlayer(p);
+        }
+        if (p.role === 'out' && (p.ft >= p.fdur || p.el.ended)) stopPlayer(p);
+      }
+      const m = this.main();
+      if (!m) return;
+      const d = m.el.duration;
+      if (!Number.isFinite(d) || d <= 0) return;
+      if (d < LOOP_MIN) { m.el.loop = true; return; }
+      // おわりの 2びょう まえで おなじ 曲を あたまから かさねて ループ
+      if (!m.el.paused && m.el.currentTime >= d - FADE_OUT) this.switchTo(m.id, { loop: true });
+    },
+    refresh() { // せってい・ポーズ・タブ の じょうたいに あわせる
+      applyBus();
+      if (!opt.music || blocked()) {
+        players.forEach((p) => p.el.pause());
+        if (!opt.music) players.filter((p) => p.role === 'out').forEach(stopPlayer);
+        return;
+      }
+      for (const p of players) {
+        if (p.role === 'idle' || !p.el.paused) continue;
+        // まだ いちども ならせて いなかった（自動再生の せいげん など）→ あたまから フェードイン
+        if (p.role === 'main' && p.fresh && (p.el.currentTime || 0) < 0.05) {
+          p.vol = 0;
+          fade(p, 1, FADE_IN);
+        }
+        tryPlay(p);
+      }
+    },
+  };
+  players.forEach((p) => p.el.addEventListener('playing', () => { p.fresh = false; }));
+  let lastTick = performance.now();
+  setInterval(() => {
+    const now = performance.now(), dt = Math.min(0.25, (now - lastTick) / 1000);
+    lastTick = now;
+    if (!blocked() && opt.music) BGM.tick(dt);
+  }, 40);
 
   /* ---------------- ボイスの さきよみ（メモリに ほどいて おき、すぐ ならせる ように） ---------------- */
   let voiceBus = null; // ボイス用の おとの 出口（WebAudio）
@@ -402,39 +507,86 @@ const MediaAudio = (() => {
     },
   };
 
-  /* ---------------- みじかい こうかおん（カットインの「シュッ」など） ---------------- */
-  // メモリに さきよみして すぐ ならす。こうかおん オフ・ポーズ中は ならさない（ポーズで とめて つづきは ならさない）
-  // おおきさ: 声援の ことばが かくれない ように すこし さげる（シャキーン ≒ -20dB が 0.5びょう つづく）
-  const SFX_GAIN = { cutinIn: 0.7 };
+  /* ---------------- こうかおん（カットインの「シャキーン」、レア演出の ほら貝・マッスル群・ドーン） ---------------- */
+  // メモリに さきよみして すぐ ならす。こうかおん オフの ときは ならさない。ポーズで とめて、さいかいで つづきから
+  // おおきさ: 声援・セリフの ことばが かくれない ように
+  //   シャキーン ≒ -14 LUFS → 0.7 / ほら貝 ≒ -15 LUFS（セリフと かさならない）→ 0.8
+  //   ドーン ≒ -20 LUFS（セリフと どうじ）→ 0.6 / マッスル群の 足音 ≒ -25 LUFS（ずっと ひくい）→ 1.5
+  const SFX_GAIN = { cutinIn: 0.7, rareHorn: 0.8, rareDon: 0.6, rareMuscle: 1.5 };
   const Sfx = {
-    cur: [],
+    cur: [], // { key, buf, node, gain, offset, startedAt }
     play(key) {
       const m = MEDIA.sfx[key];
-      if (!opt.sfx || blocked()) return;
+      if (!m || !opt.sfx || blocked()) return null;
       const ac = Sound.context();
       const buf = Buffers.get(m.src);
       if (buf && ac && ac.state === 'running') {
-        const g = ac.createGain();
-        g.gain.value = SFX_GAIN[key] || 1;
-        g.connect(Sound.output());
-        const node = ac.createBufferSource();
-        node.buffer = buf;
-        node.connect(g);
-        node.onended = () => { this.cur = this.cur.filter((n) => n !== node); };
-        this.cur.push(node);
-        node.start(0, m.start || 0); // あたまの 無音は とばす
-        return;
+        const h = { key, buf, offset: m.start || 0, vol: SFX_GAIN[key] || 1 }; // あたまの 無音は とばす
+        this.cur.push(h);
+        this.start(h);
+        return h;
       }
       // まだ メモリに ない（file:// など）: <audio> で
       sfxCh.track = SFX_GAIN[key] || 1;
+      sfxCh.key = key;
       setSrc(sfxCh, m.src);
       try { sfxCh.el.currentTime = m.start || 0; } catch (e) { /* まだ よみこみ中 */ }
       level(sfxCh, true, 0.01);
       tryPlay(sfxCh);
+      return null;
     },
-    stop() {
-      this.cur.splice(0).forEach((n) => { try { n.stop(); } catch (e) { /* もう とまっている */ } });
+    start(h) {
+      const ac = Sound.context();
+      h.gain = ac.createGain();
+      h.gain.gain.value = h.vol;
+      h.gain.connect(Sound.output());
+      const node = ac.createBufferSource();
+      node.buffer = h.buf;
+      node.connect(h.gain);
+      node.onended = () => { if (h.node === node) this.cur = this.cur.filter((x) => x !== h); };
+      h.node = node;
+      h.startedAt = ac.currentTime - h.offset;
+      node.start(0, h.offset);
+    },
+    // key の 音を sec びょうで けす（key なし = ぜんぶ、sec 0 = すぐ）
+    fade(key, sec = 0) {
+      const ac = Sound.context();
+      for (const h of this.cur.filter((x) => !key || x.key === key)) {
+        this.cur = this.cur.filter((x) => x !== h);
+        const n = h.node;
+        h.node = null;
+        if (!n) continue;
+        try {
+          if (sec > 0 && ac.state === 'running') {
+            h.gain.gain.setValueAtTime(h.gain.gain.value, ac.currentTime);
+            h.gain.gain.linearRampToValueAtTime(0, ac.currentTime + sec);
+            n.stop(ac.currentTime + sec + 0.02);
+          } else n.stop();
+        } catch (e) { /* もう とまっている */ }
+      }
+      if (!key || sfxCh.key === key) sfxCh.el.pause();
+    },
+    stop(key) { this.fade(key, 0); },
+    pause() {
+      const ac = Sound.context();
+      for (const h of this.cur) {
+        if (!h.node) continue;
+        h.offset = Math.min(h.buf.duration, ac.currentTime - h.startedAt);
+        const n = h.node;
+        h.node = null;
+        try { n.stop(); } catch (e) { /* もう とまっている */ }
+      }
       sfxCh.el.pause();
+    },
+    resume() {
+      const ac = Sound.context();
+      if (!opt.sfx) return this.stop();
+      if (this.cur.some((h) => !h.node) && (!ac || ac.state !== 'running')) {
+        setTimeout(() => { if (!blocked()) this.resume(); }, 50); // AudioContext の さいかい まち
+        return;
+      }
+      for (const h of this.cur) if (!h.node) this.start(h);
+      if (sfxCh.key && sfxCh.el.paused && sfxCh.el.currentTime > 0 && !sfxCh.el.ended) tryPlay(sfxCh);
     },
   };
 
@@ -474,22 +626,27 @@ const MediaAudio = (() => {
     },
   };
 
-  // ボイス・アイテム声援の どちらかが なっている あいだ さげる
-  const duckBy = { voice: false, item: false };
+  // ボイス・アイテム声援・レア演出の どれかが ある あいだ さげる
+  const duckBy = { voice: false, item: false, rare: false };
   function setDuck(v, who = 'voice') {
     duckBy[who] = v;
-    const on = duckBy.voice || duckBy.item;
+    const on = duckBy.voice || duckBy.item || duckBy.rare;
     ducked = on;
-    bgmCh.duck = on ? DUCK_BGM : 1;
+    bgmDuck = on ? DUCK_BGM : 1;
     fwCh.duck = on ? DUCK_FW : 1;
     // もどす ときも その ときの せってい を みる（オフに した おとを かってに ならさない）
-    level(bgmCh, opt.music, 0.12);
+    applyBus(0.12);
     level(fwCh, opt.sfx, 0.12);
     Sound.duck(on);
   }
 
   function setOption(k, v) {
     opt[k] = v;
+    const m = BGM.main();
+    if (k === 'music' && v && m) { // オンに もどしたら 0.5びょうで フェードイン
+      m.vol = 0;
+      fade(m, 1, FADE_IN);
+    }
     if (k === 'music') BGM.refresh();
     if (k === 'voice' && !v) Voice.cancel();
     if (k === 'sfx' && !v) {
@@ -510,22 +667,30 @@ const MediaAudio = (() => {
   }
   function sync() {
     if (blocked()) {
-      bgmCh.el.pause();
+      BGM.refresh(); // BGM を とめる（フェードの すすみも とまる）
       Voice.pause();
       Item.pause();
-      Sfx.stop();
+      Sfx.pause();
       if (Fireworks.playing) fwCh.el.pause();
     } else {
       BGM.refresh();
       Voice.resume();
       Item.resume();
+      Sfx.resume();
       if (Fireworks.playing && opt.sfx) tryPlay(fwCh);
     }
   }
 
   // さいしょの タップ・キー（ユーザー操作）の なかで よぶ
   function unlock() {
-    [bgmCh, voiceCh, itemCh, sfxCh, fwCh].forEach(connect);
+    const ac = Sound.context();
+    if (useGraph && ac && !bgmBus) {
+      bgmBus = ac.createGain();
+      bgmBus.gain.value = opt.music ? bgmDuck : 0;
+      bgmBus.connect(Sound.output());
+    }
+    players.forEach((p) => connectTo(p, bgmBus));
+    [voiceCh, itemCh, sfxCh, fwCh].forEach((ch) => connectTo(ch, Sound.output()));
     ensureVoiceBus();
     Buffers.decodeAll();
     if (unlocked) return;
@@ -542,14 +707,17 @@ const MediaAudio = (() => {
   // かくにん用（よみとり だけ）
   const state = () => {
     const s = (ch) => ({ src: (ch.src || '').split('/').pop(), paused: ch.el.paused, t: +(ch.el.currentTime || 0).toFixed(2), vol: ch.gain ? +ch.gain.gain.value.toFixed(2) : +ch.el.volume.toFixed(2) });
-    return { bgm: { want: BGM.want, cur: BGM.cur, ...s(bgmCh) }, voice: { ...s(voiceCh), cur: Voice.cur && (Voice.cur.key || Voice.cur.src || 'tts'), queued: Voice.q.length }, item: Item.cur && Item.cur.key, fw: { playing: Fireworks.playing, ...s(fwCh) }, ducked, synthTitle: Sound.musicPlaying() };
+    const bp = players.filter((p) => p.role !== 'idle').map((p) => ({ role: p.role, id: p.id, vol: +p.vol.toFixed(2), ...s(p) }));
+    const m = BGM.main();
+    return { bgm: { cur: BGM.cur, src: m ? s(m).src : '', t: m ? s(m).t : 0, paused: m ? m.el.paused : true, players: bp }, sfx: Sfx.cur.map((h) => h.key), voice: { ...s(voiceCh), cur: Voice.cur && (Voice.cur.key || Voice.cur.src || 'tts'), queued: Voice.q.length }, item: Item.cur && Item.cur.key, fw: { playing: Fireworks.playing, ...s(fwCh) }, ducked, synthTitle: Sound.musicPlaying() };
   };
 
   // こえを さきよみ（イベントボイスは はじめに ぜんぶ、声援は つかう まえに すこしずつ）
   const preload = (src) => Buffers.load(src);
   Object.values(MEDIA.voice).forEach((v) => preload(v.src));
-  preload(MEDIA.sfx.cutinIn.src);
+  Object.values(MEDIA.sfx).forEach((v) => { if (v !== MEDIA.sfx.fireworks) preload(v.src); });
   const isReady = (src) => !!Buffers.get(src);
+  const duck = (who, on) => setDuck(on, who); // レア演出の あいだ BGM を さげる
   // かくにん用: ボイスの 出口に つないだ アナライザー（じっさいに 声が でているか はかる）
   const tapVoice = () => {
     const ac = Sound.context();
@@ -561,5 +729,5 @@ const MediaAudio = (() => {
     return an;
   };
 
-  return { BGM, Voice, Item, Sfx, Fireworks, setOption, setHeld, setHidden, unlock, state, preload, isReady, tapVoice, get ducked() { return ducked; } };
+  return { BGM, Voice, Item, Sfx, Fireworks, setOption, setHeld, setHidden, unlock, state, preload, isReady, tapVoice, duck, get ducked() { return ducked; } };
 })();

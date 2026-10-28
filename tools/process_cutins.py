@@ -1,7 +1,7 @@
 """正解カットイン画像（緑背景）を 透過WebP に する
 
-つかいかた:  python tools/process_cutins.py <PNG の フォルダ> [手なおし版の フォルダ]
-  - ファイル名の 末尾「-番号.png」で 1〜20 を 特定
+つかいかた:  python tools/process_cutins.py <PNG の フォルダ> [手なおし版の フォルダ] [番号 ...]
+  - 1〜20 は ファイル名の 末尾「-番号.png」、21〜45 は build_media.py の 表の 画像名で 特定
   - 緑背景を 除去（文字の すきま・腕の 内側の 緑も）、輪郭の 緑の にじみを 軽減
   - 余白を けずって 高さ 1000px に 縮小 → assets/cutin/cutin01.webp …
   - 確認用に 明るい背景・暗い背景 に 重ねた 一覧を tools/out/ に 出力
@@ -63,7 +63,7 @@ def sheet(ims, bg, name):
     th = 300
     tw = max(round(i.width * th / i.height) for i in ims)
     W = tw * 10 + 11 * 8
-    S = Image.new("RGBA", (W, (th + 8) * 2 + 8), bg)
+    S = Image.new("RGBA", (W, (th + 8) * ((len(ims) + 9) // 10) + 8), bg)
     d = ImageDraw.Draw(S)
     for k, i in enumerate(ims):
         t = i.resize((round(i.width * th / i.height), th), Image.LANCZOS)
@@ -76,22 +76,34 @@ def sheet(ims, bg, name):
 def main():
     if len(sys.argv) < 2:
         sys.exit(__doc__)
+    import unicodedata
+    from build_media import CHEERS_ADD, RARE  # 21〜45 の 画像の 名前は build_media.py の 表に きめうち
     files = {}
     for p in glob.glob(os.path.join(sys.argv[1], "*.png")):
         m = re.search(r"-(\d+)\.png$", p)
         if m:
             files[int(m.group(1))] = p
+    names = {unicodedata.normalize("NFC", os.path.basename(p)): p for p in glob.glob(os.path.join(sys.argv[1], "*.png"))}
+    for n, row in list(CHEERS_ADD.items()) + list(RARE.items()):
+        img = unicodedata.normalize("NFC", row[-2])
+        if img in names:
+            files[n] = names[img]
     # 2つめの フォルダ: 手なおし版（例: …-3_できるぞ.png）が あれば そちらを つかう
     if len(sys.argv) > 2:
         for p in glob.glob(os.path.join(sys.argv[2], "*.png")):
             m = re.search(r"-(\d+)_[^\\/]*\.png$", p)
             if m:
                 files[int(m.group(1))] = p
-    missing = [n for n in range(1, 21) if n not in files]
+    ids = list(range(1, 21)) + list(CHEERS_ADD) + list(RARE)
+    missing = [n for n in ids if n not in files]
     if missing:
         sys.exit(f"見つからない 番号: {missing}")
+    only = [int(a) for a in sys.argv[3:]]  # 3つめ いこう: その 番号だけ つくりなおす
     ims = []
-    for n in range(1, 21):
+    for n in ids:
+        if only and n not in only:
+            ims.append(Image.open(os.path.join(OUT, f"cutin{n:02d}.webp")).convert("RGBA"))
+            continue
         im, size, green = process(files[n], n)
         ims.append(im)
         print(f"{n:2d} {os.path.basename(files[n])} -> cutin{n:02d}.webp {im.size} {size // 1024}KB  残った緑px={green}")

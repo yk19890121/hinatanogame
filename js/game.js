@@ -43,6 +43,7 @@ const Game = {
     const unlock = () => {
       Sound.init();
       MediaAudio.unlock();
+      MuscleFx.warm(); // レアの 動画も この タップで うごかせる ように
     };
     window.addEventListener('pointerdown', unlock, { capture: true });
     window.addEventListener('touchend', unlock, { capture: true });
@@ -64,8 +65,8 @@ const Game = {
     });
     UI.init(this);
     this.startDemo();
-    // タイトルから ステージえらびまで おなじ きょく（自動再生が だめな ときは さいしょの タップで ならす）
-    MediaAudio.BGM.play('select');
+    // タイトル: BGM候補から ランダムに 1きょく（ステージえらびでも そのまま。自動再生が だめな ときは さいしょの タップで ならす）
+    MediaAudio.BGM.shuffle();
     this.last = performance.now();
     requestAnimationFrame((n) => this.loop(n));
   },
@@ -199,7 +200,7 @@ const Game = {
 
   // タイトル → ステージえらび（おなじ きょくを とめずに つづける）
   openSelect() {
-    MediaAudio.BGM.play('select');
+    MediaAudio.BGM.refresh(); // おなじ きょくを つづける（えらびなおさない）
     UI.show('select');
   },
 
@@ -210,13 +211,15 @@ const Game = {
     if (this.mode !== 'demo') this.startDemo();
     else this.resetScene();
     Sound.suspend(false);
-    MediaAudio.BGM.play(afterClear ? 'clear' : 'select');
+    if (afterClear) MediaAudio.BGM.play('clear');
+    else MediaAudio.BGM.shuffle();
     UI.show('select');
   },
 
   // ステージえらび → タイトル（えらび画面の きょく。もう ながれていれば その まま）
   toTitle() {
-    MediaAudio.BGM.play('select');
+    if (MediaAudio.BGM.cur === 'clear') MediaAudio.BGM.shuffle(); // クリアの きょくの ときだけ えらびなおす
+    else MediaAudio.BGM.refresh();
     UI.show('title');
   },
 
@@ -250,8 +253,8 @@ const Game = {
     UI.setDb(0);
     UI.hideQuiz();
     UI.banner(`レベル${lv}・ステージ ${i + 1}`, st.name);
-    // ステージ番号に あった きょくを あたまから（むずかしさが ちがっても おなじ きょく）
-    MediaAudio.BGM.play(`stage${i + 1}`, { restart: true });
+    // BGM候補から あたらしく ランダムに（やりなおし・つぎの ステージ でも）
+    MediaAudio.BGM.shuffle();
     Cheers.preload(3);
     this.after(0.4, () => MediaAudio.Voice.play('start'));
   },
@@ -261,6 +264,7 @@ const Game = {
     this.mode = 'paused';
     UI.show('pause');
     MediaAudio.setHeld(true); // BGM・こえ・はなび を とめる（さいかいで つづきから）
+    if (this.cutin) this.cutin.setPaused(true); // レアの 動画も
     Sound.suspend(true);
   },
 
@@ -270,6 +274,7 @@ const Game = {
     UI.show(null);
     Sound.suspend(false);
     MediaAudio.setHeld(false);
+    if (this.cutin) this.cutin.setPaused(false);
     Input.reset();
   },
 
