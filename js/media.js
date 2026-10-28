@@ -985,28 +985,36 @@ const MEDIA = {
     {
       "id": 41,
       "image": "assets/cutin/cutin41.webp",
-      "voice": null,
+      "voice": "assets/voice/cheer41.wav",
       "line": "デカすぎる！筋肉、超巨大ロボ級！",
-      "duration": null,
+      "duration": 4.84,
       "rare": true,
       "rareName": "巨大ロボ",
+      "trim": [
+        0.27,
+        5.11
+      ],
+      "origDuration": 5.28,
       "enabled": true,
       "origImage": "デカすぎる！筋肉、超巨大ロボ級！.png",
-      "origVoice": null,
-      "waitingVoice": "デカすぎる！筋肉、超巨大ロボ級！.wav"
+      "origVoice": "デカすぎる！筋肉、超巨大ロボ級！.wav"
     },
     {
       "id": 42,
       "image": "assets/cutin/cutin42.webp",
-      "voice": null,
+      "voice": "assets/voice/cheer42.wav",
       "line": "ムキムキじゃないのに、神レベル！",
-      "duration": null,
+      "duration": 3.425,
       "rare": true,
       "rareName": "神",
+      "trim": [
+        0.225,
+        3.65
+      ],
+      "origDuration": 3.84,
       "enabled": true,
       "origImage": "ムキムキじゃないのに、神レベル！.png",
-      "origVoice": null,
-      "waitingVoice": "ムキムキじゃないのに、神レベル！.wav"
+      "origVoice": "ムキムキじゃないのに、神レベル！.wav"
     },
     {
       "id": 43,
@@ -1045,15 +1053,19 @@ const MEDIA = {
     {
       "id": 45,
       "image": "assets/cutin/cutin45.webp",
-      "voice": null,
+      "voice": "assets/voice/cheer45.wav",
       "line": "銀のゴリラ！筋肉も規格外！",
-      "duration": null,
+      "duration": 3.75,
       "rare": true,
       "rareName": "銀のゴリラ",
+      "trim": [
+        0.185,
+        3.935
+      ],
+      "origDuration": 4.16,
       "enabled": true,
       "origImage": "銀のゴリラ！筋肉も規格外！.png",
-      "origVoice": null,
-      "waitingVoice": "銀のゴリラ！筋肉も規格外！.wav"
+      "origVoice": "銀のゴリラ！筋肉も規格外！.wav"
     }
   ],
   "rareCount": 5,
