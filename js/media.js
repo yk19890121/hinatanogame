@@ -204,6 +204,16 @@ const MEDIA = {
       "orig": "教会の祈り.mp3",
       "duration": 6.746
     },
+    "blastHit": {
+      "src": "assets/sfx/bakuhatsu2.mp3",
+      "orig": "爆発2.mp3",
+      "duration": 2.554
+    },
+    "blastDown": {
+      "src": "assets/sfx/bakuhatsu1.mp3",
+      "orig": "爆発1.mp3",
+      "duration": 3.355
+    },
     "rareMuscle": {
       "src": "assets/sfx/muscle.mp3?h=c1b86246",
       "orig": "マッスル群.MP4 の 音"

@@ -525,7 +525,8 @@ const MediaAudio = (() => {
   //   ほら貝 ≒ -15 LUFS → 1.3 ≒ -12.5 LUFS（めだたせる。ただし すぐ あとから 鳴る 動画の 音を かき消さない）
   //   マッスル群の 動画の 音 ≒ -16 LUFS → 1.3 ≒ -14 LUFS（ほら貝と ならんで きこえる）
   //   レア登場（教会の祈り）≒ -16 LUFS → 2.0 ≒ -10 LUFS（大きめ。セリフの ほうが すこし 大きい）
-  const SFX_GAIN = { cutinIn: 0.7, rareHorn: 1.3, rareAppear: 2.0, rareMuscle: 1.3 };
+  //   爆発2（攻撃が 当たる）≒ -16.5 LUFS → 1.0 / 爆発1（ボスを たおす）≒ -19 LUFS → 1.3（あとの「すげー！」の こえより ひくい）
+  const SFX_GAIN = { cutinIn: 0.7, rareHorn: 1.3, rareAppear: 2.0, rareMuscle: 1.3, blastHit: 1.0, blastDown: 1.3 };
   const Sfx = {
     cur: [], // { key, buf, node, gain, offset, startedAt }
     play(key) {

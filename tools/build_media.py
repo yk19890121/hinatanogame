@@ -30,6 +30,9 @@ SFX = {
     "rareHorn": ("ほら貝を吹き鳴らす.mp3", "horagai", "auto"),
     # レア画像の 登場（「ドーン.mp3」から さしかえ）
     "rareAppear": ("教会の祈り.mp3", "inori", "auto"),
+    # 攻撃が 当たった とき（かべを こわす・ボスに 当たる）と ボスを たおした とき
+    "blastHit": ("爆発2.mp3", "bakuhatsu2", "auto"),
+    "blastDown": ("爆発1.mp3", "bakuhatsu1", "auto"),
 }
 VOICE = {
     "start": "スタート.wav",

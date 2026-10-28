@@ -608,7 +608,7 @@ const Game = {
   },
 
   gateHit(g, x, y) {
-    Sound.play('punch');
+    MediaAudio.Sfx.play('blastHit'); // 爆発2（かべを こわす・ボスに 当たる。合成の パンチ音の かわり）
     this.fx.flash(x, y, '#ffe9a0', 220, 0.4);
     this.fx.ring(x, y, '#ffffff', 20, 210, 0.5, 12);
     this.fx.stars(x, y, 10);
@@ -616,7 +616,6 @@ const Game = {
     this.flash = 0.35;
     if (g.kind === 'wall') {
       g.state = 'open';
-      Sound.play('crash');
       const w = this.theme.wall;
       this.fx.rocks(g.x, GROUND_Y - 540, g.w, 540, [w.base, w.dark, w.light], 48);
       this.fx.dust(g.x + 36, GROUND_Y, 14, 1);
@@ -630,7 +629,6 @@ const Game = {
     boss.play('hurt');
     boss.flash = 1;
     boss.sq = 1;
-    Sound.play('bossHit');
     this.fx.text(pick(['いたーい！', 'ぐはっ！', 'ひえ〜！']), boss.x, boss.y - boss.h - 20, { size: 42, top: '#ffffff', bot: '#ffb0c8', stroke: '#4a0a2a' });
     if (boss.hp > 0) {
       // ひるむ ところを みせて、あたってから やく 1びょうで つぎの もんだい（でた ときから こたえられる）
@@ -664,7 +662,8 @@ const Game = {
     const boss = g.boss, L = this.level;
     boss.dead = true;
     g.state = 'open';
-    Sound.play('bossDown');
+    MediaAudio.Sfx.fade('blastHit', 0.15); // 当たった ときの 爆発の よいんは みじかく けして
+    MediaAudio.Sfx.play('blastDown');       // 爆発1（ボスを たおした）
     this.shake = 30;
     this.flash = 0.8;
     this.fx.confetti(boss.x, boss.y - 100, 90, 1.4);
