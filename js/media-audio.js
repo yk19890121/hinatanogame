@@ -522,10 +522,10 @@ const MediaAudio = (() => {
   // メモリに さきよみして すぐ ならす。こうかおん オフの ときは ならさない。ポーズで とめて、さいかいで つづきから
   // おおきさ（もとの 大きさ → ならす 大きさ）
   //   シャキーン ≒ -14 LUFS → 0.7（声援の ことばが かくれない ように）
-  //   ほら貝 ≒ -15 LUFS → 1.8 ≒ -10 LUFS（セリフと かさならないので めだたせる）
-  //   レア登場（教会の祈り）≒ -16 LUFS → 2.0 ≒ -10 LUFS（大きめ。セリフと おなじ くらい）
-  //   マッスル群の 足音 ≒ -25 LUFS → 1.3（ほら貝を かくさない）
-  const SFX_GAIN = { cutinIn: 0.7, rareHorn: 1.8, rareAppear: 2.0, rareMuscle: 1.3 };
+  //   ほら貝 ≒ -15 LUFS → 1.3 ≒ -12.5 LUFS（めだたせる。ただし すぐ あとから 鳴る 動画の 音を かき消さない）
+  //   マッスル群の 動画の 音 ≒ -16 LUFS → 1.3 ≒ -14 LUFS（ほら貝と ならんで きこえる）
+  //   レア登場（教会の祈り）≒ -16 LUFS → 2.0 ≒ -10 LUFS（大きめ。セリフの ほうが すこし 大きい）
+  const SFX_GAIN = { cutinIn: 0.7, rareHorn: 1.3, rareAppear: 2.0, rareMuscle: 1.3 };
   const Sfx = {
     cur: [], // { key, buf, node, gain, offset, startedAt }
     play(key) {
@@ -595,7 +595,9 @@ const MediaAudio = (() => {
       const ac = Sound.context();
       if (!opt.sfx) return this.stop();
       if (this.cur.some((h) => !h.node) && (!ac || ac.state !== 'running')) {
-        setTimeout(() => { if (!blocked()) this.resume(); }, 50); // AudioContext の さいかい まち
+        // AudioContext の さいかい まち（うごきだした しゅんかんに つづきから。動画も おなじ まちかたを する）
+        if (ac) ac.resume().then(() => { if (!blocked()) this.resume(); }, () => {});
+        else setTimeout(() => { if (!blocked()) this.resume(); }, 50);
         return;
       }
       for (const h of this.cur) if (!h.node) this.start(h);

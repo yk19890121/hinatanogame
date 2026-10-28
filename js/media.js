@@ -205,7 +205,7 @@ const MEDIA = {
       "duration": 6.746
     },
     "rareMuscle": {
-      "src": "assets/sfx/muscle.mp3",
+      "src": "assets/sfx/muscle.mp3?h=c1b86246",
       "orig": "マッスル群.MP4 の 音"
     }
   },
@@ -1049,18 +1049,19 @@ const MEDIA = {
   "rareCount": 5,
   "bgmTargetLufs": -18.1,
   "muscle": {
-    "src": "assets/video/muscle.mp4",
-    "audio": "assets/sfx/muscle.mp3",
-    "width": 752,
-    "height": 416,
-    "duration": 3.667,
-    "fps": 24.0,
-    "speed": 1.0,
-    "contentSeconds": 3.667,
+    "src": "assets/video/muscle.mp4?h=fe5ac53d",
+    "audio": "assets/sfx/muscle.mp3?h=c1b86246",
+    "width": 960,
+    "height": 540,
+    "duration": 4.0,
+    "visibleEnd": 3.8,
+    "fps": 30,
+    "speed": 1,
+    "mode": "fill+matte",
     "trimmedFrames": [
-      9,
+      0,
       0
     ],
-    "orig": "muscle.mp4"
+    "orig": "macho_stampede_4s_fill.mp4"
   }
 };

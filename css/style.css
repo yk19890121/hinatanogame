@@ -370,8 +370,8 @@ body.quizzing .stage-chip { opacity: 0; }
   position: absolute;
   top: 0;
   left: 50%;
-  width: min(100vw, calc(100vh * 752 / 416));
-  aspect-ratio: 752 / 416;
+  width: min(100vw, calc(100vh * var(--ar, 1.7778)));  /* --ar = 動画の よこ÷たて（js で 動画の 大きさから いれる） */
+  aspect-ratio: var(--ar, 1.7778);
   transform: translateX(-50%);
   display: none;
 }

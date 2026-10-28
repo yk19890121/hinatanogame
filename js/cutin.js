@@ -100,6 +100,7 @@ const MuscleFx = {
       return;
     }
     this.gl = gl;
+    this.canvas.style.setProperty('--ar', m.width / m.height); // たてよこの わりあいは 動画の まま
     // スマホが WebGL を とりあげた ときは 動画を はぶく（まっしろ・まっくらに しない）
     this.canvas.addEventListener('webglcontextlost', (e) => {
       e.preventDefault();
@@ -109,14 +110,14 @@ const MuscleFx = {
     const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
     const pr = gl.createProgram();
     gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p; varying vec2 v; void main(){ v = vec2(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5); gl_Position = vec4(p, 0.0, 1.0); }'));
-    // いろは すけぐあいを かけて ある（ふちが 黒く にじまない）。うすい 圧縮ノイズは すけさせる
+    // いろは すけぐあいを かけて ある（ふちが 黒く にじまない）。マットの 灰色は 半とうめい、ごく うすい 圧縮ノイズだけ すけさせる
     gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, [
       'precision mediump float; varying vec2 v; uniform sampler2D t; uniform float o, edge;',
       'void main(){',
       '  vec3 c = texture2D(t, vec2(v.x, min(v.y * 0.5, 0.5 - edge))).rgb;',
       '  float a = texture2D(t, vec2(v.x, max(0.5 + v.y * 0.5, 0.5 + edge))).r;',
-      '  float a2 = smoothstep(0.08, 0.92, a);',
-      '  gl_FragColor = vec4(min(c * (a2 / max(a, 0.08)), vec3(a2)), a2) * o;',
+      '  float a2 = clamp((a - 0.03) / 0.94, 0.0, 1.0);',
+      '  gl_FragColor = vec4(min(c * (a2 / max(a, 0.03)), vec3(a2)), a2) * o;',
       '}'].join('\n')));
     gl.linkProgram(pr);
     gl.useProgram(pr);
@@ -137,6 +138,7 @@ const MuscleFx = {
     v.setAttribute('muted', '');
     v.preload = 'auto';
     v.addEventListener('loadeddata', () => { if (this.state === 'loading') this.state = 'ready'; });
+    v.addEventListener('ended', () => { if (this.active && this.opacity <= 0) this.stop(); });
     v.addEventListener('error', () => {
       this.state = 'failed';
       console.warn('[rare] 動画を よみこめません:', m.src);
@@ -188,10 +190,17 @@ const MuscleFx = {
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   },
   pause() { if (this.active) this.video.pause(); },
+  // さいかい: 動画の 音（WebAudio）が うごきだすのと そろえて ながす（えだけ さきに すすまない）
   resume() {
     if (!this.active) return;
-    const p = this.video.play();
-    if (p && p.catch) p.catch(() => {});
+    const go = () => {
+      if (!this.active || Game.mode === 'paused') return;
+      const p = this.video.play();
+      if (p && p.catch) p.catch(() => {});
+    };
+    const ac = Sound.context();
+    if (ac && ac.state !== 'running') ac.resume().then(go, go);
+    else go();
   },
   stop() {
     if (!this.video) return;
@@ -274,9 +283,8 @@ class CutIn {
     if (this.cross >= 0 && this.cross < RARE_CROSS) { // 動画を けしながら あかるく もどす（え は もう はいってくる）
       this.cross = Math.min(RARE_CROSS, this.cross + dt);
       const k = 1 - this.cross / RARE_CROSS;
-      MuscleFx.opacity = k;
+      MuscleFx.opacity = k; // 動画は とちゅうで きらずに さいごまで ながす（みえなく なった あとは 自分で とまる）
       this.rareDim(RARE_DIM * k);
-      if (this.cross >= RARE_CROSS) MuscleFx.stop();
     }
     switch (this.state) {
       case 'wait': { // 正解.wav が おわるまで
@@ -308,7 +316,8 @@ class CutIn {
           if (MuscleFx.start()) {
             this.video = true;
             MediaAudio.Sfx.play('rareMuscle');
-            this.crossAt = this.rt + MEDIA.muscle.duration - RARE_CROSS;
+            // うつって いる さいごの 0.25びょうで え と かさねる（おわりの からっぽの コマを まつと すきまに みえる）
+            this.crossAt = this.rt + (MEDIA.muscle.visibleEnd || MEDIA.muscle.duration) - RARE_CROSS;
           }
         }
         if (this.video && MuscleFx.broken) this.crossAt = Math.min(this.crossAt, this.rt); // さいせい できなかった
