@@ -23,6 +23,14 @@ const Game = {
   enemySolids: [],
   acc: 0,
   dprCap: 2,
+  playMode: 'normal', // 'normal'（通常モード）| 'adult'（オトナモード）。ひらく たびに 通常から
+  enemyShots: [],     // ボスの 弾（オトナモード）
+  ally: null,         // レア仲間（1体 まで）
+  bossAtk: null,      // ボスの こうげきの タイマー（オトナモード）
+  clock: { left: 0, on: false, shown: -1 },
+  jumpGuided: false,  // 「ボスの攻撃は、ジャンプでよけろ！」は さいしょの ボス戦で 1かい
+
+  get adult() { return this.playMode === 'adult'; },
 
   init() {
     this.canvas = document.getElementById('game');
@@ -87,7 +95,18 @@ const Game = {
     return p && p.stars && typeof p.stars === 'object' && !Array.isArray(p.stars) ? p : { v: 2, stars: {} };
   },
   starKey(lv, stage) { return `${lv}-${stage + 1}`; },
-  starsFor(lv, stage) { return this.progress.stars[this.starKey(lv, stage)] || 0; },
+  // モードごとの せいせき。オトナモードは べつに ほぞん（通常モードの きろく progress2 は そのまま）
+  record() {
+    if (!this.adult) return this.progress;
+    if (!this.progressAdult) {
+      const pa = Store.get('progressAdult', null);
+      this.progressAdult = pa && pa.stars && typeof pa.stars === 'object' && !Array.isArray(pa.stars) ? pa : { v: 1, stars: {}, best: {} };
+    }
+    return this.progressAdult;
+  },
+  starsFor(lv, stage) { return this.record().stars[this.starKey(lv, stage)] || 0; },
+
+  setPlayMode(m) { this.playMode = m === 'adult' ? 'adult' : 'normal'; },
 
   setLevel(n) {
     this.levelNo = clamp(n, 1, LEVELS.length);
@@ -146,6 +165,13 @@ const Game = {
     this.answering = false;
     this.ending = false;
     this.falling = false;
+    // 仲間・ボスの 弾・こうげきの よやく・じかんは ステージを はなれたら のこさない
+    this.ally = null;
+    this.enemyShots = [];
+    this.bossAtk = null;
+    this.over = null;
+    this.clock = { left: ADULT.TIME, on: false, shown: -1 };
+    MediaAudio.Sfx.stop('bossWarn');
   },
 
   /* ---------------- タイトル ---------------- */
@@ -245,18 +271,45 @@ const Game = {
     this.qlog = [];   // でた もんだいと けっか（おちても のこす。つぎの ステージ・さいしょから で からに）
     this.dbCheer = 0; // ダンベル声援の かず（がめんの かずとは べつ）
     this.mode = 'play';
+    // ボス: レベル・ステージごとの え。ライフは 通常 3（いままで どおり）、オトナ 4〜8
+    const bossGate = L.gates.find((g) => g.boss);
+    const bossId = `L${lv}_S${i + 1}`;
+    bossGate.boss.setup(bossId, this.adult ? ADULT.BOSS_HP[lv - 1] : 3);
+    this.hero.hearts = this.hero.maxHearts = this.adult ? ADULT.LIVES : 3;
     Input.reset();
     UI.show(null);
     UI.hud(true);
-    UI.setStage(`レベル${lv}・ステージ${i + 1}`);
-    UI.setHearts(3, 3);
+    UI.setStage(`${this.adult ? 'オトナ・' : ''}レベル${lv}・ステージ${i + 1}`);
+    UI.setHearts(this.hero.hearts, this.hero.maxHearts);
     UI.setDb(0);
+    UI.setModeTag(this.adult, ADULT.TIME);
     UI.hideQuiz();
-    UI.banner(`レベル${lv}・ステージ ${i + 1}`, st.name);
+    UI.banner(`レベル${lv}・ステージ ${i + 1}`, this.adult ? `オトナモード　${st.name}` : st.name);
     // BGM候補から あたらしく ランダムに（やりなおし・つぎの ステージ でも）
     MediaAudio.BGM.shuffle();
     Cheers.preload(3);
     this.after(0.4, () => MediaAudio.Voice.play('start'));
+    // この ステージの ボスの え → 仲間の え（レアが でた ときに つかう）の じゅんに よむ
+    // オトナモードは ボスの え が よめるまで うごかさず、じかんも はからない（よみこみ中に 時計を すすめない）
+    const art = bossGate.boss.art, stage = this.level;
+    const ready = () => {
+      if (this.level !== stage || this.clock.on) return;
+      if (this.mode === 'paused') return void setTimeout(ready, 300);
+      if (this.mode !== 'play') return;
+      if (this.adult) {
+        this.hero.lock = 0;
+        this.clock.on = true;
+      }
+    };
+    if (this.adult && !art.ready) {
+      this.hero.lock = 99;
+      UI.banner('じゅんび ちゅう…', 'もうすこし まってね');
+      setTimeout(ready, 8000); // よめなくても 8びょうで はじめる（え は よめしだい でる）
+    }
+    art.promise.then(() => {
+      ready();
+      Object.keys(CHARA.allies).reduce((p, id) => p.then(() => CharaArt.ally(id).promise), Promise.resolve());
+    });
   },
 
   pause() {
@@ -297,6 +350,8 @@ const Game = {
       }
     }
     Input.poll();
+    // オトナモードの じかん: えがく かい数 では なく じっさいの けいか じかんで へらす（演出中も とめない。ポーズ中は とめる）
+    if (this.mode === 'play' && this.clock.on && !this.ending && raw > 0) this.tickClock(Math.min(raw, 0.25));
     this.acc += dt;
     const STEP = 1 / 120;
     let n = 0;
@@ -311,12 +366,25 @@ const Game = {
     requestAnimationFrame((t) => this.loop(t));
   },
 
+  tickClock(sec) {
+    const c = this.clock;
+    c.left = Math.max(0, c.left - sec);
+    const s = Math.ceil(c.left);
+    if (s !== c.shown) {
+      c.shown = s;
+      UI.setModeTag(true, s);
+    }
+    if (c.left <= 0) this.gameOver('time'); // 演出中でも ここで おわり
+  },
+
   update(dt) {
     if (this.mode === 'paused' || this.mode === 'boot') return;
     this.time += dt;
     // せいかいの カットイン中は せかいを とめる（てき・ボス・タイマー・パワーの のこりじかん）
     if (this.cutin) this.cutin.update(dt);
     const frozen = !!this.cutin;
+    if (this.bossAtk && this.mode === 'play' && !this.ending) this.updateBossAttack(dt);
+    if (this.ally) this.ally.update(dt, this);
     if (!frozen) {
       for (let i = this.timers.length - 1; i >= 0; i--) {
         const tm = this.timers[i];
@@ -394,6 +462,21 @@ const Game = {
       e.update(dt, this);
       if (!e.dead && Physics.bodies(h, e, 6)) this.heroVsEnemy(e, prevY);
     }
+    // ボスの 弾（オトナモード）。カットイン中は ここに こないので とまる
+    h.grace = Math.max(0, (h.grace || 0) - dt);
+    if (this.enemyShots.length) {
+      for (const s of this.enemyShots) {
+        s.update(dt);
+        if (s.hits(h) && this.heroCanBeHit()) {
+          s.done = true; // あたった 弾は けす（おなじ 弾で 2かい へらない）
+          this.fx.flash(s.x, s.y, '#ffffff', 120, 0.3);
+          this.fx.stars(s.x, s.y, 6, '#ffb0b0');
+          this.loseLife('hit', s.x + 40);
+        }
+        if (s.x < this.camX - 300 || s.t > 8) s.done = true;
+      }
+      this.enemyShots = this.enemyShots.filter((s) => !s.done);
+    }
     for (const b of L.blocks) b.update(dt);
     for (const g of L.gates) {
       g.update(dt);
@@ -439,9 +522,45 @@ const Game = {
     this.heroHurt(e.x);
   },
 
+  // 接触・被弾で ライフが へる じょうたいか（むてき・パワー全開・操作できない あいだ・演出あけ すぐ は へらない）
+  heroCanBeHit() {
+    const h = this.hero;
+    return !(h.invuln > 0 || h.power > 0 || h.lock > 0 || h.grace > 0 || this.ending || this.cutin);
+  },
+
+  /* オトナモード: ライフを 1 へらす
+     cause: 'wrong'（まちがえ。むてき中でも へる・こえは「もう一回！」だけ）| 'hit'（雑魚・ボスの 弾）| 'fall' */
+  loseLife(cause, fromX) {
+    const h = this.hero;
+    if (this.ending) return;
+    h.hearts = Math.max(0, h.hearts - 1);
+    UI.setHearts(h.hearts, h.maxHearts);
+    if (cause === 'hit') {
+      h.invuln = ADULT.INVULN; // 約1びょう（点滅）。おなじ てき・弾に かさなっていても まいフレーム へらない
+      h.vx = (Math.sign(h.x - fromX) || -1) * 420;
+      h.vy = -560;
+      h.forced = 'hurt';
+      this.after(0.45, () => { if (h.forced === 'hurt') h.forced = null; });
+      MediaAudio.Sfx.play('playerDamage'); // じっさいに へった ときだけ
+      this.shake = Math.max(this.shake, 10);
+      this.fx.stars(h.x, h.y - 60, 5, '#ffffff');
+    }
+    if (h.hearts <= 0) return this.gameOver('life'); // ゲームオーバーの おと・こえを ゆうせん
+    if (cause === 'wrong') {
+      MediaAudio.Voice.play('wrongRetry', { interrupt: true }); // まちがえの こえを ゆうせん（「あと一回！」は かさねない）
+      return;
+    }
+    if (cause === 'hit') MediaAudio.Voice.play(h.hearts === 1 ? 'playerLastLife' : 'playerDamageVoice', { interrupt: true });
+    else if (h.hearts === 1) MediaAudio.Voice.play('playerLastLife', { interrupt: true });
+  },
+
   heroHurt(fromX) {
     const h = this.hero;
     if (h.invuln > 0 || h.power > 0 || h.lock > 0 || this.ending) return;
+    if (this.adult) {
+      if (this.heroCanBeHit()) this.loseLife('hit', fromX);
+      return;
+    }
     h.hearts--;
     UI.setHearts(h.hearts, h.maxHearts);
     h.invuln = 1.8;
@@ -458,6 +577,16 @@ const Game = {
   heroFell() {
     const h = this.hero;
     this.falling = true;
+    if (this.adult) { // オトナ: おちても ライフ −1（0 なら ゲームオーバー。まんタンで やりなおさない）
+      Sound.play('hurt');
+      this.loseLife('fall');
+      if (this.ending) return;
+      this.after(0.5, () => {
+        this.falling = false;
+        this.respawn(false);
+      });
+      return;
+    }
     h.hearts--;
     UI.setHearts(Math.max(0, h.hearts), h.maxHearts);
     Sound.play('hurt');
@@ -503,8 +632,10 @@ const Game = {
   },
 
   newQuestion(g) {
-    if (g.state !== 'locked') return;
-    const q = Quiz.make(this.levelNo, this.stageIdx);
+    if (g.state !== 'locked' || this.ending) return;
+    const q = Quiz.make(this.levelNo, this.stageIdx, Math.random, this.adult);
+    // オトナモードの ボス: さいしょの もんだいが でて 操作できる ように なってから 約10びょうで はじめての こうげき
+    if (this.adult && g.kind === 'boss' && !this.bossAtk) this.bossAtk = { gate: g, phase: 'wait', t: ADULT.ATTACK_EVERY - ADULT.WARN, ok: 0, w: 0 };
     g.quiz = q;
     g.firstTry = true;
     g.qNo = (g.qNo || 0) + 1;
@@ -517,7 +648,7 @@ const Game = {
       b.pop = 0;
     });
     Sound.play('pop');
-    UI.showQuiz(q, this.settings.hint);
+    UI.showQuiz(q, this.settings.hint && !this.adult); // オトナは ●の ヒントなし
     MediaAudio.Voice.say(Quiz.askText(q)); // ほかの こえの あとに よむ（かさならない）
   },
 
@@ -542,8 +673,14 @@ const Game = {
     if (this.mode !== 'play') return;
     if (!g.active) this.activateGate(g);
     // 1かいの ジャンプで こたえられるのは 1かい だけ（ちゃくちしたら また こたえられる）
-    if (b.state !== 'idle' || g.state !== 'locked' || this.answering || !g.quiz || b.value == null || !this.hero.canAnswer) {
+    if (b.state !== 'idle' || g.state !== 'locked' || this.answering || !g.quiz || b.value == null || !this.hero.canAnswer || this.ending) {
       Sound.play('bump');
+      return;
+    }
+    // ボスの 弾を よける ジャンプ（予告〜弾が とおりすぎる まで）で うっかり こたえない（ミスにも しない）
+    if (this.dodging()) {
+      Sound.play('bump');
+      this.fx.text('よけて！', b.x + b.w / 2, b.y - 24, { size: 30, life: 0.8, top: '#ffffff', bot: '#ffd0a0', stroke: '#5a1a00' });
       return;
     }
     this.hero.canAnswer = false;
@@ -578,20 +715,136 @@ const Game = {
     this.zoomTarget = 1.15;
     this.focus = { x: h.x - this.camX, y: GROUND_Y - 130 };
     this.fx.confetti(h.x, GROUND_Y - 110, 40);
+    // ダメージは ここ（回答の かくてい）で 1かいだけ きめる: プレイヤー 1 ＋ いまの 仲間 1（オトナモードだけ）
+    // この 正解で レアを ひいても、あたらしい 仲間は つぎの 正解から
+    const ally = this.ally && this.ally.joined && !this.ally.gone ? this.ally : null;
+    g.dmg = 1 + (this.adult && ally ? 1 : 0);
+    g.allyAtk = ally; // こうげきの え（通常モードでも いっしょに うつ。ダメージは ふえない）
+    this.fizzleShots(); // とんでいる ボスの 弾は けす（カットインの あとの ふいうち なし）
     // 正解.wav → カットイン（え＋おうえんボイス）→ おわったら 1かいだけ こうげきへ
     const correctVoice = MediaAudio.Voice.play('correct', { interrupt: true });
     const pair = Cheers.next();
     if (!pair) console.warn('[cutin] つかえる えが ないので カットインを はぶきます');
-    this.cutin = new CutIn(correctVoice, pair, () => this.afterCutin(g));
+    this.cutin = new CutIn(correctVoice, pair, () => this.afterCutin(g, pair));
   },
 
-  afterCutin(g) {
+  afterCutin(g, pair) {
     const h = this.hero;
     this.cutin = null;
     h.forced = 'punch';
     Sound.play('whoosh');
-    const tx = g.kind === 'boss' ? g.boss.x - g.boss.w * 0.4 : g.x;
+    const boss = g.kind === 'boss' ? g.boss : null;
+    const tx = boss ? boss.x - boss.w * 0.4 : g.x;
     this.projectiles.push(new Projectile(h.x + 40, h.y - 74, tx, (x, y) => this.gateHit(g, x, y)));
+    const a = g.allyAtk;
+    g.allyAtk = null;
+    if (a && a === this.ally && !a.gone) a.attack(tx + 16, boss ? GROUND_Y - boss.h * 0.5 : GROUND_Y - 230, (x, y) => this.allyHit(g, x, y));
+    // レアを ひいたら その キャラが 仲間に（別の レアなら 交代、おなじ レアなら ふやさない）
+    if (pair && pair.rare) this.joinAlly(CHARA.allyOfCheer[pair.id]);
+  },
+
+  joinAlly(id) {
+    if (!id || this.ending) return;
+    if (this.ally && this.ally.id === id && !this.ally.gone) {
+      if (this.ally.joined) this.ally.join(this, true); // おなじ レア: 1体の まま（攻撃も 1）。加入の あいさつだけ もういちど
+      return;
+    }
+    if (this.ally) this.ally.leave(this);
+    this.ally = new Ally(id);
+    this.ally.update(0, this); // 絵が よめていれば すぐ うしろに つく
+  },
+
+  // 仲間の 弾が あたった（ダメージは gateHit で きまっている。ここは 見た目と 音だけ）
+  allyHit(g, x, y) {
+    if (this.over) return;
+    this.shake = Math.max(this.shake, 12);
+    this.fx.ring(x, y, '#ffffff', 16, 140, 0.4, 8);
+    const boss = g.boss;
+    if (boss && !boss.dead) {
+      boss.flash = 1;
+      boss.sq = 1;
+      if (this.adult) this.fx.text('なかまの こうげき！', boss.x, boss.y - boss.h - 70, { size: 32, life: 1.1, top: '#ffffff', bot: '#9ae8ff', stroke: '#0a2a5a' });
+    }
+  },
+
+  // ボスの 弾を ぜんぶ けす（キラッと きえる）
+  fizzleShots() {
+    for (const s of this.enemyShots) {
+      this.fx.sparkle(s.x, s.y, 10, '#ffffff', 200);
+      this.fx.dust(s.x, s.y, 4, 0);
+    }
+    this.enemyShots = [];
+  },
+
+  // ボスの 弾を よけている さいちゅう（予告中・まだ ヒーローの まえに 弾が ある）
+  dodging() {
+    const A = this.bossAtk, h = this.hero;
+    return !!A && (A.phase === 'warn' || this.enemyShots.some((s) => s.x > h.x - h.w));
+  },
+
+  /* ---------------- ボスの こうげき（オトナモード） ----------------
+     - 発射から つぎの 発射まで 約10びょう。発射の 0.8びょう まえに 予告（SE は まいかい、こえは ときどき）
+     - カットイン・こたえ中・ダメージ中 など ジャンプ できない あいだは 予告も 発射も しない（たまった ぶんを まとめて うたない）
+       ジャンプ できる ように なって 1びょう たってから あらためて 予告 → 1かいだけ うつ
+     - 180びょうの 時計は この あいだも すすむ（loop で べつに へらす） */
+  updateBossAttack(dt) {
+    const A = this.bossAtk, g = A.gate, boss = g.boss, h = this.hero;
+    if (boss.dead || g.state !== 'locked') return this.clearBossAttack();
+    const canJump = !this.cutin && !this.answering && h.lock <= 0 && !h.forced && !this.falling;
+    A.ok = canJump ? A.ok + dt : 0;
+    if (A.phase === 'warn') {
+      if (!canJump) { // 予告の とちゅうで 操作 できなく なった → この こうげきは やめて、あとで 予告しなおす
+        A.phase = 'wait';
+        A.t = 0;
+        boss.warn = 0;
+        MediaAudio.Sfx.fade('bossWarn', 0.08);
+        return;
+      }
+      A.w += dt;
+      boss.warn = A.w;
+      // 攻撃アニメの 弾を だす コマ（0始まり 8番）が 発射の しゅんかんに くる ように はじめる
+      const at = boss.d.anims.attack, lead = at.frames.indexOf(at.projectileFrame) / at.fps;
+      if (!A.anim && A.w >= ADULT.WARN - lead) {
+        A.anim = true;
+        boss.play('attack');
+      }
+      if (A.w >= ADULT.WARN) this.fireBossShot();
+      return;
+    }
+    A.t -= dt;
+    if (!this.jumpGuided && A.t <= 4) { // さいしょの ボス戦: こうげきの まえに 1かい だけ
+      this.jumpGuided = true;
+      MediaAudio.Voice.play('adultJumpGuide');
+      UI.banner('ボスの こうげきは', 'ジャンプで よけろ！', 'boss');
+    }
+    if (A.t <= 0 && A.ok >= ADULT.GRACE) {
+      A.phase = 'warn';
+      A.w = 0;
+      A.anim = false;
+      MediaAudio.Sfx.play('bossWarn'); // 予告SE は まいかい
+      if (Math.random() < 0.4) MediaAudio.Item.play('bossWarnVoice'); // 「攻撃が来るぞ！」は ときどき（ほかの こえが あれば はぶく）
+    }
+  },
+
+  fireBossShot() {
+    const A = this.bossAtk, boss = A.gate.boss;
+    A.phase = 'wait';
+    A.t = ADULT.ATTACK_EVERY - ADULT.WARN;
+    boss.warn = 0;
+    const s = new BossShot(boss.art, boss.x - 70);
+    this.enemyShots.push(s);
+    const kind = boss.d.shotKind;
+    MediaAudio.Sfx.play('bossShot' + kind[0].toUpperCase() + kind.slice(1)); // 弾の 見た目に あわせた 発射音
+    this.fx.flash(s.x, s.y, '#ffffff', 90, 0.25);
+  },
+
+  // ボスを たおした・ゲームオーバー・ステージを はなれた: 弾・タイマー・予約を ぜんぶ けす
+  clearBossAttack() {
+    const A = this.bossAtk;
+    if (A && A.gate.boss) A.gate.boss.warn = 0;
+    this.bossAtk = null;
+    this.enemyShots = [];
+    MediaAudio.Sfx.fade('bossWarn', 0.08);
   },
 
   wrong(b) {
@@ -603,11 +856,14 @@ const Game = {
     Sound.play('wrong');
     this.fx.text('おしい！', b.x + b.w / 2, b.y - 24, { size: 34, life: 1.1, top: '#ffffff', bot: '#ffb3c6', stroke: '#5a0a2a' });
     UI.quizWrong();
+    // オトナ: 回答 1かいに つき ライフ −1（むてき中でも へる。こえは「もう一回！」）
+    if (this.adult) return this.loseLife('wrong');
     // いまは おなじ もんだいを つづけるので「もう一回！」（「次行こう！」は もんだいを かえる ときよう）
     MediaAudio.Voice.play('wrongRetry', { interrupt: true });
   },
 
   gateHit(g, x, y) {
+    if (this.over) return;
     MediaAudio.Sfx.play('blastHit'); // 爆発2（かべを こわす・ボスに 当たる。合成の パンチ音の かわり）
     this.fx.flash(x, y, '#ffe9a0', 220, 0.4);
     this.fx.ring(x, y, '#ffffff', 20, 210, 0.5, 12);
@@ -625,8 +881,11 @@ const Game = {
       return;
     }
     const boss = g.boss;
-    boss.hp--;
+    const dmg = g.dmg || 1; // 回答の ときに きめた ダメージ（仲間の 弾では ふやさない）
+    g.dmg = 0;
+    boss.hp = Math.max(0, boss.hp - dmg);
     boss.play('hurt');
+    if (dmg > 1) this.fx.text(`${dmg}ダメージ！`, boss.x + 60, boss.y - boss.h + 30, { size: 44, life: 1.3 });
     boss.flash = 1;
     boss.sq = 1;
     this.fx.text(pick(['いたーい！', 'ぐはっ！', 'ひえ〜！']), boss.x, boss.y - boss.h - 20, { size: 42, top: '#ffffff', bot: '#ffb0c8', stroke: '#4a0a2a' });
@@ -642,9 +901,11 @@ const Game = {
   },
 
   finishAnswer(g, opened, givePower = true) {
+    if (this.ending) return;
     const h = this.hero;
     h.forced = null;
     h.lock = 0;
+    if (this.adult) h.grace = 0.8; // うごける ように なった すぐ あとの ふいうち（てき・弾）で へらない
     this.zoomTarget = 1;
     this.answering = false;
     if (!opened) return;
@@ -659,9 +920,11 @@ const Game = {
   },
 
   defeatBoss(g) {
+    if (this.over) return;
     const boss = g.boss, L = this.level;
     boss.dead = true;
     g.state = 'open';
+    this.clearBossAttack(); // のこった 弾で ゲームオーバーに ならない ように
     MediaAudio.Sfx.fade('blastHit', 0.15); // 当たった ときの 爆発の よいんは みじかく けして
     MediaAudio.Sfx.play('blastDown');       // 爆発1（ボスを たおした）
     this.shake = 30;
@@ -682,8 +945,11 @@ const Game = {
 
   reachGoal() {
     const L = this.level, h = this.hero, G = L.goal;
+    if (this.ending) return; // ゲームオーバー・時間切れが さきに きまっていたら うわがきしない
     G.reached = true;
     this.ending = true;
+    this.clock.on = false; // クリア確定で 時計を とめる
+    this.clearBossAttack();
     if (Math.abs(h.x - G.x) > 60 || h.y > GROUND_Y - 97) {
       h.x = G.x;
       h.y = GROUND_Y - 98;
@@ -696,7 +962,7 @@ const Game = {
     h.invuln = 0;
     // クリア確定: プレイの きょく → クリアの きょく（あたまから）。クリアボイスは 1かい
     MediaAudio.BGM.play('clear', { restart: true });
-    MediaAudio.Voice.play('clear', { interrupt: true });
+    MediaAudio.Voice.play(this.adult ? 'adultClear' : 'clear', { interrupt: true }); // オトナは「頭脳も筋肉も、仕上がってる！」
     this.zoomTarget = 1.12;
     this.focus = { x: h.x - this.camX, y: h.y - 90 };
     this.fx.confetti(h.x, h.y - 110, 80, 1.3);
@@ -709,13 +975,59 @@ const Game = {
     const ratio = st.total ? st.first / st.total : 1;
     const stars = ratio >= 0.85 ? 3 : ratio >= 0.5 ? 2 : 1;
     const key = this.starKey(this.levelNo, this.stageIdx);
-    this.progress.stars[key] = Math.max(this.progress.stars[key] || 0, stars);
-    Store.set('progress2', this.progress);
+    const rec = this.record();
+    rec.stars[key] = Math.max(rec.stars[key] || 0, stars);
+    const left = this.adult ? Math.ceil(this.clock.left) : null;
+    if (this.adult) {
+      rec.best = rec.best || {};
+      rec.best[key] = Math.max(rec.best[key] || 0, left); // のこり じかんの さいこう
+      Store.set('progressAdult', rec);
+    } else Store.set('progress2', rec);
     this.after(2.8, () => {
       this.mode = 'clear';
       UI.hud(false);
       // けっか画面に きりかわっても BGM・こえ・はなびの おとは そのまま（やりなおさない）
-      UI.showClear({ stars, correct: st.correct, db: st.db, last: this.stageIdx >= STAGES.length - 1, lv: this.levelNo, log: this.qlog });
+      UI.showClear({ stars, correct: st.correct, db: st.db, last: this.stageIdx >= STAGES.length - 1, lv: this.levelNo, log: this.qlog, adult: this.adult, left });
+    });
+  },
+
+  /* オトナモード: ライフ切れ（kind='life'）・時間切れ（'time'）。クリア・もう ひとつの おわりとは かさならない */
+  gameOver(kind) {
+    if (this.ending || this.mode !== 'play') return;
+    this.ending = true;
+    this.over = kind;
+    this.clock.on = false;
+    const h = this.hero;
+    // 演出・こえ・よやく・弾を ぜんぶ とめてから おわりの 音
+    if (this.cutin) {
+      this.cutin.cancel();
+      this.cutin = null;
+    }
+    this.clearBossAttack();
+    this.timers = [];
+    this.projectiles = [];
+    if (this.ally) {
+      this.ally.leave(this);
+      this.ally = null;
+    }
+    MediaAudio.Voice.cancel();
+    MediaAudio.Sfx.stop();
+    MediaAudio.Item.stop(0.05);
+    MediaAudio.Sfx.play(kind === 'time' ? 'timeUp' : 'gameOver');
+    MediaAudio.Voice.play(kind === 'time' ? 'timeUpVoice' : 'gameOverVoice');
+    MediaAudio.BGM.stop(1.5);
+    this.answering = false;
+    this.zoomTarget = 1;
+    h.lock = 999;
+    h.forced = 'hurt';
+    h.vx = 0;
+    h.invuln = 0;
+    UI.hideQuiz();
+    UI.banner(kind === 'time' ? 'タイムアップ！' : 'ゲームオーバー', kind === 'time' ? 'じかん ぎれ' : 'ライフが なくなった', 'boss');
+    this.after(2.0, () => {
+      this.mode = 'over';
+      UI.hud(false);
+      UI.showOver({ kind, lv: this.levelNo, stage: this.stageIdx, correct: this.stats.correct, log: this.qlog });
     });
   },
 

@@ -21,11 +21,24 @@ const UI = (() => {
 
   function init(g) {
     game = g;
-    for (const k of ['title', 'select', 'settings', 'pause', 'clear']) screens[k] = $('scr' + k[0].toUpperCase() + k.slice(1));
+    for (const k of ['title', 'select', 'settings', 'pause', 'clear', 'over']) screens[k] = $('scr' + k[0].toUpperCase() + k.slice(1));
     click('btnPlay', () => {
       Sound.play('select');
       game.openSelect();
     });
+    // モード（通常・オトナ）。「あそぶ」で その モードの ステージえらびへ
+    $('modeSel').addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      b.blur();
+      Sound.init();
+      Sound.play('select');
+      game.setPlayMode(b.dataset.mode);
+      syncMode();
+    });
+    syncMode();
+    click('btnOverRetry', () => game.startStage(game.stageIdx));
+    click('btnOverSel', () => game.toSelect());
     click('btnSettings', () => openSettings('title'));
     click('btnFull', toggleFull);
     click('btnSelBack', () => {
@@ -93,6 +106,18 @@ const UI = (() => {
     document.body.classList.toggle('in-menu', !!name);
   }
 
+  // えらんでいる モードを 色・わくで しめす（オトナは せつめいも）
+  function syncMode() {
+    const adult = game.adult;
+    $('modeSel').querySelectorAll('button').forEach((b) => {
+      const on = (b.dataset.mode === 'adult') === adult;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-checked', String(on));
+    });
+    $('modeNote').classList.toggle('on', adult);
+    document.body.classList.toggle('adult', adult);
+  }
+
   function openSettings(from) {
     settingsFrom = from;
     Sound.play('select');
@@ -146,16 +171,25 @@ const UI = (() => {
       };
       setTimeout(next, 60);
     }
-    // えらんでいる むずかしさ の ★ だけ を かきなおす（ふるい ひょうじを のこさない）
-    const lv = game.levelNo;
-    $('levelSel').querySelectorAll('button').forEach((b) => b.classList.toggle('on', Number(b.dataset.lv) === lv));
+    // えらんでいる むずかしさ の ★ だけ を かきなおす（ふるい ひょうじを のこさない）。★は モードごと
+    const lv = game.levelNo, adult = game.adult, AL = ADULT_LEVELS[lv - 1];
+    $('selMode').textContent = adult ? 'オトナモード' : '通常モード';
+    $('selMode').classList.toggle('adult', adult);
+    const levelsOf = adult ? ADULT_LEVELS : LEVELS;
+    $('levelSel').querySelectorAll('button').forEach((b) => {
+      b.classList.toggle('on', Number(b.dataset.lv) === lv);
+      b.querySelector('small').textContent = levelsOf[Number(b.dataset.lv) - 1].sub;
+    });
     grid.dataset.lv = lv;
     grid.querySelectorAll('.stage-card').forEach((b) => {
       const i = Number(b.dataset.i);
       const n = game.starsFor(lv, i);
       b.querySelector('.card-stars').innerHTML = [0, 1, 2].map((j) => `<i class="${j < n ? 'got' : ''}">★</i>`).join('');
       b.querySelector('.num').textContent = `${lv}-${i + 1}`;
-      b.setAttribute('aria-label', `レベル${lv} ステージ${i + 1} ${STAGES[i].name}`);
+      // オトナは 4ステージとも その レベルの もんだい
+      b.querySelector('.op').textContent = adult ? AL.mark : STAGES[i].mark;
+      b.querySelector('.card-label').textContent = adult ? AL.sub : STAGE_LABEL[i];
+      b.setAttribute('aria-label', `${adult ? 'オトナモード ' : ''}レベル${lv} ステージ${i + 1} ${STAGES[i].name}`);
     });
   }
 
@@ -185,6 +219,17 @@ const UI = (() => {
 
   function setStage(name) { $('stageChip').textContent = name; }
 
+  // プレイ中の モード表示。オトナは のこり じかん（30びょう から あかく）
+  function setModeTag(adult, sec) {
+    const el = $('modeTag');
+    el.classList.toggle('adult', adult);
+    el.querySelector('.mode-name').textContent = adult ? 'オトナ' : '通常モード';
+    if (!adult) return;
+    const s = Math.max(0, Math.ceil(sec));
+    $('clockText').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    el.classList.toggle('low', s <= 30);
+  }
+
   /* ---------------- もんだい ---------------- */
   function dots(el, n, cross, kind) {
     let html = '';
@@ -212,12 +257,19 @@ const UI = (() => {
     $('qOp').textContent = Quiz.opMark(q.op);
     const ans = $('qAns');
     ans.textContent = '？';
-    // ひきざん: ひく かず は ✕ の まとまりで（9まで の ときは ひかれる ●の おしりを ✕）
-    amount($('dA'), q.a, 'a', q.op === '-' && q.a <= 9 ? q.b : 0);
-    amount($('dB'), q.b, q.op === '-' ? 'minus' : 'b');
-    $('dAns').innerHTML = '';
-    $('qLegend').classList.toggle('on', q.a >= 10 || q.b >= 10);
+    if (q.adult) { // オトナ: ●の ヒントは ださない
+      ['dA', 'dB', 'dAns'].forEach((id) => { $(id).innerHTML = ''; });
+      $('qLegend').classList.remove('on');
+    } else {
+      // ひきざん: ひく かず は ✕ の まとまりで（9まで の ときは ひかれる ●の おしりを ✕）
+      amount($('dA'), q.a, 'a', q.op === '-' && q.a <= 9 ? q.b : 0);
+      amount($('dB'), q.b, q.op === '-' ? 'minus' : 'b');
+      $('dAns').innerHTML = '';
+      $('qLegend').classList.toggle('on', q.a >= 10 || q.b >= 10);
+    }
     el.classList.toggle('big', Math.max(q.a, q.b) >= 100 || String(q.a).length + String(q.b).length >= 5);
+    el.classList.toggle('huge', String(q.answer).length >= 4); // こたえが 4けた（2けた×2けた）: もっと ちいさく
+    el.classList.toggle('adult', !!q.adult);
     $('qHelp').textContent = 'こたえの ブロックを ジャンプで たたこう！';
     el.classList.toggle('nohint', !hint);
     el.classList.remove('solved', 'wrong');
@@ -230,13 +282,14 @@ const UI = (() => {
     el.classList.remove('wrong');
     void el.offsetWidth;
     el.classList.add('wrong');
-    $('qHelp').textContent = $('qLegend').classList.contains('on') ? 'おしい！ まとまりと ●を かぞえて みよう' : 'おしい！ ●を ゆびで かぞえて みよう';
+    $('qHelp').textContent = el.classList.contains('adult') ? 'おしい！ もういちど けいさん しよう'
+      : $('qLegend').classList.contains('on') ? 'おしい！ まとまりと ●を かぞえて みよう' : 'おしい！ ●を ゆびで かぞえて みよう';
   }
 
   function quizSolved(q) {
     const el = $('quiz');
     $('qAns').textContent = q.answer;
-    amount($('dAns'), q.answer, 'ans'); // のこった かず（こたえ）
+    if (!q.adult) amount($('dAns'), q.answer, 'ans'); // のこった かず（こたえ）
     $('qHelp').textContent = 'せいかい！ すごい！';
     el.classList.remove('wrong');
     el.classList.add('solved');
@@ -282,9 +335,19 @@ const UI = (() => {
     const msgs = ['よく がんばったね！', 'すごい！ きんにくも さんすうも ばっちり！', 'かんぺき！ きみは さいきょうの マッチョだ！'];
     $('cMsg').textContent = r.last ? `レベル${r.lv} ぜんぶ クリア！ きみは さんすうの チャンピオン！` : msgs[r.stars - 1];
     $('btnNext').textContent = r.last ? 'むずかしさを えらぶ' : 'つぎの ステージへ';
-    $('clearLevel').textContent = `レベル${r.lv}・ステージ${game.stageIdx + 1}`;
+    $('clearLevel').textContent = `${r.adult ? 'オトナモード・' : ''}レベル${r.lv}・ステージ${game.stageIdx + 1}`;
+    $('cTimeBox').hidden = !r.adult;
+    if (r.adult) $('cTime').textContent = `${Math.floor(r.left / 60)}:${String(r.left % 60).padStart(2, '0')}`;
     renderLog(r.log || []);
     show('clear');
+  }
+
+  /* ---------------- ゲームオーバー（オトナモード） ---------------- */
+  function showOver(r) {
+    $('overLevel').textContent = `オトナモード・レベル${r.lv}・ステージ${r.stage + 1}`;
+    $('overTitle').textContent = r.kind === 'time' ? 'タイムアップ！' : 'ゲームオーバー';
+    $('overMsg').textContent = `${r.correct}もん せいかい！ もう一回、挑戦だ！`;
+    show('over');
   }
 
   // でた じゅんに「しき ＝ こたえ」と ○／× → ○
@@ -303,5 +366,5 @@ const UI = (() => {
     list.scrollTop = 0;
   }
 
-  return { init, show, hud, setHearts, setDb, setStage, showQuiz, quizWrong, quizSolved, hideQuiz, setHint, banner, showClear };
+  return { init, show, hud, setHearts, setDb, setStage, setModeTag, showQuiz, quizWrong, quizSolved, hideQuiz, setHint, banner, showClear, showOver };
 })();

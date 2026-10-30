@@ -360,28 +360,42 @@ class Slime {
 }
 
 /* ---------------- ボス ---------------- */
+// ボスの え: レベル・ステージごとに ちがう 20体（CHARA.bosses）。ステージ1・2=ボス、3=中ボス、4=ラスボス
+const BOSS_SCALE = { boss: 0.92, midboss: 0.98, finalboss: 1.06 };
+
 class Boss {
   constructor(gate) {
     this.gate = gate;
     this.x = gate.x + gate.w / 2;
     this.y = GROUND_Y;
-    this.w = 280;
-    this.h = 256; // スプライトの みための おおきさ（BOSS_SPRITE_S と あわせる）
+    this.w = 280;  // あたり（ヒーローの こぶしが とどく ところ）。みための 大きさとは べつ
+    this.h = 256;  // みための たかさ（ハート・もじの いち）。え が きまったら はかった ちで
     this.hp = 3;
     this.maxHp = 3;
     this.flash = 0;
     this.sq = 0;
-    this.hopT = 1.5;
     this.hopY = 0;
-    this.hopV = 0;
     this.dead = false;
     this.deadT = 0;
     this.say = 0;
     this.sAnim = 'idle';
     this.sT = 0;
+    this.walkT = 2.5;
+    this.warn = 0; // オトナモード: こうげきの 予告（0〜WARN びょう）
+    this.art = null;
   }
+  // どの ボスか と ライフ（startStage で きめる）
+  setup(id, hp) {
+    this.id = id;
+    this.d = CHARA.bosses[id];
+    this.art = CharaArt.boss(id);
+    this.scale = BOSS_SCALE[this.d.type] || 1;
+    this.h = (this.d.anchor[1] - this.d.top) * this.scale;
+    this.hp = this.maxHp = hp;
+  }
+  // 'roar'（登場）は こうげきの うごき（弾は ださない）
   play(name) {
-    this.sAnim = name;
+    this.sAnim = name === 'roar' ? 'attack' : name;
     this.sT = 0;
   }
   update(dt, game) {
@@ -392,34 +406,25 @@ class Boss {
       this.deadT += dt;
       return;
     }
-    const busy = this.sAnim === 'hurt' || this.sAnim === 'roar';
-    if (busy && Sprites.done(BOSS_ANIM[this.sAnim], this.sT)) this.play('idle');
-    this.hopT -= dt;
-    if (this.hopT <= 0 && this.hopY === 0 && !busy) {
-      this.hopV = -520;
-      this.hopT = 2.2 + Math.random() * 1.5;
-      this.play('hop');
-    }
-    if (this.hopV !== 0 || this.hopY < 0) {
-      this.hopV += 2200 * dt;
-      this.hopY += this.hopV * dt;
-      if (this.hopY >= 0) {
-        this.hopY = 0;
-        this.hopV = 0;
-        this.sq = 0.8;
-        game.shake = Math.max(game.shake, 6);
-        game.fx.dust(this.x - 80, this.y, 5, -1);
-        game.fx.dust(this.x + 80, this.y, 5, 1);
-        Sound.play('land');
-        if (this.sAnim === 'hop') this.play('idle');
+    const A = this.d ? this.d.anims : null;
+    if (!A) return;
+    const anim = A[this.sAnim] || A.idle;
+    if (this.sAnim !== 'idle' && this.sAnim !== 'walk' && CharaArt.done(anim, this.sT) && this.warn <= 0) this.play('idle');
+    // ときどき その場で あしぶみ（いきている かんじ）
+    if (this.sAnim === 'idle') {
+      this.walkT -= dt;
+      if (this.walkT <= 0) {
+        this.play('walk');
+        this.walkT = 3 + Math.random() * 2;
       }
-    }
+    } else if (this.sAnim === 'walk' && this.sT > 1.4) this.play('idle');
   }
   draw(ctx, t, c, heroX) {
-    if (Sprites.ready) {
+    if (this.art && this.art.ready) {
       this.drawSprite(ctx, t);
       return;
     }
+    if (this.d) return; // え を よみこみ中（まるい かわりの えは ださない）
     if (this.dead && this.deadT > 0.5) return;
     const a = this.dead ? 1 - this.deadT / 0.5 : 1;
     ctx.globalAlpha = a;
@@ -484,27 +489,39 @@ class Boss {
     }
   }
   drawSprite(ctx, t) {
-    // たおされたら しぼむ コマを ながしてから きえる
-    const fade = this.dead ? clamp(1 - (this.deadT - 1.1) / 0.4, 0, 1) : 1;
+    // たおされたら 倒れる コマの さいごで とまって、すこし まってから きえる（いちは うごかさない）
+    const fade = this.dead ? clamp(1 - (this.deadT - 1.5) / 0.5, 0, 1) : 1;
     if (fade <= 0) return;
-    const anim = BOSS_ANIM[this.dead ? 'down' : this.sAnim] || BOSS_ANIM.idle;
-    const frame = Sprites.frameAt(anim, this.dead ? this.deadT : this.sT);
-    const y = this.y + this.hopY;
+    const A = this.d.anims;
+    const anim = this.dead ? A.defeat : A[this.sAnim] || A.idle;
+    const frame = CharaArt.frameAt(anim, this.dead ? this.deadT : this.sT);
+    const y = this.y;
+    const sq = 1 + this.sq * 0.06;
     ctx.save();
     ctx.globalAlpha = fade;
-    drawShadow(ctx, this.x, this.y, 136 * (1 + this.hopY / 600), 0.28);
-    // ヒーロー（ひだり）の ほうを むく
-    Sprites.draw(ctx, 'boss', frame, this.x, y, BOSS_SPRITE_S, true, null);
-    if (this.flash > 0) Sprites.draw(ctx, 'boss', frame, this.x, y, BOSS_SPRITE_S, true, 'white', this.flash);
+    drawShadow(ctx, this.x, this.y, (this.d.right - this.d.left) * this.scale * 0.42, 0.28);
+    // え は ひだり むき（ヒーローの ほう）なので そのまま
+    CharaArt.draw(ctx, this.art, frame, this.x, y, this.scale * sq, false, 1, this.flash);
+    if (this.warn > 0) { // 予告: あかく ひかる
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.35 + 0.3 * Math.sin(t * 30);
+      ctx.drawImage(Assets.glow('#ff3a3a'), this.x - 180, y - this.h - 20, 360, this.h + 60);
+    }
     ctx.restore();
     if (this.dead) return;
-    for (let i = 0; i < this.maxHp; i++) {
-      const hx = this.x + (i - (this.maxHp - 1) / 2) * 44, hy = y - this.h - 34;
+    if (this.warn > 0) { // 予告の「！」
+      const p = Math.min(1, this.warn / 0.15);
+      outlinedText(ctx, '！', this.x - 40, y - this.h - 70 - (1 - p) * 20, 70 * Ease.outBack(p), '#ffe14a', '#8a0010', 0.24);
+    }
+    // ライフが おおい（オトナモード）ときは ハートを すこし ちいさく つめる
+    const n = this.maxHp, size = n > 5 ? 32 : 38, gap = n > 5 ? 36 : 44;
+    for (let i = 0; i < n; i++) {
+      const hx = this.x + (i - (n - 1) / 2) * gap, hy = y - this.h - 30;
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
-      heartPath(ctx, hx + 2, hy + 3, 38);
+      heartPath(ctx, hx + 2, hy + 3, size);
       ctx.fill();
       ctx.fillStyle = i < this.hp ? '#ff3b5c' : '#5a4a60';
-      heartPath(ctx, hx, hy, 38);
+      heartPath(ctx, hx, hy, size);
       ctx.fill();
       ctx.strokeStyle = '#ffffff';
       ctx.lineWidth = 3;
@@ -605,7 +622,7 @@ class AnswerBlock {
       ctx.stroke();
     }
     const label = this.value == null ? '？' : String(this.value);
-    outlinedText(ctx, label, 0, 2, label.length > 2 ? 26 : label.length > 1 ? 34 : 40, wrong ? '#d9dce4' : '#ffffff', wrong ? '#3a3e48' : c.line, 0.24);
+    outlinedText(ctx, label, 0, 2, label.length > 3 ? 20 : label.length > 2 ? 26 : label.length > 1 ? 34 : 40, wrong ? '#d9dce4' : '#ffffff', wrong ? '#3a3e48' : c.line, 0.24);
     ctx.restore();
     // はじめての ときは「したから ジャンプ」の やじるし
     if (this.gate.hint && this.gate.active && this.state === 'idle') {

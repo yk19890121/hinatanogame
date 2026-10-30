@@ -342,6 +342,7 @@ const Render = (() => {
     for (const e of L.enemies) if (vis(e.x)) e.draw(ctx, t, th.slime);
     const h = S.hero;
     for (const g of L.gates) if (g.boss && vis(g.boss.x)) g.boss.draw(ctx, t, th.boss, h ? h.x : 0);
+    if (S.ally) S.ally.draw(ctx, t); // 仲間は ヒーローの うしろ
     if (h) {
       const gy = h.onGround ? h.y : Physics.groundBelow(L, h.x, h.y);
       if (gy != null) {
@@ -351,6 +352,7 @@ const Render = (() => {
       h.draw(ctx, t);
     }
     if (S.projectiles) for (const p of S.projectiles) p.draw(ctx, t);
+    if (S.enemyShots) for (const s of S.enemyShots) s.draw(ctx, t);
     S.fx.draw(ctx);
     S.fx.drawTexts(ctx);
   }

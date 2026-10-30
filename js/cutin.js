@@ -3,8 +3,9 @@
    せいかいの カットイン（マッチョの え ＋ おうえんボイス）
    通常: 正解.wav → スライドイン かいし と どうじに「シャキーン」と おうえんボイス → まんなかで とまって ボイスを つづける
          → ボイスが おわったら すぐ みぎうえへ スライドアウト → おわったら つぎの しょり
-   レア: 正解.wav → すこし くらく ＋ ほら貝 → マッスル群の 動画 → 動画の おわりと かさねて あかるく しながら
-         レアの え が スライドイン ＋ 登場の 音（教会の祈り）＋ セリフ → セリフが おわったら スライドアウト
+   レア: 正解.wav → すこし くらく ＋ ほら貝 → マッスル群の 動画 → 動画の おわりと かさねて
+         レアの え が スライドイン ＋ 登場の 音（教会の祈り）＋ セリフ（え の あいだは 通常と おなじ くらさ）
+         → セリフが おわったら スライドアウトしながら あかるく もどす → 仲間に なる（game.js）
    ゲームの じかんで うごくので、ポーズ中は いっしょに とまる
    ========================================================= */
 
@@ -231,7 +232,9 @@ class CutIn {
     this.cross = -1; // レア: 動画から え への かさなりの じかん
     this.root = document.getElementById('cutin');
     this.el = document.getElementById('cutinImg');
-    this.dim = this.root.querySelector('.cutin-dim');
+    this.dim = this.root.querySelector('.cutin-dim');          // え が でている あいだの くらさ（通常・レア おなじ）
+    this.blackDim = this.root.querySelector('.cutin-dim-rare'); // レア: ほら貝〜動画の あいだの くろい まく
+    this.dim.style.opacity = 0;
     this.root.classList.toggle('rare', this.rare);
     if (pair) {
       this.el.src = pair.image;
@@ -258,10 +261,11 @@ class CutIn {
       dim = 0.85 * (1 - (p - 1));
     }
     this.el.style.transform = `translate(-50%, -50%) translate(${x}vw, ${y}vh) rotate(${r}deg) scale(${s})`;
-    if (!this.rare) this.dim.style.opacity = dim; // レアは あかるさを べつに うごかす（rareDim）
+    // レアも 通常と おなじ くらさ（動画の くろい まくは かさなりの あいだに うすく して、こちらへ ひきつぐ）
+    this.dim.style.opacity = dim;
   }
 
-  rareDim(a) { this.dim.style.opacity = a; }
+  rareDim(a) { this.blackDim.style.opacity = a; }
 
   // え の 登場と いっしょに こえ（と 効果音）
   startCheer() {
@@ -280,7 +284,7 @@ class CutIn {
   update(dt) {
     this.t += dt;
     if (this.cheer) this.vt += dt;
-    if (this.cross >= 0 && this.cross < RARE_CROSS) { // 動画を けしながら あかるく もどす（え は もう はいってくる）
+    if (this.cross >= 0 && this.cross < RARE_CROSS) { // 動画と くろい まくを けす（かわりに え の くらさが はいってくる。あかるく しない）
       this.cross = Math.min(RARE_CROSS, this.cross + dt);
       const k = 1 - this.cross / RARE_CROSS;
       MuscleFx.opacity = k; // 動画は とちゅうで きらずに さいごまで ながす（みえなく なった あとは 自分で とまる）

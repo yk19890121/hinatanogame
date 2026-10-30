@@ -198,6 +198,15 @@ const MediaAudio = (() => {
       // おわりの 2びょう まえで おなじ 曲を あたまから かさねて ループ（つなぎめに 無音を つくらない）
       if (!m.el.paused && m.el.currentTime >= end - FADE_OUT) this.switchTo(m.id, { loop: true });
     },
+    // いまの 曲を sec びょうで フェードアウトして とめる（ゲームオーバー。つぎは shuffle / play で ながす）
+    stop(sec = 1.5) {
+      const m = this.main();
+      if (m) {
+        m.role = 'out';
+        fade(m, 0, sec);
+      }
+      this.cur = null;
+    },
     refresh() { // せってい・ポーズ・タブ の じょうたいに あわせる
       applyBus();
       if (!opt.music || blocked()) {
@@ -526,7 +535,14 @@ const MediaAudio = (() => {
   //   マッスル群の 動画の 音 ≒ -16 LUFS → 1.3 ≒ -14 LUFS（ほら貝と ならんで きこえる）
   //   レア登場（教会の祈り）≒ -16 LUFS → 2.0 ≒ -10 LUFS（大きめ。セリフの ほうが すこし 大きい）
   //   爆発2（攻撃が 当たる）≒ -16.5 LUFS → 1.0 / 爆発1（ボスを たおす）≒ -19 LUFS → 1.3（あとの「すげー！」の こえより ひくい）
-  const SFX_GAIN = { cutinIn: 0.7, rareHorn: 1.3, rareAppear: 2.0, rareMuscle: 1.3, blastHit: 1.0, blastDown: 1.3 };
+  //   仲間・オトナモードの SE は もとの 大きさが -3〜-17 LUFS と ばらばら → だいたい -15 LUFS に そろえる
+  //   予告（-5.6）は 聞きのがさない ように -11 くらい、ゲームオーバー・時間切れは -13 くらい
+  const SFX_GAIN = {
+    cutinIn: 0.7, rareHorn: 1.3, rareAppear: 2.0, rareMuscle: 1.3, blastHit: 1.0, blastDown: 1.3,
+    allyJoin: 0.85, allyHit: 1.1, allyAtkGold: 0.6, allyAtkRobot: 0.85, allyAtkGod: 0.28, allyAtkGorilla: 1.1, allyAtkTower: 0.85,
+    bossWarn: 0.55, bossShotPhysical: 0.85, bossShotFire: 0.75, bossShotIce: 0.7, bossShotThunder: 0.28, bossShotMagic: 0.8,
+    playerDamage: 0.9, gameOver: 1.6, timeUp: 1.2,
+  };
   const Sfx = {
     cur: [], // { key, buf, node, gain, offset, startedAt }
     play(key) {

@@ -214,6 +214,88 @@ const MEDIA = {
       "orig": "爆発1.mp3",
       "duration": 3.355
     },
+    "allyJoin": {
+      "src": "assets/sfx/ally_join.mp3",
+      "orig": "ally_join.mp3.mp3",
+      "duration": 2.325,
+      "start": 0.025
+    },
+    "allyHit": {
+      "src": "assets/sfx/ally_hit.mp3",
+      "orig": "ally_hit.mp3.mp3",
+      "duration": 1.489
+    },
+    "allyAtkGold": {
+      "src": "assets/sfx/ally_attack_gold.mp3",
+      "orig": "ally_attack_gold.mp3.mp3",
+      "duration": 2.064
+    },
+    "allyAtkRobot": {
+      "src": "assets/sfx/ally_attack_robot.mp3",
+      "orig": "ally_attack_robot.mp3.mp3",
+      "duration": 2.429
+    },
+    "allyAtkGod": {
+      "src": "assets/sfx/ally_attack_god.mp3",
+      "orig": "ally_attack_god.mp3.mp3",
+      "duration": 2.194
+    },
+    "allyAtkGorilla": {
+      "src": "assets/sfx/ally_attack_gorilla.mp3",
+      "orig": "ally_attack_gorilla.mp3.mp3",
+      "duration": 1.489
+    },
+    "allyAtkTower": {
+      "src": "assets/sfx/ally_attack_tower.mp3",
+      "orig": "ally_attack_tower.mp3.mp3",
+      "duration": 0.993
+    },
+    "bossWarn": {
+      "src": "assets/sfx/boss_attack_warning.mp3",
+      "orig": "boss_attack_warning.mp3.mp3",
+      "duration": 0.575
+    },
+    "bossShotPhysical": {
+      "src": "assets/sfx/boss_shot_physical.mp3",
+      "orig": "boss_shot_physical.mp3.mp3",
+      "duration": 0.993
+    },
+    "bossShotFire": {
+      "src": "assets/sfx/boss_shot_fire.mp3",
+      "orig": "boss_shot_fire.mp3.mp3",
+      "duration": 2.56
+    },
+    "bossShotIce": {
+      "src": "assets/sfx/boss_shot_ice.mp3",
+      "orig": "boss_shot_ice.mp3.mp3",
+      "duration": 2.429
+    },
+    "bossShotThunder": {
+      "src": "assets/sfx/boss_shot_thunder.mp3",
+      "orig": "boss_shot_thunder.mp3.mp3",
+      "duration": 2.194
+    },
+    "bossShotMagic": {
+      "src": "assets/sfx/boss_shot_magic.mp3",
+      "orig": "boss_shot_magic.mp3.mp3",
+      "duration": 2.926,
+      "start": 0.04
+    },
+    "playerDamage": {
+      "src": "assets/sfx/player_damage.mp3",
+      "orig": "player_damage.mp3.mp3",
+      "duration": 0.575
+    },
+    "gameOver": {
+      "src": "assets/sfx/game_over.mp3",
+      "orig": "game_over.mp3.mp3",
+      "duration": 0.653
+    },
+    "timeUp": {
+      "src": "assets/sfx/time_up.mp3",
+      "orig": "time_up.mp3.mp3",
+      "duration": 1.254
+    },
     "rareMuscle": {
       "src": "assets/sfx/muscle.mp3?h=c1b86246",
       "orig": "マッスル群.MP4 の 音"
@@ -339,6 +421,156 @@ const MEDIA = {
         2.285
       ],
       "origDuration": 2.44
+    },
+    "allyJoinGold": {
+      "src": "assets/voice/ally_gold_join_character.mp3",
+      "orig": "ally_gold_join_character.wav",
+      "duration": 2.36,
+      "trim": [
+        0.0,
+        2.36
+      ],
+      "origDuration": 2.406
+    },
+    "allyJoinRobot": {
+      "src": "assets/voice/ally_robot_join_character.mp3",
+      "orig": "ally_robot_join_character.wav",
+      "duration": 4.355,
+      "trim": [
+        0.0,
+        4.355
+      ],
+      "origDuration": 4.412
+    },
+    "allyJoinGod": {
+      "src": "assets/voice/ally_god_join_character.mp3",
+      "orig": "ally_god_join_character.wav",
+      "duration": 3.235,
+      "trim": [
+        0.0,
+        3.235
+      ],
+      "origDuration": 3.266
+    },
+    "allyJoinGorilla": {
+      "src": "assets/voice/ally_gorilla_join_character.mp3",
+      "orig": "ally_gorilla_join_character.wav",
+      "duration": 2.4,
+      "trim": [
+        0.0,
+        2.4
+      ],
+      "origDuration": 2.503
+    },
+    "allyJoinTower": {
+      "src": "assets/voice/ally_tower_join_character.mp3",
+      "orig": "ally_tower_join_character.wav",
+      "duration": 2.16,
+      "trim": [
+        0.0,
+        2.16
+      ],
+      "origDuration": 2.212
+    },
+    "allySupport1": {
+      "src": "assets/voice/ally_support_01.mp3",
+      "orig": "ally_support_01.wav",
+      "duration": 1.18,
+      "trim": [
+        0.0,
+        1.18
+      ],
+      "origDuration": 1.303
+    },
+    "allySupport2": {
+      "src": "assets/voice/ally_support_02.mp3",
+      "orig": "ally_support_02.wav",
+      "duration": 1.14,
+      "trim": [
+        0.0,
+        1.14
+      ],
+      "origDuration": 1.211
+    },
+    "allySupport3": {
+      "src": "assets/voice/ally_support_03.mp3",
+      "orig": "ally_support_03.wav",
+      "duration": 0.86,
+      "trim": [
+        0.0,
+        0.86
+      ],
+      "origDuration": 0.928
+    },
+    "adultJumpGuide": {
+      "src": "assets/voice/adult_jump_guide.mp3",
+      "orig": "adult_jump_guide.wav",
+      "duration": 2.61,
+      "trim": [
+        0.0,
+        2.61
+      ],
+      "origDuration": 2.784
+    },
+    "bossWarnVoice": {
+      "src": "assets/voice/boss_warning_voice.mp3",
+      "orig": "boss_warning_voice.wav",
+      "duration": 1.18,
+      "trim": [
+        0.0,
+        1.18
+      ],
+      "origDuration": 1.246
+    },
+    "playerDamageVoice": {
+      "src": "assets/voice/player_damage_voice.mp3",
+      "orig": "player_damage_voice.wav",
+      "duration": 0.895,
+      "trim": [
+        0.0,
+        0.895
+      ],
+      "origDuration": 0.957
+    },
+    "playerLastLife": {
+      "src": "assets/voice/player_last_life.mp3",
+      "orig": "player_last_life.wav",
+      "duration": 1.95,
+      "trim": [
+        0.0,
+        1.95
+      ],
+      "origDuration": 2.01
+    },
+    "gameOverVoice": {
+      "src": "assets/voice/game_over_voice.mp3",
+      "orig": "game_over_voice.wav",
+      "duration": 1.905,
+      "trim": [
+        0.0,
+        1.905
+      ],
+      "origDuration": 1.949
+    },
+    "timeUpVoice": {
+      "src": "assets/voice/time_up_voice.mp3",
+      "orig": "time_up_voice.wav",
+      "duration": 1.03,
+      "trim": [
+        0.0,
+        1.03
+      ],
+      "origDuration": 1.083
+    },
+    "adultClear": {
+      "src": "assets/voice/adult_stage_clear.mp3",
+      "orig": "adult_stage_clear.wav",
+      "duration": 3.01,
+      "trim": [
+        0.0,
+        3.01
+      ],
+      "origDuration": 3.131
     }
   },
   "cheers": [

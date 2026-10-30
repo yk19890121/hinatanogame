@@ -20,15 +20,7 @@ const HERO_ANIM = {
   victory: { frames: [24, 25, 26, 27, 28, 27], fps: 4, loop: true },
 };
 
-const BOSS_ANIM = {
-  idle: { frames: [0, 1, 2, 3, 4, 5], fps: 6, loop: true },
-  hop: { frames: [6, 7, 8, 9, 10, 11], fps: 10, loop: false },
-  roar: { frames: [12, 13, 15, 15, 17, 0], fps: 5, loop: false },
-  hurt: { frames: [18, 19, 20, 21, 22, 23], fps: 10, loop: false },
-  down: { frames: [24, 25, 26, 27, 28, 29], fps: 6, loop: false },
-};
-
-const BOSS_SPRITE_S = 1.36; // ボスの おおきさ（ぜんコマ おなじ）
+// ボスの え は js/chara.js（20体 べつべつ）
 
 const Sprites = (() => {
   const sheets = {};
@@ -62,7 +54,7 @@ const Sprites = (() => {
   }
 
   function load() {
-    return Promise.all([loadOne('hero'), loadOne('boss')]).then((r) => {
+    return Promise.all([loadOne('hero')]).then((r) => {
       ready = r.every(Boolean);
       return ready;
     });

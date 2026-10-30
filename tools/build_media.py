@@ -33,7 +33,27 @@ SFX = {
     # 攻撃が 当たった とき（かべを こわす・ボスに 当たる）と ボスを たおした とき
     "blastHit": ("爆発2.mp3", "bakuhatsu2", "auto"),
     "blastDown": ("爆発1.mp3", "bakuhatsu1", "auto"),
+    # 仲間・オトナモード（ZIP「SE」。ファイル名が「.mp3.mp3」なので ここで なおす）
+    **{k: (f"{fn}.mp3.mp3", fn, "auto") for k, fn in {
+        "allyJoin": "ally_join", "allyHit": "ally_hit",
+        "allyAtkGold": "ally_attack_gold", "allyAtkRobot": "ally_attack_robot", "allyAtkGod": "ally_attack_god",
+        "allyAtkGorilla": "ally_attack_gorilla", "allyAtkTower": "ally_attack_tower",
+        "bossWarn": "boss_attack_warning", "bossShotPhysical": "boss_shot_physical", "bossShotFire": "boss_shot_fire",
+        "bossShotIce": "boss_shot_ice", "bossShotThunder": "boss_shot_thunder", "bossShotMagic": "boss_shot_magic",
+        "playerDamage": "player_damage", "gameOver": "game_over", "timeUp": "time_up",
+    }.items()},
 }
+# 仲間・オトナモードの セリフ（ZIP「音声データ」は WAV だけ → 前後の 無音を けずって MP3 に する）
+# ally_join_<なまえ>.wav（加入ナレーション）は つかわない（本人の 加入セリフだけ）
+VOICE_MP3 = {
+    "allyJoinGold": "ally_gold_join_character", "allyJoinRobot": "ally_robot_join_character", "allyJoinGod": "ally_god_join_character",
+    "allyJoinGorilla": "ally_gorilla_join_character", "allyJoinTower": "ally_tower_join_character",
+    "allySupport1": "ally_support_01", "allySupport2": "ally_support_02", "allySupport3": "ally_support_03",
+    "adultJumpGuide": "adult_jump_guide", "bossWarnVoice": "boss_warning_voice", "playerDamageVoice": "player_damage_voice",
+    "playerLastLife": "player_last_life", "gameOverVoice": "game_over_voice", "timeUpVoice": "time_up_voice",
+    "adultClear": "adult_stage_clear",
+}
+VOICE_LUFS = -13.5
 VOICE = {
     "start": "スタート.wav",
     "clear": "ステージクリア！！やったね！.wav",
@@ -221,6 +241,22 @@ def main():
     for k, name in VOICE.items():
         rel, meta = put_voice(name, k)
         media["voice"][k] = {"src": rel, "orig": N(name), **meta}
+
+    for k, base in VOICE_MP3.items():
+        name = base + ".wav"
+        copy(name, f"source/voice/{base}.wav")
+        info = trim_voices.analyze(os.path.join(REPO, "source", "voice", f"{base}.wav"))
+        fd, tmp = tempfile.mkstemp(suffix=".wav")
+        os.close(fd)
+        trim_voices.write(info, tmp)
+        rel = f"assets/voice/{base}.mp3"
+        # 声の 大きさを いままでの 声（-12〜-15 LUFS）に そろえる（ちいさい 加入セリフが BGM に うもれない ように）
+        db = max(-10.0, min(10.0, VOICE_LUFS - loudness(tmp)))
+        subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y", "-i", tmp, "-af", f"volume={db:.2f}dB,alimiter=limit=0.95:level=disabled",
+                        "-codec:a", "libmp3lame", "-b:a", "128k", os.path.join(REPO, rel)], check=True)
+        dur = wav_len(tmp)
+        os.remove(tmp)
+        media["voice"][k] = {"src": rel, "orig": N(name), "duration": dur, "trim": [round(info["start"], 3), round(info["end"], 3)], "origDuration": round(info["dur"], 3)}
 
     os.makedirs(os.path.join(REPO, "source", "cutin"), exist_ok=True)
 
