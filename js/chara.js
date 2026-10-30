@@ -98,8 +98,12 @@ const CharaArt = (() => {
 })();
 
 /* ---------------- レア仲間（プレイヤーの うしろを ついてくる） ---------------- */
-const ALLY_H = 150;      // みための たかさ（ヒーローと おなじ くらい）
-const ALLY_GAP = 104;    // プレイヤーとの きょり
+const ALLY_H = 150;      // もとの みための たかさ（ヒーローと おなじ くらい）。これに ALLY_SIZE を かける
+// キャラごとの 大きさ（もとの 大きさに たいして。足もとを 基準に 拡大）
+const ALLY_SIZE = { R01_gold: 1.5, R02_robot: 3, R03_god: 1.5, R04_gorilla: 2, R05_tower: 1.5 };
+// ヒーローの みための はば と、ヒーローの うしろの はし 〜 仲間の まえの はし の すきま（ヒーロー 0.75体ぶん）
+const HERO_VIS_W = 70, ALLY_SPACE = HERO_VIS_W * 0.75;
+const ALLY_SPEED = 1100;  // 追従の さいこう速度（いちが とばない）
 const ALLY_SUPPORT = 0.3; // 攻撃の ときに「助太刀するぞ！」などを いう わりあい（ほかの こえが ない ときだけ）
 
 class Ally {
@@ -107,8 +111,13 @@ class Ally {
     this.id = id;
     this.d = CHARA.allies[id];
     this.art = CharaArt.ally(id);
-    this.scale = ALLY_H / (this.d.anchor[1] - this.d.top);
+    this.scale = (ALLY_H / (this.d.anchor[1] - this.d.top)) * (ALLY_SIZE[id] || 1);
+    this.height = (this.d.anchor[1] - this.d.top) * this.scale;
+    // 足もと（anchor）から 左右の はし まで（大きい ほう）＝ ヒーローとの すきまを はかる はば
+    this.half = Math.max(this.d.anchor[0] - this.d.left, this.d.right - this.d.anchor[0]) * this.scale;
+    this.gap = HERO_VIS_W / 2 + ALLY_SPACE + this.half; // まんなか どうしの きょり（キャラごと）
     this.float = id === 'R03_god'; // 神様は 雲に のって ういている
+    this.crushT = 0;
     this.joined = false; // 加入が おわった（つぎの 正解から こうげきに くわわる）
     this.x = 0;
     this.y = GROUND_Y;
@@ -131,11 +140,15 @@ class Ally {
     this.sT += dt;
     this.appear = Math.min(1, this.appear + dt * 4);
     const prev = this.x;
-    const tx = h.x - h.facing * ALLY_GAP;
-    this.x = damp(this.x, tx, 7, dt);
+    // いつも ヒーローの うしろ（ひだり）。ふりむいても まえに まわりこまない（すりぬけて かさならない）
+    const tx = h.x - this.gap;
+    const step = damp(this.x, tx, 6, dt) - this.x;
+    this.x += clamp(step, -ALLY_SPEED * dt, ALLY_SPEED * dt);
+    this.x = Math.min(this.x, h.x - (HERO_VIS_W / 2 + this.half + 8)); // ヒーローが さがってきても かさならない
     this.vx = dt > 0 ? (this.x - prev) / dt : 0;
     this.y = damp(this.y, h.y, h.onGround ? 14 : 9, dt);
     this.facing = h.facing;
+    if (dt > 0) this.crush(game, dt);
     const A = this.d.anims;
     if (this.attackT >= 0) {
       this.attackT += dt;
@@ -155,11 +168,38 @@ class Ally {
     }
   }
 
+  /* からだに ふれた ふつうの ブロック（地形の れんが=タイル 2）を つぶす
+     - 問題の 数字ブロック・いしの かべ・ボスは タイルでは ないので さわらない（正解するまで すすめない）
+     - 地面（タイル 1）・のれる いた（3）・ステージの はしは こわさない。正解・ダメージ・スコアには ならない */
+  crush(game, dt) {
+    const L = game.level;
+    if (!L || !L.tiles) return;
+    this.crushT = Math.max(0, this.crushT - dt);
+    const lift = this.float ? -16 : 0;
+    const x0 = this.x - this.half * 0.7, x1 = this.x + this.half * 0.7;
+    const y0 = this.y + lift - this.height * 0.92, y1 = this.y + lift - 6;
+    let broke = 0;
+    for (let c = Math.max(0, Math.floor(x0 / T)); c <= Math.min(L.cols - 1, Math.floor(x1 / T)); c++) {
+      for (let r = Math.max(0, Math.floor(y0 / T)); r <= Math.min(ROWS - 1, Math.floor(y1 / T)); r++) {
+        if (L.tiles[c * ROWS + r] !== 2) continue;
+        L.tiles[c * ROWS + r] = 0;
+        broke++;
+        game.fx.rocks(c * T, r * T, T, T, ['#c8763a', '#8a4a20', '#e8a060'], 10);
+        game.fx.dust(c * T + T / 2, r * T + T, 4, 0);
+      }
+    }
+    if (broke && this.crushT <= 0) {
+      this.crushT = 0.12;
+      Sound.play('crash');
+      game.shake = Math.max(game.shake, 6 + broke * 2);
+    }
+  }
+
   join(game, again = false) {
     const h = game.hero;
     this.joined = true;
     if (!again) {
-      this.x = h.x - h.facing * ALLY_GAP;
+      this.x = h.x - this.gap;
       this.y = h.y;
       this.appear = 0;
     }
@@ -168,25 +208,35 @@ class Ally {
     this.sT = 0;
     game.fx.sparkle(this.x, this.y - 70, 22, '#ffe14a', 300);
     game.fx.ring(this.x, this.y - 70, '#ffffff', 20, 120, 0.5, 6);
-    game.fx.text('なかまに なった！', this.x, this.y - ALLY_H - 40, { size: 30, life: 1.4 });
-    MediaAudio.Sfx.play('allyJoin');            // ついた しゅんかん
-    MediaAudio.Voice.play(this.d.voice);         // 本人の 加入セリフ（ほかの こえの あとに。ゲームは またない）
+    game.fx.text('なかまに なった！', this.x, this.y - Math.min(this.height, 330) - 30, { size: 30, life: 1.4 });
+    MediaAudio.Sfx.play('allyJoin'); // ついた しゅんかん
+    // 本人の 加入セリフ（BGM・効果音を さげて きわだたせる）。おわるまで ヒーローの 攻撃を まつ（game.js）
+    this.voice = MediaAudio.Voice.play(this.d.voice, { lead: true });
+    return this.voice;
   }
 
-  // 正解で いっしょに こうげき（ダメージは かぞえない。ダメージは 回答の ときに きまる）
-  attack(targetX, targetY, onHit) {
+  // 正解で ヒーローの あとに 追撃（gate: どの 壁・ボスへの こうげきか。ボスが さきに たおれたら とりやめ）
+  attack(targetX, targetY, onHit, gate) {
     if (!this.joined) return;
     this.attackT = 0;
     this.fired = false;
-    this.target = { x: targetX, y: targetY, onHit };
+    this.target = { x: targetX, y: targetY, onHit, gate };
+  }
+
+  // まだ うっていない 追撃を とりやめる
+  cancelAttack() {
+    if (this.attackT >= 0 && !this.fired) this.attackT = -1;
+    this.target = null;
   }
 
   fire(game) {
     if (this.fired || !this.target) return;
     this.fired = true;
-    const s = this.scale, y = this.y - (this.d.anchor[1] - this.d.top) * s * 0.55 + (this.float ? -14 : 0);
-    const T = this.target;
-    game.projectiles.push(new AllyShot(this, this.x + this.facing * 40, y, T.x, T.y, T.onHit));
+    const y = this.y - Math.min(this.height * 0.55, 260) + (this.float ? -14 : 0);
+    const t = this.target;
+    const shot = new AllyShot(this, this.x + this.half * 0.5, y, t.x, t.y, t.onHit);
+    shot.gate = t.gate;
+    game.projectiles.push(shot);
     MediaAudio.Sfx.play(this.d.sfx); // 発射した しゅんかん
     if (Math.random() < ALLY_SUPPORT) MediaAudio.Item.play(pick(['allySupport1', 'allySupport2', 'allySupport3'])); // ほかの こえが あれば はぶく
   }
@@ -207,10 +257,10 @@ class Ally {
     const anim = this.attackT >= 0 ? A.attack : A[this.sAnim] || A.idle;
     const frame = CharaArt.frameAt(anim, this.attackT >= 0 ? this.attackT : this.sT);
     const lift = this.float ? -16 + Math.sin(t * 2.4) * 6 : 0;
-    const s = this.scale * (0.6 + 0.4 * Ease.outBack(this.appear));
     const gy = Physics.groundBelow(Game.level, this.x, this.y - 4);
-    drawShadow(ctx, this.x, gy == null ? this.y : gy, (this.d.right - this.d.left) * this.scale * 0.36, 0.22);
-    CharaArt.draw(ctx, this.art, frame, this.x, this.y + lift, s, this.facing < 0, 1, 0);
+    drawShadow(ctx, this.x, gy == null ? this.y : gy, (this.d.right - this.d.left) * this.scale * 0.36, 0.22 * this.appear);
+    // 大きさは どの うごきでも おなじ（あらわれる ときは すけぐあい だけ かえる）
+    CharaArt.draw(ctx, this.art, frame, this.x, this.y + lift, this.scale, this.facing < 0, this.appear, this.appear < 1 ? 1 - this.appear : 0);
   }
 }
 

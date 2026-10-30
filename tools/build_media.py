@@ -54,6 +54,33 @@ VOICE_MP3 = {
     "adultClear": "adult_stage_clear",
 }
 VOICE_LUFS = -13.5
+# レアの 声援・仲間の 加入セリフ（同時に 鳴る 登場の 音・加入SE に まけない ように）は ここまで 大きく する。
+# もとの ピークが ほぼ いっぱい なので、ただ 音量を 上げると 音割れ → 音量を 上げて リミッター（ピーク 0.9）で おさえる。
+# 短い セリフは loudnorm では ねらいどおりに ならないので、はかりながら 3〜4かいで あわせる
+LEAD_LUFS = -11.0
+LEAD_VOICE = ["allyJoinGold", "allyJoinRobot", "allyJoinGod", "allyJoinGorilla", "allyJoinTower"]
+
+
+def lead_encode(src, dst, codec):
+    """src（WAV）を LEAD_LUFS（±0.3）に して dst へ。codec: ['-acodec', 'pcm_s16le'] など"""
+    db = LEAD_LUFS - loudness(src)
+    for _ in range(5):
+        db = max(0.0, min(12.0, db))
+        subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y", "-i", src, "-af", f"volume={db:.2f}dB,alimiter=limit=0.9:attack=2:release=50:level=disabled",
+                        "-ar", "44100", *codec, dst], check=True)
+        got = loudness(dst)
+        if abs(got - LEAD_LUFS) <= 0.3:
+            break
+        db += LEAD_LUFS - got
+    return got
+
+
+def lead_wav(path):
+    """WAV を その場で LEAD_LUFS に（44.1kHz・16bit の まま）"""
+    fd, tmp = tempfile.mkstemp(suffix=".wav")
+    os.close(fd)
+    lead_encode(path, tmp, ["-acodec", "pcm_s16le"])
+    shutil.move(tmp, path)
 VOICE = {
     "start": "スタート.wav",
     "clear": "ステージクリア！！やったね！.wav",
@@ -251,9 +278,13 @@ def main():
         trim_voices.write(info, tmp)
         rel = f"assets/voice/{base}.mp3"
         # 声の 大きさを いままでの 声（-12〜-15 LUFS）に そろえる（ちいさい 加入セリフが BGM に うもれない ように）
-        db = max(-10.0, min(10.0, VOICE_LUFS - loudness(tmp)))
-        subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y", "-i", tmp, "-af", f"volume={db:.2f}dB,alimiter=limit=0.95:level=disabled",
-                        "-codec:a", "libmp3lame", "-b:a", "128k", os.path.join(REPO, rel)], check=True)
+        mp3 = ["-codec:a", "libmp3lame", "-b:a", "128k"]
+        if k in LEAD_VOICE:
+            lead_encode(tmp, os.path.join(REPO, rel), mp3)
+        else:
+            db = max(-10.0, min(10.0, VOICE_LUFS - loudness(tmp)))
+            subprocess.run([ffmpeg(), "-hide_banner", "-loglevel", "error", "-y", "-i", tmp, "-af", f"volume={db:.2f}dB,alimiter=limit=0.95:level=disabled",
+                            *mp3, os.path.join(REPO, rel)], check=True)
         dur = wav_len(tmp)
         os.remove(tmp)
         media["voice"][k] = {"src": rel, "orig": N(name), "duration": dur, "trim": [round(info["start"], 3), round(info["end"], 3)], "origDuration": round(info["dur"], 3)}
@@ -267,6 +298,8 @@ def main():
             c["rareName"] = rare
         if voice and files.get(N(voice)):
             rel, meta = put_voice(voice, f"cheer{n:02d}")
+            if rare:
+                lead_wav(os.path.join(REPO, rel))
             c.update({"voice": rel, "duration": meta["duration"], "trim": meta["trim"], "origDuration": meta["origDuration"]})
         c.update({"enabled": True, "origImage": N(img_name), "origVoice": N(voice) if c["voice"] else None})
         if not c["voice"]:

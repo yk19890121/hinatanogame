@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261030a">
+<link rel="stylesheet" href="css/style.css?v=20261030b">
 </head>
 <body>
 <div id="app">
@@ -33,9 +33,13 @@
       </div>
     </div>
     <div id="stageChip" class="pill stage-chip"></div>
-    <button id="btnPause" class="round-btn" aria-label="ひとやすみ">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
-    </button>
+    <div class="hud-right">
+      <!-- BGM を べつの 曲へ（ジャンプ・こたえとは べつ） -->
+      <button id="btnBgm" class="pill bgm-btn" aria-label="BGMを べつの 曲に かえる">♫ シャッフル</button>
+      <button id="btnPause" class="round-btn" aria-label="ひとやすみ">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- もんだい -->
@@ -167,24 +171,24 @@
   <div id="rotate" class="rotate"><div class="phone"></div><p>よこむきに してね</p></div>
 </div>
 
-<script src="js/util.js?v=20261030a"></script>
-<script src="js/quiz.js?v=20261030a"></script>
-<script src="js/media.js?v=20261030a"></script>
-<script src="js/audio.js?v=20261030a"></script>
-<script src="js/media-audio.js?v=20261030a"></script>
-<script src="js/input.js?v=20261030a"></script>
-<script src="js/themes.js?v=20261030a"></script>
-<script src="js/assets.js?v=20261030a"></script>
-<script src="js/sprite-meta.js?v=20261030a"></script>
-<script src="js/sprites.js?v=20261030a"></script>
-<script src="js/hero.js?v=20261030a"></script>
-<script src="js/entities.js?v=20261030a"></script>
-<script src="js/level.js?v=20261030a"></script>
-<script src="js/chara-data.js?v=20261030a"></script>
-<script src="js/chara.js?v=20261030a"></script>
-<script src="js/render.js?v=20261030a"></script>
-<script src="js/cutin.js?v=20261030a"></script>
-<script src="js/ui.js?v=20261030a"></script>
-<script src="js/game.js?v=20261030a"></script>
+<script src="js/util.js?v=20261030b"></script>
+<script src="js/quiz.js?v=20261030b"></script>
+<script src="js/media.js?v=20261030b"></script>
+<script src="js/audio.js?v=20261030b"></script>
+<script src="js/media-audio.js?v=20261030b"></script>
+<script src="js/input.js?v=20261030b"></script>
+<script src="js/themes.js?v=20261030b"></script>
+<script src="js/assets.js?v=20261030b"></script>
+<script src="js/sprite-meta.js?v=20261030b"></script>
+<script src="js/sprites.js?v=20261030b"></script>
+<script src="js/hero.js?v=20261030b"></script>
+<script src="js/entities.js?v=20261030b"></script>
+<script src="js/level.js?v=20261030b"></script>
+<script src="js/chara-data.js?v=20261030b"></script>
+<script src="js/chara.js?v=20261030b"></script>
+<script src="js/render.js?v=20261030b"></script>
+<script src="js/cutin.js?v=20261030b"></script>
+<script src="js/ui.js?v=20261030b"></script>
+<script src="js/game.js?v=20261030b"></script>
 </body>
 </html>

@@ -10,7 +10,7 @@
    ========================================================= */
 
 // レアの 出現率（レア 5体 ぜんたいで）。ここ 1か所で かえる
-const RARE_RATE = 0.10;
+const RARE_RATE = 0.30;
 
 // えと こえは かならず ペアで えらぶ。通常・レアごとに シャッフルして じゅんばんに（つぎの ひとまわりの さいしょが まえと おなじに ならない）
 // 開発用: URL に ?rare=1〜5 で その レアを まいかい、?rare=all で まいかい レア、?rare=normal で レアなし
@@ -276,7 +276,7 @@ class CutIn {
       this.cross = 0;
     } else MediaAudio.Sfx.play('cutinIn');
     this.cheer = this.pair.voice
-      ? MediaAudio.Voice.playSrc(this.pair.voice, this.pair.duration)
+      ? MediaAudio.Voice.playSrc(this.pair.voice, this.pair.duration, { lead: this.rare }) // レアの セリフは BGM・登場の 音を さげて きわだたせる
       : { done: true, ok: false, skipped: false, error: false, none: true }; // まだ セリフが ない レア: 絵だけ
     this.go('in');
   }

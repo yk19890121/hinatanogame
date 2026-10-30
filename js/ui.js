@@ -60,6 +60,23 @@ const UI = (() => {
       show(settingsFrom);
     });
     click('btnPause', () => game.pause());
+    // 「♫ シャッフル」: いまの BGM を べつの 曲へ（ジャンプ・こたえには ならない。0.4びょうに 1かい まで）
+    let bgmAt = 0;
+    const bgmBtn = $('btnBgm');
+    bgmBtn.disabled = !MediaAudio.BGM.canNext();
+    bgmBtn.addEventListener('pointerdown', (e) => e.stopPropagation());
+    click('btnBgm', () => {
+      const now = performance.now();
+      if (now - bgmAt < 400 || game.mode !== 'play') return;
+      bgmAt = now;
+      MediaAudio.unlock();
+      if (MediaAudio.BGM.next()) {
+        bgmBtn.classList.remove('spin');
+        void bgmBtn.offsetWidth;
+        bgmBtn.classList.add('spin');
+      }
+      Input.reset(); // おした タッチ・キーを ジャンプに しない
+    });
     click('btnResume', () => game.resume());
     click('btnPauseSettings', () => openSettings('pause'));
     click('btnRetry', () => game.startStage(game.stageIdx));
@@ -199,13 +216,21 @@ const UI = (() => {
     document.body.classList.toggle('playing', on);
   }
 
+  // ライフ（プロテインで 3より 多くも なる）: 5こ までは ハートを ならべ、それより 多い ときは「♥ × 6」
+  const HEART_ROW_MAX = 5;
   function setHearts(n, max) {
     const el = $('hearts');
     const prev = Number(el.dataset.n || max);
     let html = '';
-    for (let i = 0; i < max; i++) html += `<span class="heart ${i < n ? 'full' : 'empty'}${i === n && n < prev ? ' lose' : ''}${i === n - 1 && n > prev ? ' gain' : ''}">${HEART}</span>`;
+    if (n > HEART_ROW_MAX) {
+      html = `<span class="heart full${n > prev ? ' gain' : n < prev ? ' lose' : ''}">${HEART}</span><b class="heart-count">× ${n}</b>`;
+    } else {
+      const slots = Math.max(n, max);
+      for (let i = 0; i < slots; i++) html += `<span class="heart ${i < n ? 'full' : 'empty'}${i === n && n < prev ? ' lose' : ''}${i === n - 1 && n > prev ? ' gain' : ''}">${HEART}</span>`;
+    }
     el.innerHTML = html;
     el.dataset.n = n;
+    el.setAttribute('aria-label', `ライフ ${n}`);
   }
 
   function setDb(n) {

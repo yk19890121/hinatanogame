@@ -6,6 +6,7 @@ const DUST = { meadow: '#f4ead8', desert: '#ffe0b0', snow: '#ffffff', night: '#b
 // ダンベル声援: がめんの かず（stats.db）とは べつに かぞえる。10 → 20 → 35こ で 1しゅう（35で 0に もどす）
 const DB_CHEER = { 10: 'itemDb1', 20: 'itemDb2', 35: 'itemDb3' }, DB_CYCLE = 35;
 const BOSS_NEXT = 1.0; // ボスに あたってから つぎの もんだい まで（びょう）
+const ALLY_FOLLOW = 0.1; // ヒーローの こぶしから 仲間の 攻撃 かいしまで（弾は その 0.2びょう あと → あわせて 0.3びょう）
 
 const Game = {
   mode: 'boot',
@@ -167,6 +168,7 @@ const Game = {
     this.falling = false;
     // 仲間・ボスの 弾・こうげきの よやく・じかんは ステージを はなれたら のこさない
     this.ally = null;
+    this.waitJoin = null; // 加入セリフの あとの 攻撃まち
     this.enemyShots = [];
     this.bossAtk = null;
     this.over = null;
@@ -384,6 +386,7 @@ const Game = {
     if (this.cutin) this.cutin.update(dt);
     const frozen = !!this.cutin;
     if (this.bossAtk && this.mode === 'play' && !this.ending) this.updateBossAttack(dt);
+    if (this.waitJoin && !frozen && this.mode === 'play' && !this.ending) this.updateWaitJoin(dt);
     if (this.ally) this.ally.update(dt, this);
     if (!frozen) {
       for (let i = this.timers.length - 1; i >= 0; i--) {
@@ -438,7 +441,7 @@ const Game = {
     for (const p of L.proteins) {
       if (p.taken || Math.abs(p.x - h.x) > 38 || p.y < h.y - h.h - 24 || p.y > h.y + 14) continue;
       p.taken = true;
-      h.hearts = Math.min(h.maxHearts, h.hearts + 1);
+      h.hearts += 1; // 上限なし（3より 多くも なる。やりなおし・つぎの ステージで 3に もどる）
       UI.setHearts(h.hearts, h.maxHearts);
       Sound.play('heal');
       this.fx.sparkle(p.x, p.y, 16, '#ff7aa8', 260);
@@ -550,8 +553,9 @@ const Game = {
       MediaAudio.Voice.play('wrongRetry', { interrupt: true }); // まちがえの こえを ゆうせん（「あと一回！」は かさねない）
       return;
     }
-    if (cause === 'hit') MediaAudio.Voice.play(h.hearts === 1 ? 'playerLastLife' : 'playerDamageVoice', { interrupt: true });
-    else if (h.hearts === 1) MediaAudio.Voice.play('playerLastLife', { interrupt: true });
+    // のこりの かずで きめる（プロテインで 4いじょうに なっても「まだいける！」は 2に なった とき だけ）
+    if (h.hearts === 1) MediaAudio.Voice.play('playerLastLife', { interrupt: true });
+    else if (cause === 'hit' && h.hearts === 2) MediaAudio.Voice.play('playerDamageVoice', { interrupt: true });
   },
 
   heroHurt(fromX) {
@@ -715,11 +719,12 @@ const Game = {
     this.zoomTarget = 1.15;
     this.focus = { x: h.x - this.camX, y: GROUND_Y - 130 };
     this.fx.confetti(h.x, GROUND_Y - 110, 40);
-    // ダメージは ここ（回答の かくてい）で 1かいだけ きめる: プレイヤー 1 ＋ いまの 仲間 1（オトナモードだけ）
+    // ダメージは ここ（回答の かくてい）で 1かいだけ きめる: プレイヤー 1（こぶし）＋ いまの 仲間 1（追撃。オトナモードだけ）
     // この 正解で レアを ひいても、あたらしい 仲間は つぎの 正解から
     const ally = this.ally && this.ally.joined && !this.ally.gone ? this.ally : null;
-    g.dmg = 1 + (this.adult && ally ? 1 : 0);
-    g.allyAtk = ally; // こうげきの え（通常モードでも いっしょに うつ。ダメージは ふえない）
+    g.dmgAlly = this.adult && ally ? 1 : 0;
+    g.allyAtk = ally; // 追撃する（通常モードでも いっしょに 攻撃する 演出。ダメージは ふえない）
+    g.waitAlly = false;
     this.fizzleShots(); // とんでいる ボスの 弾は けす（カットインの あとの ふいうち なし）
     // 正解.wav → カットイン（え＋おうえんボイス）→ おわったら 1かいだけ こうげきへ
     const correctVoice = MediaAudio.Voice.play('correct', { interrupt: true });
@@ -728,42 +733,89 @@ const Game = {
     this.cutin = new CutIn(correctVoice, pair, () => this.afterCutin(g, pair));
   },
 
+  /* カットインの あと
+     - レアを ひいた: その キャラが 仲間に（別の レアなら 交代、おなじ レアなら ふやさない）→ 加入セリフが おわってから ヒーローの 攻撃
+     - それいがい: すぐ ヒーローの 攻撃 */
   afterCutin(g, pair) {
-    const h = this.hero;
     this.cutin = null;
+    const id = pair && pair.rare ? CHARA.allyOfCheer[pair.id] : null;
+    if (id && !this.ending) {
+      this.waitJoin = { g, ally: this.joinAlly(id), t: 0 };
+      return;
+    }
+    this.heroAttack(g);
+  },
+
+  // 加入セリフの おわり（じっさいの 再生しゅうりょう）を まつ。こえ オフ なら すぐ、絵が よめない ときも ずっとは またない
+  updateWaitJoin(dt) {
+    const w = this.waitJoin, a = w.ally;
+    w.t += dt;
+    const voiceDone = a && a.joined && a.voice && a.voice.done;
+    if (voiceDone || !a || a.gone || (!a.joined && w.t > 4) || w.t > 12) {
+      this.waitJoin = null;
+      this.heroAttack(w.g);
+    }
+  },
+
+  // ヒーローの こぶし → 0.1びょう あとに 仲間の 攻撃が はじまり、0.3びょう あとに 仲間の 弾（同時に ださない）
+  heroAttack(g) {
+    const h = this.hero;
     h.forced = 'punch';
-    Sound.play('whoosh');
+    Sound.play('whoosh'); // 打つ しゅんかんの 音
     const boss = g.kind === 'boss' ? g.boss : null;
-    const tx = boss ? boss.x - boss.w * 0.4 : g.x;
+    const tx = boss ? boss.x - boss.w * 0.4 : g.x, ty = boss ? GROUND_Y - boss.h * 0.5 : GROUND_Y - 230;
     this.projectiles.push(new Projectile(h.x + 40, h.y - 74, tx, (x, y) => this.gateHit(g, x, y)));
-    const a = g.allyAtk;
+    // 回答の ときに 仲間が いた → いまの 仲間が 追撃（交代していたら あたらしい 仲間が かわりに うつ。ダメージは 回答の ときの まま）
+    const carrier = g.allyAtk && this.ally && this.ally.joined && !this.ally.gone ? this.ally : null;
     g.allyAtk = null;
-    if (a && a === this.ally && !a.gone) a.attack(tx + 16, boss ? GROUND_Y - boss.h * 0.5 : GROUND_Y - 230, (x, y) => this.allyHit(g, x, y));
-    // レアを ひいたら その キャラが 仲間に（別の レアなら 交代、おなじ レアなら ふやさない）
-    if (pair && pair.rare) this.joinAlly(CHARA.allyOfCheer[pair.id]);
+    g.waitAlly = !!(carrier && boss && g.dmgAlly > 0); // オトナの ボス: 仲間の 1ダメージは 追撃が あたった とき
+    if (!carrier) return;
+    this.after(ALLY_FOLLOW, () => {
+      if (carrier.gone || (boss && boss.hp <= 0)) return; // ヒーローだけで たおした: 追撃なし
+      carrier.attack(tx + 16, ty, (x, y) => this.allyHit(g, x, y), g);
+    });
   },
 
   joinAlly(id) {
-    if (!id || this.ending) return;
+    if (!id || this.ending) return null;
     if (this.ally && this.ally.id === id && !this.ally.gone) {
       if (this.ally.joined) this.ally.join(this, true); // おなじ レア: 1体の まま（攻撃も 1）。加入の あいさつだけ もういちど
-      return;
+      return this.ally;
     }
     if (this.ally) this.ally.leave(this);
     this.ally = new Ally(id);
     this.ally.update(0, this); // 絵が よめていれば すぐ うしろに つく
+    return this.ally;
   },
 
-  // 仲間の 弾が あたった（ダメージは gateHit で きまっている。ここは 見た目と 音だけ）
+  // 仲間の 追撃が あたった。オトナの ボスだけ ここで 1ダメージ（回答の ときに きめた ぶん。1かい だけ）
   allyHit(g, x, y) {
     if (this.over) return;
+    const boss = g.boss;
+    if (boss && (boss.dead || boss.hp <= 0)) return; // もう たおれた
     this.shake = Math.max(this.shake, 12);
     this.fx.ring(x, y, '#ffffff', 16, 140, 0.4, 8);
-    const boss = g.boss;
-    if (boss && !boss.dead) {
-      boss.flash = 1;
-      boss.sq = 1;
-      if (this.adult) this.fx.text('なかまの こうげき！', boss.x, boss.y - boss.h - 70, { size: 32, life: 1.1, top: '#ffffff', bot: '#9ae8ff', stroke: '#0a2a5a' });
+    if (!boss) return;
+    boss.flash = 1;
+    boss.sq = 1;
+    if (!g.waitAlly) return; // 通常モード: 見た目と 音だけ
+    g.waitAlly = false;
+    boss.hp = Math.max(0, boss.hp - 1);
+    boss.play('hurt');
+    this.fx.text('なかまの ついげき！', boss.x, boss.y - boss.h - 70, { size: 34, life: 1.2, top: '#ffffff', bot: '#9ae8ff', stroke: '#0a2a5a' });
+    this.afterBossHit(g);
+  },
+
+  // ヒーローの こうげきで ボスが たおれた: まだ の 追撃は とりやめ（とんでいる 仲間の 弾も けす）
+  cancelFollowUp(g) {
+    g.waitAlly = false;
+    const a = this.ally;
+    if (a && a.target && a.target.gate === g) a.cancelAttack();
+    for (const p of this.projectiles) {
+      if (p instanceof AllyShot && p.gate === g && !p.done) {
+        p.done = true;
+        this.fx.sparkle(p.x, p.y, 10, '#ffffff', 220);
+      }
     }
   },
 
@@ -881,14 +933,28 @@ const Game = {
       return;
     }
     const boss = g.boss;
-    const dmg = g.dmg || 1; // 回答の ときに きめた ダメージ（仲間の 弾では ふやさない）
-    g.dmg = 0;
-    boss.hp = Math.max(0, boss.hp - dmg);
+    boss.hp = Math.max(0, boss.hp - 1); // ヒーローの こぶしは 1（仲間の ぶんは 追撃が あたった ときに allyHit で）
     boss.play('hurt');
-    if (dmg > 1) this.fx.text(`${dmg}ダメージ！`, boss.x + 60, boss.y - boss.h + 30, { size: 44, life: 1.3 });
     boss.flash = 1;
     boss.sq = 1;
     this.fx.text(pick(['いたーい！', 'ぐはっ！', 'ひえ〜！']), boss.x, boss.y - boss.h - 20, { size: 42, top: '#ffffff', bot: '#ffb0c8', stroke: '#4a0a2a' });
+    if (boss.hp <= 0) {
+      this.cancelFollowUp(g); // ヒーローだけで たおした
+      this.after(0.5, () => this.defeatBoss(g));
+      return;
+    }
+    if (g.waitAlly) {
+      // 仲間の 追撃を まってから つぎへ（とどかなかった ときの ほけん: 1.5びょうで 追撃 あつかい）
+      const no = g.qNo;
+      this.after(1.5, () => { if (g.waitAlly && g.qNo === no && !this.ending) this.allyHit(g, boss.x - 60, boss.y - boss.h * 0.5); });
+      return;
+    }
+    this.afterBossHit(g);
+  },
+
+  // ボスに 当たった あと（さいごの 1ぱつの あと）: たおれたか、約1びょうで つぎの もんだい
+  afterBossHit(g) {
+    const boss = g.boss;
     if (boss.hp > 0) {
       // ひるむ ところを みせて、あたってから やく 1びょうで つぎの もんだい（でた ときから こたえられる）
       const no = g.qNo;
@@ -920,7 +986,7 @@ const Game = {
   },
 
   defeatBoss(g) {
-    if (this.over) return;
+    if (this.over || g.boss.dead) return; // 撃破は 1かい だけ
     const boss = g.boss, L = this.level;
     boss.dead = true;
     g.state = 'open';
@@ -1006,6 +1072,7 @@ const Game = {
     this.clearBossAttack();
     this.timers = [];
     this.projectiles = [];
+    this.waitJoin = null;
     if (this.ally) {
       this.ally.leave(this);
       this.ally = null;

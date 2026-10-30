@@ -198,6 +198,17 @@ const MediaAudio = (() => {
       // おわりの 2びょう まえで おなじ 曲を あたまから かさねて ループ（つなぎめに 無音を つくらない）
       if (!m.el.paused && m.el.currentTime >= end - FADE_OUT) this.switchTo(m.id, { loop: true });
     },
+    // 「♫ シャッフル」ボタン: いまの 曲いがいへ（シャッフルの じゅんばんで ひとまわり。あたまから・2びょう／0.5びょうの クロスフェード）
+    // 連打しても かさなるのは 2きょく まで、さいごに えらんだ 曲だけが のこる（switchTo）
+    canNext() { return MEDIA.bgmPool.length >= 2; },
+    next() {
+      if (!this.canNext()) return false;
+      let id = Bag.pick(this.cur);
+      for (let guard = 0; id === this.cur && guard < 3; guard++) id = Bag.pick(this.cur);
+      this.lastPick = id;
+      this.switchTo(id);
+      return true;
+    },
     // いまの 曲を sec びょうで フェードアウトして とめる（ゲームオーバー。つぎは shuffle / play で ながす）
     stop(sec = 1.5) {
       const m = this.main();
@@ -285,16 +296,18 @@ const MediaAudio = (() => {
       this.pump();
       return h;
     },
-    play(key, opts) {
+    // opts.lead: レアの 声援・仲間の 加入セリフ（なっている あいだ BGM と 競合する 効果音を 大きく さげる）
+    play(key, opts = {}) {
       const m = MEDIA.voice[key];
-      return this.enqueue({ src: m.src, duration: m.duration, key }, opts);
+      return this.enqueue({ src: m.src, duration: m.duration, key, lead: !!opts.lead }, opts);
     },
-    playSrc(src, duration, opts) { return this.enqueue({ src, duration }, opts); },
+    playSrc(src, duration, opts = {}) { return this.enqueue({ src, duration, lead: !!opts.lead }, opts); },
     say(text, opts) { return this.enqueue({ text, duration: 4 }, opts); },
     finish(h, how) {
       if (h.done) return;
       h.done = true;
       h[how] = true;
+      if (h.lead) setDuck(false, 'lead');
       clearTimeout(this.watchdog);
       if (this.cur === h) this.cur = null;
       this.pump();
@@ -319,6 +332,7 @@ const MediaAudio = (() => {
       this.cur = h;
       h.started = true;
       setDuck(true);
+      if (h.lead) setDuck(true, 'lead');
       if (h.text != null) {
         if (!('speechSynthesis' in window)) return this.finish(h, 'error');
         try {
@@ -386,6 +400,7 @@ const MediaAudio = (() => {
       voiceCh.el.pause();
       if ('speechSynthesis' in window) speechSynthesis.cancel();
       for (const h of all) { if (!h.done) { h.done = true; h.cancelled = true; } }
+      setDuck(false, 'lead');
       setDuck(false);
     },
     pause() {
@@ -543,6 +558,11 @@ const MediaAudio = (() => {
     bossWarn: 0.55, bossShotPhysical: 0.85, bossShotFire: 0.75, bossShotIce: 0.7, bossShotThunder: 0.28, bossShotMagic: 0.8,
     playerDamage: 0.9, gameOver: 1.6, timeUp: 1.2,
   };
+  // レアの 声援・加入セリフの あいだ、これ いがいの 効果音は SFX_LEAD_DUCK 倍に さげる（ボスの 予告・被弾・おわりの 音は さげない）
+  const SFX_KEEP = /^(bossWarn|bossShot|playerDamage|gameOver|timeUp)/;
+  const SFX_LEAD_DUCK = 0.55;
+  let sfxDuck = 1;
+  const sfxVol = (h) => h.vol * (SFX_KEEP.test(h.key) ? 1 : sfxDuck);
   const Sfx = {
     cur: [], // { key, buf, node, gain, offset, startedAt }
     play(key) {
@@ -568,7 +588,7 @@ const MediaAudio = (() => {
     start(h) {
       const ac = Sound.context();
       h.gain = ac.createGain();
-      h.gain.gain.value = h.vol;
+      h.gain.gain.value = sfxVol(h);
       h.gain.connect(Sound.output());
       const node = ac.createBufferSource();
       node.buffer = h.buf;
@@ -597,6 +617,12 @@ const MediaAudio = (() => {
       if (!key || sfxCh.key === key) sfxCh.el.pause();
     },
     stop(key) { this.fade(key, 0); },
+    // セリフに あわせて なっている 音を さげる・もどす（フェード中の 音は さわらない）
+    duck() {
+      const ac = Sound.context();
+      if (!ac) return;
+      for (const h of this.cur) if (h.node && h.gain) h.gain.gain.setTargetAtTime(sfxVol(h), ac.currentTime, 0.06);
+    },
     pause() {
       const ac = Sound.context();
       for (const h of this.cur) {
@@ -659,12 +685,16 @@ const MediaAudio = (() => {
   };
 
   // ボイス・アイテム声援・レア演出の どれかが ある あいだ さげる
-  const duckBy = { voice: false, item: false, rare: false };
+  // lead: レアの 声援・仲間の 加入セリフ（BGM を レア演出と おなじ くらい さげ、競合する 効果音も さげる）
+  const duckBy = { voice: false, item: false, rare: false, lead: false };
   function setDuck(v, who = 'voice') {
+    const was = duckBy.lead;
     duckBy[who] = v;
-    const on = duckBy.voice || duckBy.item || duckBy.rare;
+    const on = duckBy.voice || duckBy.item || duckBy.rare || duckBy.lead;
     ducked = on;
-    bgmDuck = duckBy.rare ? DUCK_RARE : on ? DUCK_BGM : 1; // レア演出の あいだは もっと さげて ほら貝・登場の 音を めだたせる
+    bgmDuck = duckBy.rare || duckBy.lead ? DUCK_RARE : on ? DUCK_BGM : 1; // レア演出の あいだは もっと さげて ほら貝・登場の 音を めだたせる
+    sfxDuck = duckBy.lead ? SFX_LEAD_DUCK : 1;
+    if (duckBy.lead !== was) Sfx.duck();
     fwCh.duck = on ? DUCK_FW : 1;
     // もどす ときも その ときの せってい を みる（オフに した おとを かってに ならさない）
     applyBus(0.12);

@@ -335,6 +335,8 @@ const Render = (() => {
       ctx.restore();
     }
     if (L.goal && vis(L.goal.x)) drawGoal(ctx, L.goal, t, A);
+    // 仲間（大きい ロボ・ゴリラも）は 数字ブロック・アイテム・ヒーローより うしろ（問題を かくさない）
+    if (S.ally) S.ally.draw(ctx, t);
     for (const s of L.springs) if (vis(s.x)) s.draw(ctx, t);
     for (const b of L.blocks) if (vis(b.x)) b.draw(ctx, t, th);
     for (const d of L.dumbbells) if (!d.taken && vis(d.x)) drawDumbbell(ctx, d.x, d.y, t, d.phase);
@@ -342,7 +344,6 @@ const Render = (() => {
     for (const e of L.enemies) if (vis(e.x)) e.draw(ctx, t, th.slime);
     const h = S.hero;
     for (const g of L.gates) if (g.boss && vis(g.boss.x)) g.boss.draw(ctx, t, th.boss, h ? h.x : 0);
-    if (S.ally) S.ally.draw(ctx, t); // 仲間は ヒーローの うしろ
     if (h) {
       const gy = h.onGround ? h.y : Physics.groundBelow(L, h.x, h.y);
       if (gy != null) {
