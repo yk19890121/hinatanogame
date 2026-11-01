@@ -306,9 +306,9 @@ ZIP には WAV だけ 入っていたので、前後の 無音を けずって �
 
 ### 正解の キャラの 出かた
 
-- 正解の たびに まず「通常 70％ ／ レア 30％」を 抽選（レア 5体 ぜんたいで 30％。両モード）。レアに 当たった あとの キャラの えらびかたは いままで どおり。出現率は `js/cutin.js` の `RARE_RATE` 1か所で 変えられます
+- 正解の たびに まず「通常 70％ ／ レア 30％」を 抽選（レア 15体 ぜんたいで 30％。両モード）。レアに 当たった あとの キャラの えらびかたは いままで どおり。出現率は `js/cutin.js` の `RARE_RATE` 1か所で 変えられます
 - 通常は 40体、レアは 5体の 中から、それぞれ シャッフルして 順番に（同じ キャラは 続きません）。道中・ボス、むずかしさ・ステージに 関係なく 同じ ルール
-- 開発用: URL に `?rare=1`〜`?rare=5` で その レアを 毎回（1=巨大ロボ 2=神 3=黄金マッチョ 4=高層ビルマッチョ 5=銀のゴリラ）、`?rare=all` で 毎回 レア、`?rare=normal` で レアなし
+- 開発用: URL に `?rare=1`〜`?rare=15` で その レアを 毎回（1=巨大ロボ 2=神 3=黄金マッチョ 4=高層ビルマッチョ 5=銀のゴリラ 6=隕石 7=スナイパー 8=エンジェラル 9=マンモス 10=ティラノ 11=サムライ 12=死神 13=エンジニア 14=横綱 15=戦闘機）、`?rare=all` で 毎回 レア、`?rare=normal` で レアなし
 
 ### レア演出
 
@@ -371,7 +371,33 @@ ZIP には WAV だけ 入っていたので、前後の 無音を けずって �
 - 正解の たびに **ヒーローの こぶしの あとに 仲間が 追撃**（こぶしの 0.1秒後に 攻撃の 動き → 0.3秒後に 弾）。オトナの ボスは こぶしで 1・追撃が 当たって 1（どちらも 答えを 確定した ときに 決めた ぶんだけ。こぶしで たおしたら 追撃は とりやめて 撃破は 1回）。その 正解で 引いた レアは 次の 正解から 参加（交代した ときは 新しい 仲間が 追撃を 受けもつ）
 - 壁は どちらの モードも いままでどおり 1回で こわれます（仲間の 追撃は 演出）
 - ステージの 終わり・ゲームオーバー・ステージを はなれる・やりなおしで いなくなります（次の ステージへ 引きつがない）。仲間の ライフ・被弾は ありません
-- 仲間の 絵は ステージ開始後、ボスの 絵の あとで 5体ぶん 順に 読みこみます（まだ 読めていない ときは 読めしだい 加入）
+- 仲間の 絵（15体ぶん）は ステージ開始後、ボスの 絵の あとで ファイルの ダウンロード だけ 先に すませ、絵に ほどくのは その レアが 当たった とき（レア演出の あいだに まにあう）。交代した 前の 仲間の 絵は 手ばなします（15体ぶん ほどくと スマホの メモリが たりない ため）。まだ 読めていない ときは 読めしだい 加入
+
+## 追加レア 10体（ZIP「rare10_videos_voice_se」「rare10_voices」「rare_attack_se」）
+
+レアは 全部で 15体。レアの 当たりは いままで どおり 全体で 30％、当たったら 15体から 同じ 確率（シャッフルの 順番）で 1体。
+
+| 番号 | キャラ | 登場ナレーション（WAV） | 加入セリフ（WAV） | 攻撃SE（MP3） | 大きさ（主人公に たいして） | 攻撃 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 46 | 隕石マッチョ | `rare_meteor_appear.wav` → `cheer46.wav` | `ally_meteor_join_character.wav` | `ally_attack_meteor.mp3` | 人物 1.5倍・隕石 直径 3倍 | 頭の 上に 隕石を 召喚 → 右へ |
+| 47 | スナイパーマッチョ | `rare_sniper_appear.wav` → `cheer47.wav` | `ally_sniper_join_character.wav` | `ally_attack_sniper.mp3` | 1.5倍 | 銃口から 弾 |
+| 48 | マッチョエンジェラル | `rare_angel_appear.wav` → `cheer48.wav` | `ally_angel_join_character.wav` | `ally_attack_angel.mp3` | 1.5倍 | 槍の 先から 光 |
+| 49 | マンモスロボ | `rare_mammoth_appear.wav` → `cheer49.wav` | `ally_mammoth_join_character.wav` | `ally_attack_mammoth.mp3` | 2倍 | こぶしから 衝撃波 |
+| 50 | ティラノサウルスロボ | `rare_trex_appear.wav` → `cheer50.wav` | `ally_trex_join_character.wav` | `ally_attack_trex.mp3` | 2倍 | 両手から プラズマ弾 |
+| 51 | サムライマッチョ | `rare_samurai_appear.wav` → `cheer51.wav` | `ally_samurai_join_character.wav` | `ally_attack_samurai.mp3` | 1.5倍 | 刀の 弧の 先から 斬撃 |
+| 52 | 死神マッチョ | `rare_reaper_appear.wav` → `cheer52.wav` | `ally_reaper_join_character.wav` | `ally_attack_reaper.mp3` | 1.5倍 | 鎌の 弧の 先から 斬撃 |
+| 53 | エンジニアマッチョ | `rare_engineer_appear.wav` → `cheer53.wav` | `ally_engineer_join_character.wav` | `ally_attack_engineer.mp3` | 2倍（ロボ全体） | 砲口から エネルギー弾 |
+| 54 | 横綱ダイヤモンド | `rare_diamond_appear.wav` → `cheer54.wav` | `ally_diamond_join_character.wav` | `ally_attack_diamond.mp3` | 2倍 | 張り手から 結晶の 衝撃波 |
+| 55 | 戦闘機ロボ | `rare_jet_appear.wav` → `cheer55.wav` | `ally_jet_join_character.wav` | `ally_attack_jet.mp3` | 2倍 | 腕の 砲から 高速弾 |
+
+- 開発用: `?rare=6`〜`?rare=15` で 46〜55番を 毎回（URL に つけた ときだけ。ふだんは 無効）
+- **登場カットインの 画像は 素材に 入っていなかった** ので、いまは 本人の 動作原稿の ポーズ ＋ テロップで 作った **仮の 画像**（`assets/cutin/cutin46〜55.webp`）。本物は `source/cutin/rare_<管理用ID>_cutin.png`（例: `rare_meteor_cutin.png`）に 置いて `tools/build_rare10.py` を 実行しなおせば 差しかわります
+- 動作原稿（5列×3段＝14ポーズ＋弾）は 均等に 切らず、つながった 絵の かたまり ごとに 切り出し（刀・ライフル・翼・斬撃が はみだしても 欠けない／隣の コマが まざらない）、足もとと 胴の まんなかを そろえて 7列×2段に ならべなおしています（`assets/ally/<管理用ID>.png`）。2つの ポーズが くっついて いた ところ（死神の コマ11・12）は、細らせて 分けてから 色で 刃と 斬撃を 分けました
+- 隕石マッチョは 攻撃コマの 小さな 隕石を 人物から 外し、弾の 絵を 別の 大きさで 召喚・発射（召喚の とき と 飛んでいる ときで 同じ 直径）
+- 表示の 大きさは 本体（頭〜足。刀・翼・鎌・光輪・エフェクトは かぞえない）の 高さで 主人公（145px）に たいして。仲間・隕石・弾は 数字ブロックの うしろに 描くので 問題は かくれません
+- 登場ナレーション・加入セリフは 頭の 無音を けずって、ほかの レアと 同じ -11 LUFS に そろえています（WAV の まま）。鳴っている あいだは BGM と 競合する 効果音を 下げます
+- 攻撃SEは 発射・斬撃の 瞬間に 1回。隕石・マンモス・横綱は SE に 衝撃音まで 入って いるので、当たった ときの 共通の 命中SE は 重ねません
+- 同梱の 動作確認用 MP4 は ゲームでは 使っていません（絵で 動かします）
 
 ## ファイル構成
 
@@ -390,6 +416,7 @@ js/sprite-meta.js     キャラの コマの 大きさと 基準点
 js/util.js            共通の 道具（定数・乱数・色）
 js/quiz.js            むずかしさ（LEVELS）・ステージの 計算割合（STAGE_MIX）・オトナの 出題（ADULT_LEVELS）・問題と 選択肢の 作成
 js/chara-data.js      ボス 20体・仲間 5体の 画像と アニメ（tools/build_chara.py が 自動生成）
+js/rare10-data.js     追加レア 10体の 仲間シート・本体の 高さ・発射位置（tools/build_rare10.py が 自動生成）
 js/chara.js           オトナモードの きまり（ADULT）・ボス／仲間の 絵の 読みこみと 描画・仲間・仲間の 弾・ボスの 弾
 js/audio.js           効果音（その場で 合成）
 js/media-audio.js     BGM（ランダム選曲・クロスフェード）・ボイス（順番に 1本ずつ）・アイテム声援・効果音・花火の 音
@@ -414,6 +441,8 @@ pip install pillow numpy imageio-ffmpeg
 python tools/process_muscle.py --fill macho_stampede_4s_fill.mp4 --matte macho_stampede_4s_matte.mp4   # マッスル群を 透過 → assets/video/muscle.mp4・音は assets/sfx/muscle.mp3（等倍・カットなし）
 python tools/build_media.py --bgm <「BGM・SE」フォルダ> <素材フォルダ> ... <SE> <音声データ>   # BGM候補の 登録と 音量そろえ・音の コピー（元は source/voice/、前後の 無音を けずった ゲーム用は assets/voice/。仲間・オトナの 声は MP3 に）・js/media.js・元画像の 保管
 python tools/build_chara.py <macho_boss_assets> <rare_ally_assets>   # ボス 20体・仲間 5体の 画像を assets/boss/・assets/ally/ へ、js/chara-data.js を 作る
+python tools/build_rare10.py <rare10_videos_voice_se> [--check 確認画像の出力先]   # 追加レア 10体の 動作原稿 → 仲間シート・弾・js/rare10-data.js・（仮の）カットイン
+（build_media.py の 素材フォルダに rare10_voices/appear・rare10_voices/join・rare_attack_se も 足す）
 python tools/trim_voices.py                                        # 声の はじまり・おわり の 位置を ひょうじ（けずる 位置の 確認）
 python tools/fix_cutin3.py source/cutin/本気の背中と爆発的な文字-3.png source/cutin_edit/本気の背中と爆発的な文字-3_できるぞ.png
 python tools/process_cutins.py source/cutin source/cutin_edit [番号 ...]  # 緑背景の 除去 → assets/cutin/（番号を つけると その キャラだけ）
@@ -424,4 +453,4 @@ python tools/process_sprites.py マッチョの画像.webp ボスの画像.webp 
 
 ### 更新するとき
 
-ブラウザに 古い ファイルが 残らないように、`index.html` の `?v=20261030b` を 新しい 日付に 変えてから push してください（音や 画像は 名前が 変わるときだけ 気にすれば OK）。
+ブラウザに 古い ファイルが 残らないように、`index.html` の `?v=20261101a` を 新しい 日付に 変えてから push してください（音や 画像は 名前が 変わるときだけ 気にすれば OK）。

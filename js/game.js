@@ -310,7 +310,8 @@ const Game = {
     }
     art.promise.then(() => {
       ready();
-      Object.keys(CHARA.allies).reduce((p, id) => p.then(() => CharaArt.ally(id).promise), Promise.resolve());
+      // 15体ぶんの ファイルは ダウンロード だけ（えに ほどくのは その レアが でた とき。スマホの メモリを つかいすぎない）
+      Object.keys(CHARA.allies).reduce((p, id) => p.then(() => CharaArt.prefetch('ally', id)), Promise.resolve());
     });
   },
 
@@ -681,8 +682,8 @@ const Game = {
       Sound.play('bump');
       return;
     }
-    // ボスの 弾を よける ジャンプ（予告〜弾が とおりすぎる まで）で うっかり こたえない（ミスにも しない）
-    if (this.dodging()) {
+    // ボスの 弾を よける ジャンプ（予告〜弾が とおりすぎる まで）・当たって のけぞった とき（からだが うく）は うっかり こたえない（ミスにも しない）
+    if (this.dodging() || this.hero.forced === 'hurt') {
       Sound.play('bump');
       this.fx.text('よけて！', b.x + b.w / 2, b.y - 24, { size: 30, life: 0.8, top: '#ffffff', bot: '#ffd0a0', stroke: '#5a1a00' });
       return;
@@ -730,6 +731,7 @@ const Game = {
     const correctVoice = MediaAudio.Voice.play('correct', { interrupt: true });
     const pair = Cheers.next();
     if (!pair) console.warn('[cutin] つかえる えが ないので カットインを はぶきます');
+    if (pair && pair.rare) CharaArt.ally(CHARA.allyOfCheer[pair.id]); // 仲間の えを いまから ほどく（レア演出の あいだに まにあう）
     this.cutin = new CutIn(correctVoice, pair, () => this.afterCutin(g, pair));
   },
 

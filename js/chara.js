@@ -18,10 +18,25 @@ const ADULT = {
   SHOT_Y: 40,                 // 弾の たかさ（じめんから）。ジャンプで とびこせる
 };
 
+// 追加レア10体（js/rare10-data.js）も おなじ 仲間の しくみに くわえる
+Object.assign(CHARA.allies, RARE10.allies);
+Object.assign(CHARA.allyOfCheer, RARE10.allyOfCheer);
+
 const CharaArt = (() => {
   const cache = {};
   const C = CHARA.cell, COLS = CHARA.cols;
   let scratch = null;
+  const prefetched = new Set();
+
+  // ファイルを さきに ダウンロード だけ して おく（えに ほどくのは つかう とき。15体ぶん ほどくと メモリが たりない）
+  function prefetch(kind, id) {
+    const d = kind === 'boss' ? CHARA.bosses[id] : CHARA.allies[id];
+    if (!d || prefetched.has(d.sheet) || typeof fetch !== 'function') return Promise.resolve();
+    prefetched.add(d.sheet);
+    return Promise.all([d.sheet, d.shot].map((u) => fetch(u).then((r) => r.blob(), () => null))).catch(() => {});
+  }
+  // つかわなく なった 仲間の えを わすれる（メモリを あける）
+  function release(kind, id) { delete cache[kind + ':' + id]; }
 
   // kind: 'boss' | 'ally'。おなじ ものは 1かい だけ よむ
   function load(kind, id) {
@@ -58,25 +73,26 @@ const CharaArt = (() => {
   // (x, y) = あしもと（anchor）。scale は ぜんコマ きょうつう。flash: しろく ひかる つよさ
   function draw(ctx, a, frame, x, y, scale, flip, alpha = 1, flash = 0) {
     if (!a || !a.ready) return false;
-    const sx = (frame % COLS) * C, sy = Math.floor(frame / COLS) * C;
+    const cw = a.d.cellW || C, ch = a.d.cellH || C; // 追加レアは キャラごとの マスの 大きさ
+    const sx = (frame % COLS) * cw, sy = Math.floor(frame / COLS) * ch;
     const [ax, ay] = a.d.anchor;
     ctx.save();
     ctx.translate(x, y);
     ctx.scale(flip ? -scale : scale, scale);
     if (alpha !== 1) ctx.globalAlpha *= alpha;
-    ctx.drawImage(a.img, sx, sy, C, C, -ax, -ay, C, C);
+    ctx.drawImage(a.img, sx, sy, cw, ch, -ax, -ay, cw, ch);
     if (flash > 0) {
       // その コマだけ しろく ぬった え（シート ぜんたいの コピーは つくらない）
-      if (!scratch) scratch = makeCanvas(C, C);
+      if (!scratch || scratch.width < cw || scratch.height < ch) scratch = makeCanvas(Math.max(C, cw), Math.max(C, ch));
       const s = scratch.getContext('2d');
       s.globalCompositeOperation = 'source-over';
-      s.clearRect(0, 0, C, C);
-      s.drawImage(a.img, sx, sy, C, C, 0, 0, C, C);
+      s.clearRect(0, 0, scratch.width, scratch.height);
+      s.drawImage(a.img, sx, sy, cw, ch, 0, 0, cw, ch);
       s.globalCompositeOperation = 'source-atop';
       s.fillStyle = '#ffffff';
-      s.fillRect(0, 0, C, C);
+      s.fillRect(0, 0, cw, ch);
       ctx.globalAlpha *= Math.min(1, flash) * 0.85;
-      ctx.drawImage(scratch, -ax, -ay, C, C);
+      ctx.drawImage(scratch, 0, 0, cw, ch, -ax, -ay, cw, ch);
     }
     ctx.restore();
     return true;
@@ -94,7 +110,7 @@ const CharaArt = (() => {
     return true;
   }
 
-  return { boss, ally, frameAt, done, draw, drawShot };
+  return { boss, ally, prefetch, release, frameAt, done, draw, drawShot };
 })();
 
 /* ---------------- レア仲間（プレイヤーの うしろを ついてくる） ---------------- */
@@ -111,7 +127,10 @@ class Ally {
     this.id = id;
     this.d = CHARA.allies[id];
     this.art = CharaArt.ally(id);
-    this.scale = (ALLY_H / (this.d.anchor[1] - this.d.top)) * (ALLY_SIZE[id] || 1);
+    // 追加レア: 主人公の 見えている 高さに たいする 倍率（本体＝頭〜足。刀・翼・鎌・エフェクトは かぞえない）
+    this.scale = this.d.heroMult
+      ? (RARE10.heroVisH * this.d.heroMult) / this.d.bodyH
+      : (ALLY_H / (this.d.anchor[1] - this.d.top)) * (ALLY_SIZE[id] || 1);
     this.height = (this.d.anchor[1] - this.d.top) * this.scale;
     // 足もと（anchor）から 左右の はし まで（大きい ほう）＝ ヒーローとの すきまを はかる はば
     this.half = Math.max(this.d.anchor[0] - this.d.left, this.d.right - this.d.anchor[0]) * this.scale;
@@ -229,12 +248,23 @@ class Ally {
     this.target = null;
   }
 
+  // 隕石マッチョ: 頭の 上に 召喚する 隕石の まんなか（人物とは べつの 大きさ。直径は 主人公の 身長の 3倍）
+  meteorAt() {
+    const D = RARE10.heroVisH * RARE10.meteorD;
+    return { x: this.x + D * 0.12, y: this.y - this.height * 0.9 - D * 0.3, D };
+  }
+
   fire(game) {
     if (this.fired || !this.target) return;
     this.fired = true;
-    const y = this.y - Math.min(this.height * 0.55, 260) + (this.float ? -14 : 0);
     const t = this.target;
-    const shot = new AllyShot(this, this.x + this.half * 0.5, y, t.x, t.y, t.onHit);
+    let x = this.x + this.half * 0.5, y = this.y - Math.min(this.height * 0.55, 260) + (this.float ? -14 : 0);
+    if (this.id === 'meteor') ({ x, y } = this.meteorAt()); // 召喚した 隕石が その まま とんでいく
+    else if (this.d.muzzle) { // 追加レア: 武器・手の さき（攻撃コマの 右の はし）から
+      x = this.x + this.d.muzzle[0] * this.scale;
+      y = this.y + this.d.muzzle[1] * this.scale;
+    }
+    const shot = new AllyShot(this, x, y, t.x, t.y, t.onHit);
     shot.gate = t.gate;
     game.projectiles.push(shot);
     MediaAudio.Sfx.play(this.d.sfx); // 発射した しゅんかん
@@ -249,6 +279,8 @@ class Ally {
       game.fx.sparkle(this.x, this.y - 70, 16, '#ffffff', 240);
       game.fx.dust(this.x, this.y, 8, 0);
     }
+    // 交代した まえの 仲間の えは わすれる（とんでいる 弾は じぶんの えを もって いるので そのまま）
+    CharaArt.release('ally', this.id);
   }
 
   draw(ctx, t) {
@@ -261,7 +293,32 @@ class Ally {
     drawShadow(ctx, this.x, gy == null ? this.y : gy, (this.d.right - this.d.left) * this.scale * 0.36, 0.22 * this.appear);
     // 大きさは どの うごきでも おなじ（あらわれる ときは すけぐあい だけ かえる）
     CharaArt.draw(ctx, this.art, frame, this.x, this.y + lift, this.scale, this.facing < 0, this.appear, this.appear < 1 ? 1 - this.appear : 0);
+    // 隕石マッチョ: 攻撃の 2コマめ（手を あげる）から 発射まで、頭の 上に 大きな 隕石（人物とは べつに 描く）
+    if (this.id === 'meteor' && this.attackT >= 0 && !this.fired) {
+      const at = 1 / A.attack.fps;
+      if (this.attackT >= at) {
+        const m = this.meteorAt(), k = Math.min(1, (this.attackT - at) / 0.1);
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.6 * k;
+        ctx.drawImage(Assets.glow('#ff8a3a'), m.x - m.D * 0.8, m.y - m.D * 0.8, m.D * 1.6, m.D * 1.6);
+        ctx.restore();
+        drawMeteor(ctx, this.art, m.x, m.y, m.D * (0.7 + 0.3 * k), k);
+      }
+    }
   }
+}
+
+// 隕石の 弾の え を、岩の かたまりの まんなかが (cx, cy)・岩の 直径が D に なる ように 描く（炎の しっぽは うしろへ）
+function drawMeteor(ctx, art, cx, cy, D, alpha = 1) {
+  if (!art || !art.shotReady) return;
+  const [x0, y0, x1, y1] = art.d.meteor, W = art.shot.width, H = art.shot.height;
+  const s = D / (x1 - x0);
+  const rx = (x0 + x1) / 2, ry = (y0 + y1) / 2;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.drawImage(art.shot, cx - rx * s, cy - ry * s, W * s, H * s);
+  ctx.restore();
 }
 
 /* ---------------- 仲間の 弾（みぎへ とんで 壁・ボスに あたる） ---------------- */
@@ -276,6 +333,10 @@ class AllyShot {
     this.vx = 380;
     this.done = false;
     this.t = 0;
+    this.behind = true; // 数字ブロックの うしろに 描く（大きな 隕石・斬撃でも 問題を かくさない）
+    this.meteor = ally.id === 'meteor' ? RARE10.heroVisH * RARE10.meteorD : 0; // 隕石の 直径（召喚した ときと おなじ）
+    this.w = ally.d.heroMult ? 110 * ally.d.heroMult : 130;
+    this.hitSfx = ally.d.hitSfx !== false; // 攻撃SEに 衝撃音まで ある キャラは 命中SEを かさねない
   }
   update(dt, game) {
     this.t += dt;
@@ -285,14 +346,19 @@ class AllyShot {
     if (Math.random() < 0.6) game.fx.add({ type: 'spark', x: this.x - 40, y: this.y + rand(-12, 12), vx: -rand(80, 240), vy: rand(-50, 50), life: 0.3, max: 0.3, size: rand(3, 6), color: '#fff2b0', g: 0 });
     if (this.x >= this.target) {
       this.done = true;
-      MediaAudio.Sfx.play('allyHit'); // あたった しゅんかん
+      if (this.hitSfx) MediaAudio.Sfx.play('allyHit'); // あたった しゅんかん
+      if (this.meteor) { // 隕石: 大きく くだける
+        game.fx.rocks(this.x - 80, this.y - 80, 160, 160, ['#5a2a14', '#a0461e', '#ff8a3a'], 30);
+        game.shake = Math.max(game.shake, 18);
+      }
       game.fx.flash(this.x, this.y, '#ffffff', 150, 0.3);
       game.fx.stars(this.x, this.y, 6, '#fff2a0');
       if (this.onHit) this.onHit(this.x, this.y);
     }
   }
   draw(ctx) {
-    if (!CharaArt.drawShot(ctx, this.art, this.x, this.y, 130)) {
+    if (this.meteor) return drawMeteor(ctx, this.art, this.x, this.y, this.meteor);
+    if (!CharaArt.drawShot(ctx, this.art, this.x, this.y, this.w)) {
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
       ctx.drawImage(Assets.glow('#ffe58a'), this.x - 50, this.y - 50, 100, 100);

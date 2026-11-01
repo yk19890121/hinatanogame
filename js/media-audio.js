@@ -557,6 +557,9 @@ const MediaAudio = (() => {
     allyJoin: 0.85, allyHit: 1.1, allyAtkGold: 0.6, allyAtkRobot: 0.85, allyAtkGod: 0.28, allyAtkGorilla: 1.1, allyAtkTower: 0.85,
     bossWarn: 0.55, bossShotPhysical: 0.85, bossShotFire: 0.75, bossShotIce: 0.7, bossShotThunder: 0.28, bossShotMagic: 0.8,
     playerDamage: 0.9, gameOver: 1.6, timeUp: 1.2,
+    // 追加レア10体の 攻撃SE（-12.8〜-14.2 LUFS → -15 くらい）
+    allyAtkMeteor: 0.78, allyAtkSniper: 0.78, allyAtkAngel: 0.85, allyAtkMammoth: 0.87, allyAtkTrex: 0.8,
+    allyAtkSamurai: 0.84, allyAtkReaper: 0.8, allyAtkEngineer: 0.78, allyAtkDiamond: 0.89, allyAtkJet: 0.77,
   };
   // レアの 声援・加入セリフの あいだ、これ いがいの 効果音は SFX_LEAD_DUCK 倍に さげる（ボスの 予告・被弾・おわりの 音は さげない）
   const SFX_KEEP = /^(bossWarn|bossShot|playerDamage|gameOver|timeUp)/;

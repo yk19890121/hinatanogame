@@ -299,6 +299,66 @@ const MEDIA = {
     "rareMuscle": {
       "src": "assets/sfx/muscle.mp3?h=c1b86246",
       "orig": "マッスル群.MP4 の 音"
+    },
+    "allyAtkMeteor": {
+      "src": "assets/sfx/ally_attack_meteor.mp3",
+      "orig": "ally_attack_meteor.mp3",
+      "start": 0.0,
+      "duration": 1.1
+    },
+    "allyAtkSniper": {
+      "src": "assets/sfx/ally_attack_sniper.mp3",
+      "orig": "ally_attack_sniper.mp3",
+      "start": 0.0,
+      "duration": 0.6
+    },
+    "allyAtkAngel": {
+      "src": "assets/sfx/ally_attack_angel.mp3",
+      "orig": "ally_attack_angel.mp3",
+      "start": 0.0,
+      "duration": 0.9
+    },
+    "allyAtkMammoth": {
+      "src": "assets/sfx/ally_attack_mammoth.mp3",
+      "orig": "ally_attack_mammoth.mp3",
+      "start": 0.0,
+      "duration": 0.9
+    },
+    "allyAtkTrex": {
+      "src": "assets/sfx/ally_attack_trex.mp3",
+      "orig": "ally_attack_trex.mp3",
+      "start": 0.0,
+      "duration": 0.95
+    },
+    "allyAtkSamurai": {
+      "src": "assets/sfx/ally_attack_samurai.mp3",
+      "orig": "ally_attack_samurai.mp3",
+      "start": 0.0,
+      "duration": 0.75
+    },
+    "allyAtkReaper": {
+      "src": "assets/sfx/ally_attack_reaper.mp3",
+      "orig": "ally_attack_reaper.mp3",
+      "start": 0.0,
+      "duration": 0.8
+    },
+    "allyAtkEngineer": {
+      "src": "assets/sfx/ally_attack_engineer.mp3",
+      "orig": "ally_attack_engineer.mp3",
+      "start": 0.0,
+      "duration": 0.6
+    },
+    "allyAtkDiamond": {
+      "src": "assets/sfx/ally_attack_diamond.mp3",
+      "orig": "ally_attack_diamond.mp3",
+      "start": 0.0,
+      "duration": 0.8
+    },
+    "allyAtkJet": {
+      "src": "assets/sfx/ally_attack_jet.mp3",
+      "orig": "ally_attack_jet.mp3",
+      "start": 0.0,
+      "duration": 0.75
     }
   },
   "voice": {
@@ -571,6 +631,106 @@ const MEDIA = {
         3.01
       ],
       "origDuration": 3.131
+    },
+    "allyJoinMeteor": {
+      "src": "assets/voice/ally_meteor_join_character.wav",
+      "orig": "ally_meteor_join_character.wav",
+      "duration": 2.055,
+      "trim": [
+        0.0,
+        2.055
+      ],
+      "origDuration": 2.085
+    },
+    "allyJoinSniper": {
+      "src": "assets/voice/ally_sniper_join_character.wav",
+      "orig": "ally_sniper_join_character.wav",
+      "duration": 2.405,
+      "trim": [
+        0.0,
+        2.405
+      ],
+      "origDuration": 2.435
+    },
+    "allyJoinAngel": {
+      "src": "assets/voice/ally_angel_join_character.wav",
+      "orig": "ally_angel_join_character.wav",
+      "duration": 2.69,
+      "trim": [
+        0.0,
+        2.69
+      ],
+      "origDuration": 2.743
+    },
+    "allyJoinMammoth": {
+      "src": "assets/voice/ally_mammoth_join_character.wav",
+      "orig": "ally_mammoth_join_character.wav",
+      "duration": 4.05,
+      "trim": [
+        0.0,
+        4.05
+      ],
+      "origDuration": 4.096
+    },
+    "allyJoinTrex": {
+      "src": "assets/voice/ally_trex_join_character.wav",
+      "orig": "ally_trex_join_character.wav",
+      "duration": 2.715,
+      "trim": [
+        0.195,
+        2.91
+      ],
+      "origDuration": 2.999
+    },
+    "allyJoinSamurai": {
+      "src": "assets/voice/ally_samurai_join_character.wav",
+      "orig": "ally_samurai_join_character.wav",
+      "duration": 2.8,
+      "trim": [
+        0.0,
+        2.8
+      ],
+      "origDuration": 2.839
+    },
+    "allyJoinReaper": {
+      "src": "assets/voice/ally_reaper_join_character.wav",
+      "orig": "ally_reaper_join_character.wav",
+      "duration": 2.075,
+      "trim": [
+        0.0,
+        2.075
+      ],
+      "origDuration": 2.116
+    },
+    "allyJoinEngineer": {
+      "src": "assets/voice/ally_engineer_join_character.wav",
+      "orig": "ally_engineer_join_character.wav",
+      "duration": 1.735,
+      "trim": [
+        0.0,
+        1.735
+      ],
+      "origDuration": 1.791
+    },
+    "allyJoinDiamond": {
+      "src": "assets/voice/ally_diamond_join_character.wav",
+      "orig": "ally_diamond_join_character.wav",
+      "duration": 2.035,
+      "trim": [
+        0.0,
+        2.035
+      ],
+      "origDuration": 2.141
+    },
+    "allyJoinJet": {
+      "src": "assets/voice/ally_jet_join_character.wav",
+      "orig": "ally_jet_join_character.wav",
+      "duration": 1.525,
+      "trim": [
+        0.0,
+        1.525
+      ],
+      "origDuration": 1.59
     }
   },
   "cheers": [
@@ -1298,9 +1458,179 @@ const MEDIA = {
       "enabled": true,
       "origImage": "銀のゴリラ！筋肉も規格外！.png",
       "origVoice": "銀のゴリラ！筋肉も規格外！.wav"
+    },
+    {
+      "id": 46,
+      "image": "assets/cutin/cutin46.webp",
+      "voice": "assets/voice/cheer46.wav",
+      "line": "その隕石！片手で持つにはデカすぎる！",
+      "duration": 3.735,
+      "rare": true,
+      "rareName": "隕石マッチョ",
+      "trim": [
+        0.0,
+        3.735
+      ],
+      "origDuration": 3.798,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 meteor.png から 作成",
+      "origVoice": "rare_meteor_appear.wav"
+    },
+    {
+      "id": 47,
+      "image": "assets/cutin/cutin47.webp",
+      "voice": "assets/voice/cheer47.wav",
+      "line": "装備は一流！服装はパンイチ！",
+      "duration": 3.84,
+      "rare": true,
+      "rareName": "スナイパーマッチョ",
+      "trim": [
+        0.0,
+        3.84
+      ],
+      "origDuration": 4.056,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 sniper.png から 作成",
+      "origVoice": "rare_sniper_appear.wav"
+    },
+    {
+      "id": 48,
+      "image": "assets/cutin/cutin48.webp",
+      "voice": "assets/voice/cheer48.wav",
+      "line": "大天使降臨！筋肉まで神々しい！",
+      "duration": 3.5,
+      "rare": true,
+      "rareName": "マッチョエンジェラル",
+      "trim": [
+        0.0,
+        3.5
+      ],
+      "origDuration": 3.554,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 angel.png から 作成",
+      "origVoice": "rare_angel_appear.wav"
+    },
+    {
+      "id": 49,
+      "image": "assets/cutin/cutin49.webp",
+      "voice": "assets/voice/cheer49.wav",
+      "line": "鋼の巨体！マンモス級のド迫力！",
+      "duration": 3.93,
+      "rare": true,
+      "rareName": "マンモスロボ",
+      "trim": [
+        0.0,
+        3.93
+      ],
+      "origDuration": 4.002,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 mammoth.png から 作成",
+      "origVoice": "rare_mammoth_appear.wav"
+    },
+    {
+      "id": 50,
+      "image": "assets/cutin/cutin50.webp",
+      "voice": "assets/voice/cheer50.wav",
+      "line": "太古の王者！鋼のボディで復活！",
+      "duration": 4.35,
+      "rare": true,
+      "rareName": "ティラノサウルスロボ",
+      "trim": [
+        0.0,
+        4.35
+      ],
+      "origDuration": 4.416,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 trex.png から 作成",
+      "origVoice": "rare_trex_appear.wav"
+    },
+    {
+      "id": 51,
+      "image": "assets/cutin/cutin51.webp",
+      "voice": "assets/voice/cheer51.wav",
+      "line": "長すぎる！刀も筋肉も規格外！",
+      "duration": 4.24,
+      "rare": true,
+      "rareName": "サムライマッチョ",
+      "trim": [
+        0.125,
+        4.365
+      ],
+      "origDuration": 4.426,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 samurai.png から 作成",
+      "origVoice": "rare_samurai_appear.wav"
+    },
+    {
+      "id": 52,
+      "image": "assets/cutin/cutin52.webp",
+      "voice": "assets/voice/cheer52.wav",
+      "line": "細くてもムキムキ！鎌は超ド級！",
+      "duration": 4.465,
+      "rare": true,
+      "rareName": "死神マッチョ",
+      "trim": [
+        0.0,
+        4.465
+      ],
+      "origDuration": 4.533,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 reaper.png から 作成",
+      "origVoice": "rare_reaper_appear.wav"
+    },
+    {
+      "id": 53,
+      "image": "assets/cutin/cutin53.webp",
+      "voice": "assets/voice/cheer53.wav",
+      "line": "頭脳も筋肉も！フルスペック！",
+      "duration": 3.15,
+      "rare": true,
+      "rareName": "エンジニアマッチョ",
+      "trim": [
+        0.0,
+        3.15
+      ],
+      "origDuration": 3.187,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 engineer.png から 作成",
+      "origVoice": "rare_engineer_appear.wav"
+    },
+    {
+      "id": 54,
+      "image": "assets/cutin/cutin54.webp",
+      "voice": "assets/voice/cheer54.wav",
+      "line": "全身ダイヤ！硬さも強さも横綱級！",
+      "duration": 5.265,
+      "rare": true,
+      "rareName": "横綱ダイヤモンド",
+      "trim": [
+        0.0,
+        5.265
+      ],
+      "origDuration": 5.354,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 diamond.png から 作成",
+      "origVoice": "rare_diamond_appear.wav"
+    },
+    {
+      "id": 55,
+      "image": "assets/cutin/cutin55.webp",
+      "voice": "assets/voice/cheer55.wav",
+      "line": "速すぎる！その巨体で音速突破！",
+      "duration": 3.93,
+      "rare": true,
+      "rareName": "戦闘機ロボ",
+      "trim": [
+        0.0,
+        3.93
+      ],
+      "origDuration": 3.987,
+      "enabled": true,
+      "origImage": "（仮）build_rare10.py が 動作原稿 jet.png から 作成",
+      "origVoice": "rare_jet_appear.wav"
     }
   ],
-  "rareCount": 5,
+  "rareCount": 15,
   "bgmTargetLufs": -18.1,
   "muscle": {
     "src": "assets/video/muscle.mp4?h=fe5ac53d",

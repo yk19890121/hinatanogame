@@ -321,10 +321,30 @@ def main():
     for n, (rname, line, img, voice) in RARE.items():
         put_cheer(n, line, img, need(img), voice, rare=rname)
 
+    # 追加レア10体（ZIP「rare10_voices」「rare_attack_se」）: 登場ナレーション（WAV）→ その レアの 声援、
+    # 加入セリフ（WAV のまま）・攻撃SE（MP3）。カットインの 画像は tools/build_rare10.py が つくる（assets/cutin/cutin46〜55.webp）
+    import build_rare10
+    for n, slug, rname, line, _mult in build_rare10.RARE10:
+        cap = slug[0].upper() + slug[1:]
+        rel, meta = put_voice(f"rare_{slug}_appear.wav", f"cheer{n:02d}")
+        lead_wav(os.path.join(REPO, rel))
+        media["cheers"].append({"id": n, "image": f"assets/cutin/cutin{n:02d}.webp", "voice": rel, "line": line, "duration": meta["duration"], "rare": True,
+                                "rareName": rname, "trim": meta["trim"], "origDuration": meta["origDuration"], "enabled": True,
+                                "origImage": f"（仮）build_rare10.py が 動作原稿 {slug}.png から 作成", "origVoice": f"rare_{slug}_appear.wav"})
+        jrel, jmeta = put_voice(f"ally_{slug}_join_character.wav", f"ally_{slug}_join_character")
+        lead_wav(os.path.join(REPO, jrel))
+        media["voice"][f"allyJoin{cap}"] = {"src": jrel, "orig": f"ally_{slug}_join_character.wav", **jmeta}
+        media["sfx"][f"allyAtk{cap}"] = {"src": copy(f"ally_attack_{slug}.mp3", f"assets/sfx/ally_attack_{slug}.mp3"), "orig": f"ally_attack_{slug}.mp3"}
+        tmp = decode_wav(need(f"ally_attack_{slug}.mp3"))
+        info = trim_voices.analyze(tmp)
+        os.remove(tmp)
+        media["sfx"][f"allyAtk{cap}"].update({"start": round(max(0.0, info["onset"] - 0.02), 3), "duration": round(info["dur"], 3)})
+    media["rareCount"] = sum(1 for c in media["cheers"] if c["rare"])
+
     js = "'use strict';\n/* 音声・画像の 一覧（tools/build_media.py で 自動生成。元ファイル名との 対応つき） */\nconst MEDIA = " + json.dumps(media, ensure_ascii=False, indent=2) + ";\n"
     with open(os.path.join(REPO, "js", "media.js"), "w", encoding="utf-8", newline="\n") as fp:
         fp.write(js)
-    print(f"bgm候補 {len(media['bgmPool'])}（基準 {target:.1f} LUFS）, sfx {len(media['sfx'])}, voice {len(media['voice'])}, cheers {len(media['cheers'])}（レア {len(RARE)}）")
+    print(f"bgm候補 {len(media['bgmPool'])}（基準 {target:.1f} LUFS）, sfx {len(media['sfx'])}, voice {len(media['voice'])}, cheers {len(media['cheers'])}（レア {media['rareCount']}）")
     for b in media["bgmPool"] + [dict(media["bgm"]["clear"], id="clear")]:
         print(f"  {b['id']:14s} {b['lufs']:6.1f} LUFS  x{b['gain']:.2f}  音 {b['start']:5.2f}〜{b['end']:6.2f}/{b['duration']:6.2f}s  {b['orig']}")
     for k, v in media["sfx"].items():
