@@ -289,12 +289,23 @@ def hero_height():
 
 
 def make_cutin(n, slug, line, pose, log):
-    """仮の 登場カットイン（本人の ポーズ ＋ テロップ）。本物が あれば そちらを つかう"""
-    real = os.path.join(REPO, "source", "cutin", f"rare_{slug}_cutin.png")
+    """登場カットイン。source/cutin/rare_<slug>_cutin.(webp|png)（キャラ＋テロップ入りの 本番画像）が あれば それを つかう。
+    なければ 仮の 画像（本人の ポーズ ＋ テロップ）"""
     dst = os.path.join(REPO, "assets", "cutin", f"cutin{n}.webp")
-    if os.path.exists(real):
-        Image.open(real).convert("RGBA").save(dst, "WEBP", quality=88, method=6)
-        return
+    for ext in ("webp", "png"):
+        real = os.path.join(REPO, "source", "cutin", f"rare_{slug}_cutin.{ext}")
+        if os.path.exists(real):
+            im = Image.open(real).convert("RGBA")
+            # まわりの 透明な よはくを けずる（よはくで 本体・テロップが 小さく ならない ように）。たてよこの わりあいは そのまま
+            bb = im.getchannel("A").point(lambda v: 255 if v > 8 else 0).getbbox()
+            pad = 6
+            im = im.crop((max(0, bb[0] - pad), max(0, bb[1] - pad), min(im.width, bb[2] + pad), min(im.height, bb[3] + pad)))
+            s = min(1.0, 1100 / max(im.size))
+            if s < 1:
+                im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
+            im.save(dst, "WEBP", quality=90, method=6)
+            log.append(f"{slug}: 登場カットイン ← source/cutin/rare_{slug}_cutin.{ext}（よはくを けずって {im.width}×{im.height}）")
+            return
     W, H = 660, 1000
     canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     p = Image.fromarray(pose)

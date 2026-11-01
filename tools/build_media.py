@@ -328,9 +328,14 @@ def main():
         cap = slug[0].upper() + slug[1:]
         rel, meta = put_voice(f"rare_{slug}_appear.wav", f"cheer{n:02d}")
         lead_wav(os.path.join(REPO, rel))
-        media["cheers"].append({"id": n, "image": f"assets/cutin/cutin{n:02d}.webp", "voice": rel, "line": line, "duration": meta["duration"], "rare": True,
+        # 画像を さしかえても ブラウザに ふるい 画像が のこらない ように、中身から きまる ?h= を つける
+        img_rel = f"assets/cutin/cutin{n:02d}.webp"
+        with open(os.path.join(REPO, img_rel), "rb") as fp:
+            img_hash = hashlib.sha1(fp.read()).hexdigest()[:8]
+        real = [f"rare_{slug}_cutin.{e}" for e in ("webp", "png") if os.path.exists(os.path.join(REPO, "source", "cutin", f"rare_{slug}_cutin.{e}"))]
+        media["cheers"].append({"id": n, "image": f"{img_rel}?h={img_hash}", "voice": rel, "line": line, "duration": meta["duration"], "rare": True,
                                 "rareName": rname, "trim": meta["trim"], "origDuration": meta["origDuration"], "enabled": True,
-                                "origImage": f"（仮）build_rare10.py が 動作原稿 {slug}.png から 作成", "origVoice": f"rare_{slug}_appear.wav"})
+                                "origImage": f"source/cutin/{real[0]}" if real else f"（仮）build_rare10.py が 動作原稿 {slug}.png から 作成", "origVoice": f"rare_{slug}_appear.wav"})
         jrel, jmeta = put_voice(f"ally_{slug}_join_character.wav", f"ally_{slug}_join_character")
         lead_wav(os.path.join(REPO, jrel))
         media["voice"][f"allyJoin{cap}"] = {"src": jrel, "orig": f"ally_{slug}_join_character.wav", **jmeta}

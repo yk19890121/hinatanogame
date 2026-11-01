@@ -1461,7 +1461,7 @@ const MEDIA = {
     },
     {
       "id": 46,
-      "image": "assets/cutin/cutin46.webp",
+      "image": "assets/cutin/cutin46.webp?h=a2d73126",
       "voice": "assets/voice/cheer46.wav",
       "line": "その隕石！片手で持つにはデカすぎる！",
       "duration": 3.735,
@@ -1473,12 +1473,12 @@ const MEDIA = {
       ],
       "origDuration": 3.798,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 meteor.png から 作成",
+      "origImage": "source/cutin/rare_meteor_cutin.webp",
       "origVoice": "rare_meteor_appear.wav"
     },
     {
       "id": 47,
-      "image": "assets/cutin/cutin47.webp",
+      "image": "assets/cutin/cutin47.webp?h=5bd74e0d",
       "voice": "assets/voice/cheer47.wav",
       "line": "装備は一流！服装はパンイチ！",
       "duration": 3.84,
@@ -1490,12 +1490,12 @@ const MEDIA = {
       ],
       "origDuration": 4.056,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 sniper.png から 作成",
+      "origImage": "source/cutin/rare_sniper_cutin.webp",
       "origVoice": "rare_sniper_appear.wav"
     },
     {
       "id": 48,
-      "image": "assets/cutin/cutin48.webp",
+      "image": "assets/cutin/cutin48.webp?h=73025b55",
       "voice": "assets/voice/cheer48.wav",
       "line": "大天使降臨！筋肉まで神々しい！",
       "duration": 3.5,
@@ -1507,12 +1507,12 @@ const MEDIA = {
       ],
       "origDuration": 3.554,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 angel.png から 作成",
+      "origImage": "source/cutin/rare_angel_cutin.webp",
       "origVoice": "rare_angel_appear.wav"
     },
     {
       "id": 49,
-      "image": "assets/cutin/cutin49.webp",
+      "image": "assets/cutin/cutin49.webp?h=fc60b98a",
       "voice": "assets/voice/cheer49.wav",
       "line": "鋼の巨体！マンモス級のド迫力！",
       "duration": 3.93,
@@ -1524,12 +1524,12 @@ const MEDIA = {
       ],
       "origDuration": 4.002,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 mammoth.png から 作成",
+      "origImage": "source/cutin/rare_mammoth_cutin.webp",
       "origVoice": "rare_mammoth_appear.wav"
     },
     {
       "id": 50,
-      "image": "assets/cutin/cutin50.webp",
+      "image": "assets/cutin/cutin50.webp?h=b1cc26bd",
       "voice": "assets/voice/cheer50.wav",
       "line": "太古の王者！鋼のボディで復活！",
       "duration": 4.35,
@@ -1541,12 +1541,12 @@ const MEDIA = {
       ],
       "origDuration": 4.416,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 trex.png から 作成",
+      "origImage": "source/cutin/rare_trex_cutin.webp",
       "origVoice": "rare_trex_appear.wav"
     },
     {
       "id": 51,
-      "image": "assets/cutin/cutin51.webp",
+      "image": "assets/cutin/cutin51.webp?h=3678bc26",
       "voice": "assets/voice/cheer51.wav",
       "line": "長すぎる！刀も筋肉も規格外！",
       "duration": 4.24,
@@ -1558,12 +1558,12 @@ const MEDIA = {
       ],
       "origDuration": 4.426,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 samurai.png から 作成",
+      "origImage": "source/cutin/rare_samurai_cutin.webp",
       "origVoice": "rare_samurai_appear.wav"
     },
     {
       "id": 52,
-      "image": "assets/cutin/cutin52.webp",
+      "image": "assets/cutin/cutin52.webp?h=488b5ad1",
       "voice": "assets/voice/cheer52.wav",
       "line": "細くてもムキムキ！鎌は超ド級！",
       "duration": 4.465,
@@ -1575,12 +1575,12 @@ const MEDIA = {
       ],
       "origDuration": 4.533,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 reaper.png から 作成",
+      "origImage": "source/cutin/rare_reaper_cutin.webp",
       "origVoice": "rare_reaper_appear.wav"
     },
     {
       "id": 53,
-      "image": "assets/cutin/cutin53.webp",
+      "image": "assets/cutin/cutin53.webp?h=3d5ed22f",
       "voice": "assets/voice/cheer53.wav",
       "line": "頭脳も筋肉も！フルスペック！",
       "duration": 3.15,
@@ -1592,12 +1592,12 @@ const MEDIA = {
       ],
       "origDuration": 3.187,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 engineer.png から 作成",
+      "origImage": "source/cutin/rare_engineer_cutin.webp",
       "origVoice": "rare_engineer_appear.wav"
     },
     {
       "id": 54,
-      "image": "assets/cutin/cutin54.webp",
+      "image": "assets/cutin/cutin54.webp?h=72ee22c1",
       "voice": "assets/voice/cheer54.wav",
       "line": "全身ダイヤ！硬さも強さも横綱級！",
       "duration": 5.265,
@@ -1609,12 +1609,12 @@ const MEDIA = {
       ],
       "origDuration": 5.354,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 diamond.png から 作成",
+      "origImage": "source/cutin/rare_diamond_cutin.webp",
       "origVoice": "rare_diamond_appear.wav"
     },
     {
       "id": 55,
-      "image": "assets/cutin/cutin55.webp",
+      "image": "assets/cutin/cutin55.webp?h=8253cb80",
       "voice": "assets/voice/cheer55.wav",
       "line": "速すぎる！その巨体で音速突破！",
       "duration": 3.93,
@@ -1626,7 +1626,7 @@ const MEDIA = {
       ],
       "origDuration": 3.987,
       "enabled": true,
-      "origImage": "（仮）build_rare10.py が 動作原稿 jet.png から 作成",
+      "origImage": "source/cutin/rare_jet_cutin.webp",
       "origVoice": "rare_jet_appear.wav"
     }
   ],
