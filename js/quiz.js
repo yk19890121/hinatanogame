@@ -96,6 +96,7 @@ const Quiz = (() => {
   // lv: 1〜5、stage: 0〜3、adult: オトナモード
   function make(lv, stage, rng = Math.random, adult = false) {
     if (adult) return makeAdult(lv, rng);
+    if (lv >= WORD_LV0) return Word.make(lv, stage, rng); // 通常モード レベル6〜8: 文章問題（js/word.js）
     const L = LEVELS[clamp(lv, 1, LEVELS.length) - 1];
     const addRatio = STAGE_MIX[clamp(stage, 0, STAGE_MIX.length - 1)];
     // しゅるいは さきに 1かい だけ きめる（おなじ しきの さけかたで わりあいが ずれないように）

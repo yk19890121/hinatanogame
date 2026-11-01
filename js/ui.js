@@ -46,7 +46,8 @@ const UI = (() => {
       game.toTitle();
     });
     // むずかしさ（きりかえても BGM は あたまに もどさない）
-    $('levelSel').innerHTML = LEVELS.map((L) => `<button data-lv="${L.lv}"><b>${L.label}</b><small>${L.sub}</small></button>`).join('');
+    // 1〜5: けいさん、6〜8: ぶんしょうもんだい（いろと くぎりで わける。オトナモードでは 6〜8 を かくす）
+    $('levelSel').innerHTML = [...LEVELS, ...WORD_LEVELS].map((L) => `<button data-lv="${L.lv}"${L.lv >= WORD_LV0 ? ' class="word"' : ''}><b>${L.label}</b><small>${L.sub}</small></button>`).join('');
     $('levelSel').addEventListener('click', (e) => {
       const b = e.target.closest('button');
       if (!b) return;
@@ -192,10 +193,13 @@ const UI = (() => {
     const lv = game.levelNo, adult = game.adult, AL = ADULT_LEVELS[lv - 1];
     $('selMode').textContent = adult ? 'オトナモード' : '通常モード';
     $('selMode').classList.toggle('adult', adult);
-    const levelsOf = adult ? ADULT_LEVELS : LEVELS;
+    const levelsOf = adult ? ADULT_LEVELS : [...LEVELS, ...WORD_LEVELS];
+    const word = !adult && lv >= WORD_LV0;
     $('levelSel').querySelectorAll('button').forEach((b) => {
+      const L = levelsOf[Number(b.dataset.lv) - 1];
+      b.hidden = !L;
       b.classList.toggle('on', Number(b.dataset.lv) === lv);
-      b.querySelector('small').textContent = levelsOf[Number(b.dataset.lv) - 1].sub;
+      if (L) b.querySelector('small').textContent = L.sub;
     });
     grid.dataset.lv = lv;
     grid.querySelectorAll('.stage-card').forEach((b) => {
@@ -205,7 +209,8 @@ const UI = (() => {
       b.querySelector('.num').textContent = `${lv}-${i + 1}`;
       // オトナは 4ステージとも その レベルの もんだい
       b.querySelector('.op').textContent = adult ? AL.mark : STAGES[i].mark;
-      b.querySelector('.card-label').textContent = adult ? AL.sub : STAGE_LABEL[i];
+      b.querySelector('.card-label').textContent = adult ? AL.sub : word ? `ぶんしょう ${STAGE_LABEL[i]}` : STAGE_LABEL[i];
+      b.classList.toggle('word', word);
       b.setAttribute('aria-label', `${adult ? 'オトナモード ' : ''}レベル${lv} ステージ${i + 1} ${STAGES[i].name}`);
     });
   }
@@ -277,6 +282,9 @@ const UI = (() => {
 
   function showQuiz(q, hint) {
     const el = $('quiz');
+    // 文章問題: 文を 1ぶんずつ 行に わけて 出す（式・こたえは こたえた あとに だけ）
+    el.classList.toggle('word', !!q.word);
+    $('qWord').innerHTML = q.word ? q.lines.map((s, i) => `<span class="ql${i === q.lines.length - 1 ? ' ask' : ''}">${s}</span>`).join('') + '<span class="ql q-word-ans" id="qWordAns"></span>' : '';
     $('qA').textContent = q.a;
     $('qB').textContent = q.b;
     $('qOp').textContent = Quiz.opMark(q.op);
@@ -307,14 +315,16 @@ const UI = (() => {
     el.classList.remove('wrong');
     void el.offsetWidth;
     el.classList.add('wrong');
-    $('qHelp').textContent = el.classList.contains('adult') ? 'おしい！ もういちど けいさん しよう'
+    $('qHelp').textContent = el.classList.contains('word') ? 'おしい！ もういちど よんで みよう'
+      : el.classList.contains('adult') ? 'おしい！ もういちど けいさん しよう'
       : $('qLegend').classList.contains('on') ? 'おしい！ まとまりと ●を かぞえて みよう' : 'おしい！ ●を ゆびで かぞえて みよう';
   }
 
   function quizSolved(q) {
     const el = $('quiz');
     $('qAns').textContent = q.answer;
-    if (!q.adult) amount($('dAns'), q.answer, 'ans'); // のこった かず（こたえ）
+    if (q.word) $('qWordAns').textContent = `こたえ　${q.answer}（しき　${Word.formulaText(q)}）`; // こたえた あとに 式を みせる
+    else if (!q.adult) amount($('dAns'), q.answer, 'ans'); // のこった かず（こたえ）
     $('qHelp').textContent = 'せいかい！ すごい！';
     el.classList.remove('wrong');
     el.classList.add('solved');
@@ -360,7 +370,7 @@ const UI = (() => {
     const msgs = ['よく がんばったね！', 'すごい！ きんにくも さんすうも ばっちり！', 'かんぺき！ きみは さいきょうの マッチョだ！'];
     $('cMsg').textContent = r.last ? `レベル${r.lv} ぜんぶ クリア！ きみは さんすうの チャンピオン！` : msgs[r.stars - 1];
     $('btnNext').textContent = r.last ? 'むずかしさを えらぶ' : 'つぎの ステージへ';
-    $('clearLevel').textContent = `${r.adult ? 'オトナモード・' : ''}レベル${r.lv}・ステージ${game.stageIdx + 1}`;
+    $('clearLevel').textContent = `${r.adult ? 'オトナモード・' : ''}レベル${r.lv}${!r.adult && r.lv >= WORD_LV0 ? `（${WORD_LEVELS[r.lv - WORD_LV0].sub}）` : ''}・ステージ${game.stageIdx + 1}`;
     $('cTimeBox').hidden = !r.adult;
     if (r.adult) $('cTime').textContent = `${Math.floor(r.left / 60)}:${String(r.left % 60).padStart(2, '0')}`;
     renderLog(r.log || []);
@@ -387,7 +397,11 @@ const UI = (() => {
       if (e.miss) return '<span class="ng">×</span><span class="arrow">→</span><span class="ok">○</span>';
       return '<span class="ok">○</span>';
     };
-    list.innerHTML = log.map((e) => `<li${e.miss ? ' class="miss"' : ''}><span class="q">${e.a} ${Quiz.opMark(e.op)} ${e.b} ＝ ${e.answer}${e.boss ? '<small class="boss-tag">ボス</small>' : ''}</span><span class="r">${mark(e)}</span></li>`).join('');
+    const boss = (e) => (e.boss ? '<small class="boss-tag">ボス</small>' : '');
+    // 文章問題: 文の ぜんぶ ＋ 式・せいかい・えらんだ こたえ（じゅんに）
+    const word = (e) => `<li class="word${e.miss ? ' miss' : ''}"><div class="wq">${e.lines.join('')}${boss(e)}</div>`
+      + `<div class="wa"><span class="wf">${e.formula}</span><span class="wp">きみの こたえ　${e.picks.length ? e.picks.join(' → ') : 'ー'}</span><span class="r">${mark(e)}</span></div></li>`;
+    list.innerHTML = log.map((e) => (e.word ? word(e) : `<li${e.miss ? ' class="miss"' : ''}><span class="q">${e.a} ${Quiz.opMark(e.op)} ${e.b} ＝ ${e.answer}${boss(e)}</span><span class="r">${mark(e)}</span></li>`)).join('');
     list.scrollTop = 0;
   }
 

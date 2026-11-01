@@ -681,7 +681,8 @@ class Gate {
     ctx.drawImage(Assets.glow(th.wall.rune), cx - 60, cy - 60, 120, 120);
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
-    const mark = this.active && this.quiz ? Quiz.opMark(this.quiz.op) : '？';
+    // 文章問題は たす・ひくを 見せない（こたえる まえに けいさんの しかたを 出さない）
+    const mark = this.active && this.quiz && !this.quiz.word ? Quiz.opMark(this.quiz.op) : '？';
     outlinedText(ctx, mark, cx, cy + 2, 40, '#ffffff', mix(th.wall.rune, '#000000', 0.6), 0.22);
   }
 }

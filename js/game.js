@@ -38,7 +38,7 @@ const Game = {
     this.ctx = this.canvas.getContext('2d', { alpha: false });
     this.settings = Object.assign({ voice: true, music: true, sfx: true, hint: true }, Store.get('settings', {}));
     delete this.settings.maxNum; // ふるい「5まで/10まで/18まで」は むずかしさ に とうごう（つかわない）
-    this.levelNo = clamp(Number(Store.get('level', 1)) || 1, 1, LEVELS.length);
+    this.levelNo = clamp(Number(Store.get('level', 1)) || 1, 1, this.maxLevel());
     this.progress = this.loadProgress();
     this.applySettings();
     this.vignette = Render.edgeCanvas('rgba(10,0,30,0)', 'rgba(10,0,30,0.42)');
@@ -107,10 +107,16 @@ const Game = {
   },
   starsFor(lv, stage) { return this.record().stars[this.starKey(lv, stage)] || 0; },
 
-  setPlayMode(m) { this.playMode = m === 'adult' ? 'adult' : 'normal'; },
+  // 通常モード: レベル1〜5（けいさん）＋ 6〜8（ぶんしょうもんだい）、オトナモード: 1〜5
+  maxLevel() { return this.adult ? ADULT_LEVELS.length : LEVELS.length + WORD_LEVELS.length; },
+  setPlayMode(m) {
+    this.playMode = m === 'adult' ? 'adult' : 'normal';
+    // オトナに レベル6〜8は ない（おぼえている 通常の レベルは そのまま）
+    this.levelNo = clamp(Number(Store.get('level', this.levelNo)) || 1, 1, this.maxLevel());
+  },
 
   setLevel(n) {
-    this.levelNo = clamp(n, 1, LEVELS.length);
+    this.levelNo = clamp(n, 1, this.maxLevel());
     Store.set('level', this.levelNo);
   },
 
@@ -275,7 +281,8 @@ const Game = {
     this.mode = 'play';
     // ボス: レベル・ステージごとの え。ライフは 通常 3（いままで どおり）、オトナ 4〜8
     const bossGate = L.gates.find((g) => g.boss);
-    const bossId = `L${lv}_S${i + 1}`;
+    // ぶんしょうもんだい（レベル6〜8）は けいさんの レベル1〜3の ボスを そのまま（つよく しない。ライフ・攻撃は 通常モードの まま）
+    const bossId = `L${lv >= WORD_LV0 ? lv - WORD_LV0 + 1 : lv}_S${i + 1}`;
     bossGate.boss.setup(bossId, this.adult ? ADULT.BOSS_HP[lv - 1] : 3);
     this.hero.hearts = this.hero.maxHearts = this.adult ? ADULT.LIVES : 3;
     Input.reset();
@@ -645,7 +652,9 @@ const Game = {
     g.firstTry = true;
     g.qNo = (g.qNo || 0) + 1;
     // けっか画面の いちらん用（おなじ もんだいへの やりなおしは この 1ぎょうに まとめる）
-    g.log = { a: q.a, op: q.op, b: q.b, answer: q.answer, boss: g.kind === 'boss', miss: false, solved: false };
+    // picks: えらんだ こたえ（じゅんに）。文章問題は 文と 式も のこす（ふりかえり用）
+    g.log = { a: q.a, op: q.op, b: q.b, answer: q.answer, boss: g.kind === 'boss', miss: false, solved: false, picks: [] };
+    if (q.word) Object.assign(g.log, { word: true, lines: q.lines, formula: Word.formulaText(q) });
     this.qlog.push(g.log);
     g.blocks.forEach((b, i) => {
       b.value = q.choices[i];
@@ -654,12 +663,12 @@ const Game = {
     });
     Sound.play('pop');
     UI.showQuiz(q, this.settings.hint && !this.adult); // オトナは ●の ヒントなし
-    MediaAudio.Voice.say(Quiz.askText(q)); // ほかの こえの あとに よむ（かさならない）
+    if (!q.word) MediaAudio.Voice.say(Quiz.askText(q)); // ほかの こえの あとに よむ（かさならない）。文章問題は よみあげない
   },
 
   repeatQuestion() {
     const g = this.activeGate;
-    if (g && g.quiz && !this.answering && !this.cutin) MediaAudio.Voice.say(Quiz.askText(g.quiz), { interrupt: true });
+    if (g && g.quiz && !g.quiz.word && !this.answering && !this.cutin) MediaAudio.Voice.say(Quiz.askText(g.quiz), { interrupt: true });
   },
 
   onHeadHit(h, what) {
@@ -689,6 +698,7 @@ const Game = {
       return;
     }
     this.hero.canAnswer = false;
+    if (g.log) g.log.picks.push(b.value); // プレイヤーの こたえ（ふりかえり用）
     if (b.value === g.quiz.answer) this.correct(b);
     else this.wrong(b);
   },

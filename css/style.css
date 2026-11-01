@@ -389,6 +389,16 @@ body.quizzing .stage-chip { opacity: 0; }
 /* 3けたの ときは すこし ちいさめ（はみださない） */
 .quiz.big .q-num { font-size: max(26px, calc(var(--u) * 7.6)); min-width: max(42px, calc(var(--u) * 13)); }
 .quiz.big .q-row { gap: calc(var(--u) * 1.4); }
+/* 文章問題: 式の かわりに 文（1ぶんずつ 改行）。ちいさく しすぎない */
+.q-word { display: none; }
+.quiz.word .q-row, .quiz.word .voice, .quiz.word .q-legend { display: none; }
+.quiz.word .q-word { display: flex; flex-direction: column; gap: 0.15em; font-weight: 900; font-size: max(15px, calc(var(--u) * 3.6)); line-height: 1.35; color: #2a1a5a; max-width: min(92vw, 880px); }
+.quiz.word .q-word .ask { color: #c8102e; } /* しつもんの 文 */
+.quiz.word .ql { display: block; }
+.q-word-ans { display: none !important; color: #18943c; }
+.quiz.word.solved .q-word-ans { display: block !important; }
+.quiz.word .quiz-card { padding: calc(var(--u) * 1.4) calc(var(--u) * 3) calc(var(--u) * 1); }
+@media (max-height: 500px) { .quiz.word .q-word { font-size: 13px; line-height: 1.3; } .quiz.word .q-help { font-size: 11px; } }
 /* こたえが 4けた（オトナの 2けた×2けた）: わくから はみださない */
 .quiz.huge .q-num { font-size: max(22px, calc(var(--u) * 6.4)); min-width: max(42px, calc(var(--u) * 11)); }
 .quiz.adult .q-term { gap: 0; }
@@ -451,6 +461,19 @@ body.quizzing .stage-chip { opacity: 0; }
 .levels button small { font-weight: 800; font-size: max(10px, calc(var(--u) * 1.9)); opacity: 0.85; }
 .levels button.on { background: linear-gradient(180deg, #fff4a8, #ffc130 50%, #ff8800); color: #3a1600; box-shadow: 0 3px 0 #b05000; }
 .levels button:active { transform: scale(0.95); }
+.levels button[hidden] { display: none; }
+/* ぶんしょうもんだい（レベル6〜8）: みどりで けいさんと くべつ、まえに くぎり */
+.levels button.word { color: #d6ffd8; }
+.levels button.word b::before { content: '📖'; margin-right: 0.15em; }
+.levels button[data-lv='6'] { position: relative; margin-left: calc(var(--u) * 1.6); }
+.levels button[data-lv='6']::after { content: ''; position: absolute; left: calc(var(--u) * -1.3); top: 18%; bottom: 18%; width: 2px; border-radius: 1px; background: rgba(255, 255, 255, 0.55); }
+.levels button.word.on { background: linear-gradient(180deg, #d8ffb0, #5ad25a 50%, #1f9a3a); color: #0a3a14; box-shadow: 0 3px 0 #0f6a24; }
+.stage-card.word .card-label { color: #1f9a3a; }
+/* はばが せまい ときは 2だんに（8こ ならぶ） */
+@media (max-width: 900px) {
+  .levels { flex-wrap: wrap; justify-content: center; border-radius: calc(var(--u) * 3); }
+  .levels button { padding: calc(var(--u) * 0.5) calc(var(--u) * 1.4); }
+}
 .clear-level { font-weight: 900; font-size: max(13px, calc(var(--u) * 2.6)); color: #7a6aa8; }
 .set-note { text-align: center; }
 
@@ -621,6 +644,7 @@ body.touchy.playing:not(.in-menu) .touch { display: flex; }
 .stars span.got { color: #ffc21a; text-shadow: 0 4px 0 #c27800, 0 0 calc(var(--u) * 3) rgba(255, 200, 40, 0.8); animation: starPop 0.5s cubic-bezier(0.2, 1.8, 0.4, 1); }
 .clear-stats { display: flex; gap: calc(var(--u) * 6); }
 .clear-stats div { display: flex; flex-direction: column; align-items: center; }
+.clear-stats div[hidden] { display: none; } /* 通常モードでは「のこり じかん」を ださない */
 .clear-stats b { font-size: calc(var(--u) * 7); line-height: 1; color: #5a3ae0; }
 .clear-stats small { font-weight: 800; font-size: calc(var(--u) * 2.4); color: #8a7ab8; }
 .clear-msg { margin: 0; font-weight: 900; font-size: calc(var(--u) * 3.2); color: #ff5a2a; text-align: center; }
@@ -644,6 +668,13 @@ body.touchy.playing:not(.in-menu) .touch { display: flex; }
 .clear-log-list .ok { color: #18943c; }
 .clear-log-list .ng { color: #e0306a; }
 .clear-log-list .arrow { color: #a89cc8; font-size: 0.8em; }
+/* 文章問題の ふりかえり: 文は おりかえして ぜんぶ よめる、した に 式・せいかい・えらんだ こたえ */
+.clear-log-list li.word { display: block; white-space: normal; font-size: max(13px, calc(var(--u) * 2.5)); line-height: 1.4; }
+.clear-log-list li.word .wq { color: #3a2a6a; font-weight: 800; }
+.clear-log-list li.word .wa { display: flex; align-items: center; flex-wrap: wrap; gap: 0.3em 1em; margin-top: 0.25em; }
+.clear-log-list li.word .wf { color: #1a6aa8; font-variant-numeric: tabular-nums; }
+.clear-log-list li.word .wp { color: #7a6aa8; font-size: 0.9em; }
+.clear-log-list li.word .r { margin-left: auto; }
 @media (max-width: 640px) { .clear-log-list li { font-size: 15px; } } /* ちいさい スマホの よこむき */
 @media (max-aspect-ratio: 1/1) {
   .panel.clear { flex-direction: column; align-items: center; }
