@@ -21,6 +21,8 @@ const ADULT = {
 // 追加レア10体（js/rare10-data.js）も おなじ 仲間の しくみに くわえる
 Object.assign(CHARA.allies, RARE10.allies);
 Object.assign(CHARA.allyOfCheer, RARE10.allyOfCheer);
+// 通常モード レベル6〜8（ぶんしょうもんだい）の ボス 12体（js/boss68-data.js）
+Object.assign(CHARA.bosses, BOSS68);
 
 const CharaArt = (() => {
   const cache = {};

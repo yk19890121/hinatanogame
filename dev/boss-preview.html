@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base href="../">
+<title>ボス プレビュー（開発用）</title>
+<style>
+  body { margin: 0; font-family: sans-serif; background: #20243a; color: #fff; }
+  header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px; }
+  select, button { font-size: 15px; padding: 6px 10px; border-radius: 8px; border: 0; }
+  button.on { background: #ffc130; }
+  canvas { display: block; width: 100%; max-width: 1100px; margin: 0 auto; background: linear-gradient(#7fb0e0, #cfe6ff 70%, #6a9a3a 70%); }
+  p { padding: 0 10px; color: #b8c0e0; font-size: 13px; }
+</style>
+</head>
+<body>
+<!-- 開発用: ボスの 14コマ（待機・移動・攻撃・被ダメージ・撃破）と 攻撃の 弾・攻撃SE を 確認する。ゲームの ルールとは 関係なし -->
+<header>
+  <select id="boss"></select>
+  <button data-a="idle" class="on">待機</button><button data-a="walk">移動</button><button data-a="attack">攻撃（弾・SE）</button><button data-a="hurt">被ダメージ</button><button data-a="defeat">撃破</button>
+  <label><input type="checkbox" id="guide"> 基準線</label>
+</header>
+<canvas id="c" width="1100" height="520"></canvas>
+<p>攻撃は 開発用の 確認だけ（通常モードの ゲームでは ボスは 攻撃しません）。SE は ボタンを おしたとき だけ ならします。</p>
+<script src="js/util.js"></script>
+<script src="js/media.js"></script>
+<script src="js/chara-data.js"></script>
+<script src="js/boss68-data.js"></script>
+<script src="js/rare10-data.js"></script>
+<script>const Assets = { glow: () => null }, Physics = {};</script>
+<script src="js/chara.js"></script>
+<script>
+  const sel = document.getElementById('boss'), cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  sel.innerHTML = Object.entries(CHARA.bosses).map(([id, d]) => `<option value="${id}"${id === 'L6_S1' ? ' selected' : ''}>${id} ${d.name}（${({ boss: 'ボス', midboss: '中ボス', finalboss: 'ラスボス' })[d.type]}）</option>`).join('');
+  let anim = 'idle', t = 0, shot = null, fired = false, last = performance.now();
+  document.querySelectorAll('button[data-a]').forEach((b) => b.onclick = () => {
+    document.querySelectorAll('button[data-a]').forEach((x) => x.classList.toggle('on', x === b));
+    anim = b.dataset.a; t = 0; fired = false; shot = null;
+  });
+  sel.onchange = () => { t = 0; shot = null; fired = false; };
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now; t += dt;
+    const id = sel.value, d = CHARA.bosses[id], art = CharaArt.boss(id), A = d.anims[anim];
+    const scale = d.scale || ({ boss: 0.92, midboss: 0.98, finalboss: 1.06 })[d.type];
+    const x = 760, y = 440;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    if (anim === 'attack' && !fired && t >= A.frames.indexOf(A.projectileFrame) / A.fps) {
+      fired = true; shot = { x: x - 120, y: y - 80 };
+      const sfx = d.shotSfx && MEDIA.sfx[d.shotSfx];
+      if (sfx) { const a = new Audio(sfx.src); a.currentTime = sfx.start || 0; a.play().catch(() => {}); }
+    }
+    if (anim === 'attack' && CharaArt.done(A, t) && t > 1.6) { t = 0; fired = false; }
+    const f = CharaArt.frameAt(A, t);
+    CharaArt.draw(ctx, art, f, x, y, scale, false);
+    if (document.getElementById('guide').checked) {
+      ctx.strokeStyle = '#0a0'; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cv.width, y); ctx.moveTo(x, 0); ctx.lineTo(x, cv.height); ctx.stroke();
+    }
+    if (shot) { shot.x -= 520 * dt; CharaArt.drawShot(ctx, art, shot.x, shot.y, 130); if (shot.x < -100) shot = null; }
+    ctx.fillStyle = '#123'; ctx.font = '16px sans-serif'; ctx.fillText(`${id} ${d.name}  コマ ${f + 1}  ×${scale}  SE ${d.shotSfx || '-'}`, 12, 24);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>

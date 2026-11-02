@@ -57,7 +57,7 @@
 - 文・数・演算・正解・ふりかえりの 式は 同じ もんだいデータから 作るので 食いちがいません。同じ 文・同じ 数の 組みあわせは 続きません
 - 選択肢は 正解 1つ ＋ まちがえやすい 数（レベル8は「1かいめで とめた こたえ」、ほかは たす・ひくを 逆に した こたえ・近い 数）。重なり・マイナスなし
 - こたえる 前は 式も 答えも 出しません（かべの マークも「？」）。正解すると「こたえ 8（しき 5 ＋ 3 ＝ 8）」
-- ボスは けいさんの レベル1〜3 の 同じ ステージの ボス（6→1、7→2、8→3）。ライフ 3・攻撃なしの 通常モードの まま
+- ボスは せんようの 12体（下の「ぶんしょうもんだいの ボス 12体」）。ライフ 3・攻撃なしの 通常モードの まま
 - ★は「6-1」〜「8-4」として べつに 記録（レベル1〜5 の 記録は そのまま）。ゴール後の 一覧には 文の ぜんぶ・式・正解・えらんだ こたえ（まちがえた ときは じゅんに）・○／×
 
 | ステージ | 世界 | 計算 |
@@ -343,6 +343,28 @@ ZIP には WAV だけ 入っていたので、前後の 無音を けずって �
 - やりなおし・画面移動で 動画・音・タイマーを 全部 止めます（あとから 攻撃や 音が 出ません）
 - 動画を 読みこめない・すかして 出せない ときは 0.45秒で 画像の 登場へ 進みます
 
+## ぶんしょうもんだいの ボス 12体（通常モード レベル6〜8。ZIP「boss_lv6-8_assets」）
+
+| ステージ | 分類 | ボス | シート（ゲーム用 ← 元） | 攻撃の 弾 | 攻撃SE（いまある SE を つかう） |
+| --- | --- | --- | --- | --- | --- |
+| 6-1 | ボス | 岩拳の武人 | `assets/boss/L6_S1.png` ← `boss_lv6_stage1_atlas.png` | `boss_lv6_stage1_projectile.png` | `ally_attack_meteor.mp3` |
+| 6-2 | ボス | 鋼角の闘士 | `L6_S2.png` ← `boss_lv6_stage2_atlas.png` | `boss_lv6_stage2_projectile.png` | `ally_attack_mammoth.mp3` |
+| 6-3 | 中ボス | 黒鉄の大将 | `L6_S3.png` ← `boss_lv6_stage3_atlas.png`（修正版） | `boss_lv6_stage3_projectile.png` | `ally_attack_mammoth.mp3` |
+| 6-4 | ラスボス | 黄金獅子王 | `L6_S4.png` ← `boss_lv6_stage4_atlas.png` | `boss_lv6_stage4_projectile.png` | `ally_attack_trex.mp3` |
+| 7-1 | ボス | 氷河の槍士 | `L7_S1.png` ← `boss_lv7_stage1_atlas.png` | `boss_lv7_stage1_projectile.png` | `ally_attack_angel.mp3` |
+| 7-2 | ボス | 雷鳴の拳士 | `L7_S2.png` ← `boss_lv7_stage2_atlas.png` | `boss_lv7_stage2_projectile.png` | `ally_attack_engineer.mp3` |
+| 7-3 | 中ボス | 蒼鋼の騎将 | `L7_S3.png` ← `boss_lv7_stage3_atlas.png` | `boss_lv7_stage3_projectile.png` | `ally_attack_jet.mp3` |
+| 7-4 | ラスボス | 雷帝ヴォルト | `L7_S4.png` ← `boss_lv7_stage4_atlas.png` | `boss_lv7_stage4_projectile.png` | `ally_attack_trex.mp3` |
+| 8-1 | ボス | 重力の闘士 | `L8_S1.png` ← `boss_lv8_stage1_atlas.png` | `boss_lv8_stage1_projectile.png` | `ally_attack_reaper.mp3` |
+| 8-2 | ボス | 流星の剣士 | `L8_S2.png` ← `boss_lv8_stage2_atlas.png` | `boss_lv8_stage2_projectile.png` | `ally_attack_samurai.mp3` |
+| 8-3 | 中ボス | 黒曜の巨神兵 | `L8_S3.png` ← `boss_lv8_stage3_atlas.png` | `boss_lv8_stage3_projectile.png` | `ally_attack_trex.mp3` |
+| 8-4 | ラスボス | 天覇皇アストラ | `L8_S4.png` ← `boss_lv8_stage4_atlas.png` | `boss_lv8_stage4_projectile.png` | `ally_attack_angel.mp3` |
+
+- 元の シート（5列×3段＝14ポーズ＋右下に 弾）は `source/boss68/` に 保管。`tools/build_boss68.py` が 追加レアと 同じ やりかた（均等に 切らず、つながった 絵の かたまり ごとに 切り出し → 足もとと 胴の まんなかを そろえて 7列×2段）で `assets/boss/L6_S1.png` など に します。コマは 1〜2 待機・3〜6 移動・7〜10 攻撃（構え・ためる・放つ・もどり）・11〜12 被ダメージ・13〜14 倒れる
+- え は もともと 左むき（主人公の ほう）なので 反転しません。透明は そのまま（黒を 透明に する 処理は していない）
+- 大きさは 本体の 高さで そろえて ボス 250px・中ボス 270px・ラスボス 305px（レベル1〜5 の ボスと 同じ くらい）。背の 高い ボスでも ハートは 問題カードの 下に 出します
+- 通常モードなので 攻撃しません（攻撃の コマ・弾・SE は データとして 登録だけ）。確認は 開発用の `dev/boss-preview.html`（ボスを えらんで 待機・移動・攻撃（弾・SE）・被ダメージ・撃破）
+
 ## ボス 20体（ZIP「ボスデータ」）
 
 14コマシート（2688×768、7列×2段、1コマ384×384、背景透過PNG、左向き）を そのまま 使い、`boss_manifest.json` の コマ・速さで 待機・あしぶみ（移動）・攻撃・被ダメージ・倒れる（最後の コマで 止まって 消える）を 切りかえます。表示の 大きさ（ボス 0.92・中ボス 0.98・ラスボス 1.06 倍）と 当たり判定は 別。両モードで 同じ 絵（通常モードは 攻撃しません）。絵は その ステージを 始めた ときに 読みこみます。
@@ -464,6 +486,7 @@ pip install pillow numpy imageio-ffmpeg
 python tools/process_muscle.py --fill macho_stampede_4s_fill.mp4 --matte macho_stampede_4s_matte.mp4   # マッスル群を 透過 → assets/video/muscle.mp4・音は assets/sfx/muscle.mp3（等倍・カットなし）
 python tools/build_media.py --bgm <「BGM・SE」フォルダ> <素材フォルダ> ... <SE> <音声データ>   # BGM候補の 登録と 音量そろえ・音の コピー（元は source/voice/、前後の 無音を けずった ゲーム用は assets/voice/。仲間・オトナの 声は MP3 に）・js/media.js・元画像の 保管
 python tools/build_chara.py <macho_boss_assets> <rare_ally_assets>   # ボス 20体・仲間 5体の 画像を assets/boss/・assets/ally/ へ、js/chara-data.js を 作る
+python tools/build_boss68.py <boss_lv6-8_assets> [--check 確認画像の出力先]   # 通常モード レベル6〜8の ボス 12体 → assets/boss/L6_S1〜L8_S4.png・弾・js/boss68-data.js
 python tools/build_rare10.py <rare10_videos_voice_se> [--check 確認画像の出力先]   # 追加レア 10体の 動作原稿 → 仲間シート・弾・js/rare10-data.js・（仮の）カットイン
 （build_media.py の 素材フォルダに rare10_voices/appear・rare10_voices/join・rare_attack_se も 足す）
 python tools/trim_voices.py                                        # 声の はじまり・おわり の 位置を ひょうじ（けずる 位置の 確認）
@@ -476,4 +499,4 @@ python tools/process_sprites.py マッチョの画像.webp ボスの画像.webp 
 
 ### 更新するとき
 
-ブラウザに 古い ファイルが 残らないように、`index.html` の `?v=20261101c` を 新しい 日付に 変えてから push してください（音や 画像は 名前が 変わるときだけ 気にすれば OK）。
+ブラウザに 古い ファイルが 残らないように、`index.html` の `?v=20261102a` を 新しい 日付に 変えてから push してください（音や 画像は 名前が 変わるときだけ 気にすれば OK）。

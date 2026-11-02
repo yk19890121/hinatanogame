@@ -281,8 +281,8 @@ const Game = {
     this.mode = 'play';
     // ボス: レベル・ステージごとの え。ライフは 通常 3（いままで どおり）、オトナ 4〜8
     const bossGate = L.gates.find((g) => g.boss);
-    // ぶんしょうもんだい（レベル6〜8）は けいさんの レベル1〜3の ボスを そのまま（つよく しない。ライフ・攻撃は 通常モードの まま）
-    const bossId = `L${lv >= WORD_LV0 ? lv - WORD_LV0 + 1 : lv}_S${i + 1}`;
+    // ぶんしょうもんだい（レベル6〜8）は せんようの 12体（L6_S1〜L8_S4）。ライフ 3・攻撃なしの 通常モードの まま
+    const bossId = `L${lv}_S${i + 1}`;
     bossGate.boss.setup(bossId, this.adult ? ADULT.BOSS_HP[lv - 1] : 3);
     this.hero.hearts = this.hero.maxHearts = this.adult ? ADULT.LIVES : 3;
     Input.reset();
@@ -898,7 +898,7 @@ const Game = {
     const s = new BossShot(boss.art, boss.x - 70);
     this.enemyShots.push(s);
     const kind = boss.d.shotKind;
-    MediaAudio.Sfx.play('bossShot' + kind[0].toUpperCase() + kind.slice(1)); // 弾の 見た目に あわせた 発射音
+    MediaAudio.Sfx.play(boss.d.shotSfx || 'bossShot' + kind[0].toUpperCase() + kind.slice(1)); // 弾の 見た目に あわせた 発射音
     this.fx.flash(s.x, s.y, '#ffffff', 90, 0.25);
   },
 

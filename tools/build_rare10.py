@@ -174,6 +174,27 @@ def frame_info(f):
     return {"bottom": int(y1), "cx": cx, "box": (int(xx.min()), int(yy.min()), int(xx.max()) + 1, int(yy.max()) + 1), "mainTop": int(y0)}
 
 
+def pack(frames, infos):
+    """14コマを 基準点（足もと・胴の まんなか）で そろえて、同じ 大きさの マス 7列×2段に ならべる
+    → (シート, マスの はば, たかさ, 基準点 x, y, コマごとの え の はんい)"""
+    left = max(i["cx"] - i["box"][0] for i in infos)
+    right = max(i["box"][2] - i["cx"] for i in infos)
+    up = max(i["bottom"] - i["box"][1] for i in infos)
+    down = max(i["box"][3] - i["bottom"] for i in infos)
+    cw, chh = int(np.ceil(left + right)) + PAD * 2, int(np.ceil(up + down)) + PAD * 2
+    ax, ay = int(np.ceil(left)) + PAD, int(np.ceil(up)) + PAD
+    sheet = Image.new("RGBA", (cw * 7, chh * 2), (0, 0, 0, 0))
+    boxes = []
+    for k in range(14):
+        i = infos[k]
+        x0, y0, x1, y1 = i["box"]
+        piece = Image.fromarray(frames[k]).crop((x0, y0, x1, y1))
+        dx, dy = int(round(ax - i["cx"] + x0)), ay - i["bottom"] + y0
+        sheet.alpha_composite(piece, ((k % 7) * cw + dx, (k // 7) * chh + dy))
+        boxes.append((dx, dy, dx + x1 - x0, dy + y1 - y0))
+    return sheet, cw, chh, ax, ay, boxes
+
+
 def body_top(f, info):
     """本体の 上の はし: 行ごとの 不透明な はばが 本体の はばの 18% を こえる さいしょの 行（細い 槍・鎌の 柄・刀の 先は のぞく）"""
     al = f[:, :, 3] > 128
@@ -200,22 +221,7 @@ def build(src_dir, check_dir):
         if slug == "meteor":
             erase_meteor(frames, log)
         infos = [frame_info(f) for f in frames[:14]]
-        # 14コマの 基準点（足もと・胴の まんなか）から 共通の マスの 大きさを きめる
-        left = max(i["cx"] - i["box"][0] for i in infos)
-        right = max(i["box"][2] - i["cx"] for i in infos)
-        up = max(i["bottom"] - i["box"][1] for i in infos)
-        down = max(i["box"][3] - i["bottom"] for i in infos)
-        cw, chh = int(np.ceil(left + right)) + PAD * 2, int(np.ceil(up + down)) + PAD * 2
-        ax, ay = int(np.ceil(left)) + PAD, int(np.ceil(up)) + PAD
-        sheet = Image.new("RGBA", (cw * 7, chh * 2), (0, 0, 0, 0))
-        boxes = []
-        for k in range(14):
-            i = infos[k]
-            x0, y0, x1, y1 = i["box"]
-            piece = Image.fromarray(frames[k]).crop((x0, y0, x1, y1))
-            dx, dy = int(round(ax - i["cx"] + x0)), ay - i["bottom"] + y0
-            sheet.alpha_composite(piece, ((k % 7) * cw + dx, (k // 7) * chh + dy))
-            boxes.append((dx, dy, dx + x1 - x0, dy + y1 - y0))
+        sheet, cw, chh, ax, ay, boxes = pack(frames, infos)
         sheet.save(os.path.join(REPO, "assets", "ally", f"{slug}.png"), optimize=True)
         # 弾（15枠め）
         sf = Image.fromarray(frames[14])

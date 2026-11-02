@@ -362,6 +362,7 @@ class Slime {
 /* ---------------- ボス ---------------- */
 // ボスの え: レベル・ステージごとに ちがう 20体（CHARA.bosses）。ステージ1・2=ボス、3=中ボス、4=ラスボス
 const BOSS_SCALE = { boss: 0.92, midboss: 0.98, finalboss: 1.06 };
+const BOSS_HEART_MIN_Y = 232; // ボスの ハートの いちばん 上（スマホ よこむきで 問題カード 4行の した）
 
 class Boss {
   constructor(gate) {
@@ -389,7 +390,7 @@ class Boss {
     this.id = id;
     this.d = CHARA.bosses[id];
     this.art = CharaArt.boss(id);
-    this.scale = BOSS_SCALE[this.d.type] || 1;
+    this.scale = this.d.scale || BOSS_SCALE[this.d.type] || 1; // レベル6〜8の ボスは 本体の 高さから きめた 大きさ
     this.h = (this.d.anchor[1] - this.d.top) * this.scale;
     this.hp = this.maxHp = hp;
   }
@@ -515,8 +516,10 @@ class Boss {
     }
     // ライフが おおい（オトナモード）ときは ハートを すこし ちいさく つめる
     const n = this.maxHp, size = n > 5 ? 32 : 38, gap = n > 5 ? 36 : 44;
+    // 背の 高い ボス（光の とげ・角）でも 問題カードの うらに ハートが かくれない たかさ より 下に
+    const top = Math.max(y - this.h - 30, BOSS_HEART_MIN_Y);
     for (let i = 0; i < n; i++) {
-      const hx = this.x + (i - (n - 1) / 2) * gap, hy = y - this.h - 30;
+      const hx = this.x + (i - (n - 1) / 2) * gap, hy = top;
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
       heartPath(ctx, hx + 2, hy + 3, size);
       ctx.fill();
