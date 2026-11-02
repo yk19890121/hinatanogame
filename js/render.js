@@ -339,7 +339,7 @@ const Render = (() => {
     if (S.ally) S.ally.draw(ctx, t);
     if (S.projectiles) for (const p of S.projectiles) if (p.behind) p.draw(ctx, t); // 仲間の 弾（隕石など）も うしろ
     for (const s of L.springs) if (vis(s.x)) s.draw(ctx, t);
-    for (const b of L.blocks) if (vis(b.x)) b.draw(ctx, t, th);
+    for (const b of L.blocks) if (!b.hidden && vis(b.x)) b.draw(ctx, t, th); // こくごモードは ブロックなし
     for (const d of L.dumbbells) if (!d.taken && vis(d.x)) drawDumbbell(ctx, d.x, d.y, t, d.phase);
     for (const p of L.proteins) if (!p.taken && vis(p.x)) drawProtein(ctx, p.x, p.y, t);
     for (const e of L.enemies) if (vis(e.x)) e.draw(ctx, t, th.slime);

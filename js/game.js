@@ -320,12 +320,15 @@ const Game = {
     const bossId = `L${lv}_S${i + 1}`;
     bossGate.boss.setup(bossId, this.adult ? ADULT.BOSS_HP[lv - 1] : 3);
     this.hero.hearts = this.hero.maxHearts = this.adult ? ADULT.LIVES : 3;
-    // こくご: この ステージの 物語（1〜4問め=かべ、5〜7問め=ボス）。ブロックは たたいても こたえに ならないので やじるしも ださない
+    // こくご: この ステージの 物語（1〜4問め=かべ、5〜7問め=ボス）。こたえは 1〜3キー・タップなので
+    // 数字ブロックは みせず、ぶつからない（こたえの きろく用に だけ のこす）。やじるしも ださない
     this.story = null;
     if (this.kokugo) {
       const r = Kokugo.get(lv, i + 1);
       this.story = r && r.status === 'ok' ? r.data : null;
       L.gates.forEach((g) => { g.hint = false; });
+      L.blocks.forEach((b) => { b.hidden = true; });
+      this.solids = this.solids.filter((s) => !(s instanceof AnswerBlock));
     }
     Input.reset();
     UI.show(null);
@@ -790,14 +793,16 @@ const Game = {
     if (g.firstTry) this.stats.first++;
     g.log.solved = true;
     b.state = 'gone';
-    const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-    this.fx.sparkle(cx, cy, 26, this.theme.block.glow, 420);
-    this.fx.flash(cx, cy, '#ffffff', 130, 0.4);
-    this.fx.ring(cx, cy, '#ffffff', 20, 120, 0.45, 8);
+    if (!b.hidden) { // こくごは ブロックが ないので はじける えんしゅつも なし（ヒーローの 紙ふぶきは ある）
+      const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+      this.fx.sparkle(cx, cy, 26, this.theme.block.glow, 420);
+      this.fx.flash(cx, cy, '#ffffff', 130, 0.4);
+      this.fx.ring(cx, cy, '#ffffff', 20, 120, 0.45, 8);
+    }
     g.blocks.forEach((o) => {
       if (o !== b && o.state !== 'gone') {
         o.state = 'gone';
-        this.fx.dust(o.x + o.w / 2, o.y + o.h / 2, 6, 0);
+        if (!o.hidden) this.fx.dust(o.x + o.w / 2, o.y + o.h / 2, 6, 0);
       }
     });
     UI.quizSolved(q);
@@ -997,7 +1002,8 @@ const Game = {
     b.state = 'wrong';
     b.shake = 0.5;
     Sound.play('wrong');
-    this.fx.text('おしい！', b.x + b.w / 2, b.y - 24, { size: 34, life: 1.1, top: '#ffffff', bot: '#ffb3c6', stroke: '#5a0a2a' });
+    const tx = b.hidden ? this.hero.x : b.x + b.w / 2, ty = b.hidden ? GROUND_Y - 190 : b.y - 24; // こくごは ブロックが ないので ヒーローの うえ
+    this.fx.text('おしい！', tx, ty, { size: 34, life: 1.1, top: '#ffffff', bot: '#ffb3c6', stroke: '#5a0a2a' });
     UI.quizWrong();
     // オトナ: 回答 1かいに つき ライフ −1（むてき中でも へる。こえは「もう一回！」）
     if (this.adult) return this.loseLife('wrong');
