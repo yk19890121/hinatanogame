@@ -134,7 +134,7 @@
 
 `content/kokugo/level{レベル}_stage{ステージ}.json`（20ファイル）。書き方・項目の 説明・差し替え手順・チェック内容は **[content/kokugo/README.md](content/kokugo/README.md)**、記入用は `content/kokugo/TEMPLATE.json`。
 
-- 20ステージ ぜんぶ 物語 入り（Excel「マッチョRUN_こくごモード_物語と問題.xlsx」→ `python tools/build_kokugo.py <xlsx>` で 作成。Lv1〜2 オリジナル、Lv3〜5 昔話・童話の 再話）。`"ready": false` の ファイルは「じゅんびちゅう」
+- 20ステージ ぜんぶ 物語 入り（Excel「マッチョRUN_こくごモード_物語と問題.xlsx」→ `python tools/build_kokugo.py <xlsx>` で 作成。Lv1〜2 オリジナル、Lv3〜5 昔話・童話の 再話）。画面が いくつかに わかれる ときは 文字数を ならして わける。`"ready": false` の ファイルは「じゅんびちゅう」
 - よみこむ ときに チェック（本文・7もん・選択肢 3つ・正解IDが ある・IDの かさなり・漢字や 英字）。だめな ファイルは「データ エラー」で 始められず、コンソールに ファイル名と 場所を 出します（ゲームは 止まりません）
 - 開発用の 仮データ: URL に `?kokugo=sample` で 全ステージが `content/kokugo-sample/sample_story.json` に なります（★は `macho_progressKokugoSample` に べつ記録。正式データ・正式の 記録には まざりません）
 

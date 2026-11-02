@@ -12,7 +12,7 @@ content/kokugo/TEMPLATE.json        … 記入用テンプレート（ゲーム�
 content/kokugo-sample/sample_story.json … 開発・テスト用の仮データ（正式データではありません）
 ```
 
-20ファイルとも Excel「マッチョRUN_こくごモード_物語と問題.xlsx」から作った 物語が 入っています（2026-11-02、contentVersion 1）。
+20ファイルとも Excel「マッチョRUN_こくごモード_物語と問題.xlsx」から作った 物語が 入っています（2026-11-02 更新版。Lv3〜5 は「ももマッチョ」など マッチョが 登場する 再話）。
 `"ready": false` の ファイルは「じゅんびちゅう」と出て始められません。
 
 ## Excel から まとめて 作る（おすすめ）

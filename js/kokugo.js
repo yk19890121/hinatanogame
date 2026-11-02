@@ -119,15 +119,16 @@ const Kokugo = (() => {
   // 画面に はいる だけで ページを わける（文字を ちいさく しない。1ページ 300文字 くらいまで）
   // fits(html) が 画面に おさまるか を かえす（DOM で はかる）
   function paginate(d, fits, maxChars = 300) {
-    const out = [];
-    for (const page of units(d)) {
+    // 1つの データページを cap 文字まで つめて わける
+    const split = (page, cap) => {
+      const out = [];
       let cur = [], curLen = 0;
       const flush = () => { if (cur.length) out.push(cur.map((p) => p.join('')).filter(Boolean)); cur = []; curLen = 0; };
       for (const para of page) {
         let paraOut = [];
         for (const s of para) {
           const tryCur = [...cur, [...paraOut, s]];
-          if (cur.length + paraOut.length && (curLen + s.length > maxChars || !fits(tryCur))) {
+          if (cur.length + paraOut.length && (curLen + s.length > cap || !fits(tryCur))) {
             if (paraOut.length) cur.push(paraOut);
             flush();
             paraOut = [];
@@ -138,6 +139,21 @@ const Kokugo = (() => {
         if (paraOut.length) cur.push(paraOut);
       }
       flush();
+      return out;
+    };
+    const out = [];
+    for (const page of units(d)) {
+      const full = split(page, maxChars);
+      // 画面が いくつかに なる ときは ならして わける（さいごに ちょっとだけ のこる ページを つくらない）
+      let best = full;
+      if (full.length > 1) {
+        const total = page.flat().join('').length;
+        for (let cap = Math.ceil(total / full.length); cap < maxChars; cap += 8) {
+          const p = split(page, cap);
+          if (p.length <= full.length) { best = p; break; }
+        }
+      }
+      out.push(...best);
     }
     return out; // [ページ][段落] = 段落の 文
   }
