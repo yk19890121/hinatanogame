@@ -131,8 +131,9 @@ const Word = (() => {
   function make(lv, stage, rng = Math.random) {
     const L = WORD_LEVELS[clamp(lv, WORD_LV0, WORD_LV0 + WORD_LEVELS.length - 1) - WORD_LV0];
     let q = null;
+    // たす・ひくは さきに 1かいだけ きめる（おなじ もんだいの よけなおしで えらびなおすと、くみあわせの すくない たしざんが へって わりあいが ずれる）
+    const ops = opsFor(L, stage, rng);
     for (let t = 0; t < 40; t++) {
-      const ops = opsFor(L, stage, rng);
       const nm = numbers(L, ops, rng);
       if (!nm) continue;
       const bag = SCENE_BAG.filter((k) => !SCENES[k].maxAns || L.ans[1] <= SCENES[k].maxAns);

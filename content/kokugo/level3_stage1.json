@@ -1,6 +1,154 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l3s1",
+  "contentVersion": 1,
   "level": 3,
   "stage": 1,
-  "ready": false
+  "title": "マッチョ ももたろう",
+  "pages": [
+    "むかしむかし、 あるところに おじいさんと おばあさんが すんでいました。 おじいさんは やまへ しばかりに、 おばあさんは かわへ せんたくに いきました。 おばあさんが せんたくを していると、 かわかみから おおきな ももが どんぶらこ、 どんぶらこと ながれて きました。 おじいさんと ふたりで ももを きろうと すると、 なかから げんきな おとこのこが うまれました。 ふたりは その こを ももたろうと なづけました。 ももたろうは ムキムキの マッチョに そだちました。",
+    "ある ひ、 マッチョの ももたろうは 「おにがしまの おにを たいじしに いきます」と いいました。 おばあさんは きびだんごを つくって くれました。 みちの とちゅうで、 いぬ、 さる、 きじに あいました。 ももたろうが きびだんごを あげると、 みんな なかまに なりました。 ももたろうたちは ふねで おにがしまへ わたり、 おにを やっつけました。 おには あやまって、 たからものを かえしました。 ももたろうは たからものを もって いえに かえり、 みんなで なかよく くらしました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l3s1_q1",
+      "phase": "route",
+      "text": "ももたろうは どんな わかものに そだちましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s1_q1_c1",
+          "text": "ひょろひょろの わかもの"
+        },
+        {
+          "id": "kokugo_l3s1_q1_c2",
+          "text": "ちいさな あかちゃん"
+        },
+        {
+          "id": "kokugo_l3s1_q1_c3",
+          "text": "ムキムキの マッチョ"
+        }
+      ],
+      "answer": "kokugo_l3s1_q1_c3"
+    },
+    {
+      "id": "kokugo_l3s1_q2",
+      "phase": "route",
+      "text": "おばあさんは かわへ なにを しに いきましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s1_q2_c1",
+          "text": "せんたく"
+        },
+        {
+          "id": "kokugo_l3s1_q2_c2",
+          "text": "みずくみ"
+        },
+        {
+          "id": "kokugo_l3s1_q2_c3",
+          "text": "さかなとり"
+        }
+      ],
+      "answer": "kokugo_l3s1_q2_c1"
+    },
+    {
+      "id": "kokugo_l3s1_q3",
+      "phase": "route",
+      "text": "おおきな ももの なかから うまれたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l3s1_q3_c1",
+          "text": "ちいさな おんなのこ"
+        },
+        {
+          "id": "kokugo_l3s1_q3_c2",
+          "text": "げんきな おとこのこ"
+        },
+        {
+          "id": "kokugo_l3s1_q3_c3",
+          "text": "おおきな かめ"
+        }
+      ],
+      "answer": "kokugo_l3s1_q3_c2"
+    },
+    {
+      "id": "kokugo_l3s1_q4",
+      "phase": "route",
+      "text": "おばあさんが つくって くれた ものは？",
+      "choices": [
+        {
+          "id": "kokugo_l3s1_q4_c1",
+          "text": "おにぎり"
+        },
+        {
+          "id": "kokugo_l3s1_q4_c2",
+          "text": "おもち"
+        },
+        {
+          "id": "kokugo_l3s1_q4_c3",
+          "text": "きびだんご"
+        }
+      ],
+      "answer": "kokugo_l3s1_q4_c3"
+    },
+    {
+      "id": "kokugo_l3s1_q5",
+      "phase": "boss",
+      "text": "ももたろうの なかまに ならなかった のは どれ？",
+      "choices": [
+        {
+          "id": "kokugo_l3s1_q5_c1",
+          "text": "ねこ"
+        },
+        {
+          "id": "kokugo_l3s1_q5_c2",
+          "text": "いぬ"
+        },
+        {
+          "id": "kokugo_l3s1_q5_c3",
+          "text": "きじ"
+        }
+      ],
+      "answer": "kokugo_l3s1_q5_c1"
+    },
+    {
+      "id": "kokugo_l3s1_q6",
+      "phase": "boss",
+      "text": "ももたろうたちは なにに のって おにがしまへ わたりましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s1_q6_c1",
+          "text": "いかだ"
+        },
+        {
+          "id": "kokugo_l3s1_q6_c2",
+          "text": "ふね"
+        },
+        {
+          "id": "kokugo_l3s1_q6_c3",
+          "text": "ひこうき"
+        }
+      ],
+      "answer": "kokugo_l3s1_q6_c2"
+    },
+    {
+      "id": "kokugo_l3s1_q7",
+      "phase": "boss",
+      "text": "おにが あやまって かえして くれたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l3s1_q7_c1",
+          "text": "きびだんご"
+        },
+        {
+          "id": "kokugo_l3s1_q7_c2",
+          "text": "ふね"
+        },
+        {
+          "id": "kokugo_l3s1_q7_c3",
+          "text": "たからもの"
+        }
+      ],
+      "answer": "kokugo_l3s1_q7_c3"
+    }
+  ]
 }

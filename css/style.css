@@ -278,7 +278,7 @@ body.quizzing .stage-chip { opacity: 0; }
 }
 
 /* ステージえらび: こくご */
-.stage-card.kokugo .card-label { color: #1f9a3a; }
+.stage-card.kokugo .card-label { color: #1f9a3a; word-break: keep-all; overflow-wrap: anywhere; }
 .stage-card.locked { filter: grayscale(0.85) brightness(0.8); }
 .stage-card.locked .card-label { color: #8a8aa0; }
 .over-title { color: #c8102e; }

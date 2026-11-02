@@ -1,6 +1,153 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l2s3",
+  "contentVersion": 1,
   "level": 2,
   "stage": 3,
-  "ready": false
+  "title": "マッチョの ひみつきち",
+  "pages": [
+    "あめの ひ、 そとで あそべない マッチョと きほちゃんは、 いえの なかに ひみつきちを つくる ことに しました。 マッチョが つくえを ひょいと はこび、 うえに おおきな シーツを かぶせます。 まわりには クッションを ならべました。 なかには かいちゅうでんとうと おやつを もちこみました。 ひみつきちの なまえは 「ほしぞらハウス」です。 かいちゅうでんとうの ひかりを シーツに むけると、 シーツの あなから ひかりが もれて、 ほしのように みえました。 そこへ アロちゃんが もぐりこんで きて、 おやつの クッキーを ぱくり。 ふたりは 「あっ！」と さけびましたが、 アロちゃんの かおが あまりに うれしそうで、 ゆるして あげる ことに しました。 そとの あめの おとが、 すてきな おんがくの ようでした。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l2s3_q1",
+      "phase": "route",
+      "text": "マッチョと きほちゃんが ひみつきちを つくった わけは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s3_q1_c1",
+          "text": "あめで そとで あそべなかった から"
+        },
+        {
+          "id": "kokugo_l2s3_q1_c2",
+          "text": "ひまだった から"
+        },
+        {
+          "id": "kokugo_l2s3_q1_c3",
+          "text": "おこられた から"
+        }
+      ],
+      "answer": "kokugo_l2s3_q1_c1"
+    },
+    {
+      "id": "kokugo_l2s3_q2",
+      "phase": "route",
+      "text": "マッチョが ひょいと はこんだのは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s3_q2_c1",
+          "text": "ベッド"
+        },
+        {
+          "id": "kokugo_l2s3_q2_c2",
+          "text": "つくえ"
+        },
+        {
+          "id": "kokugo_l2s3_q2_c3",
+          "text": "ソファ"
+        }
+      ],
+      "answer": "kokugo_l2s3_q2_c2"
+    },
+    {
+      "id": "kokugo_l2s3_q3",
+      "phase": "route",
+      "text": "つくえの まわりに ならべたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s3_q3_c1",
+          "text": "ぬいぐるみ"
+        },
+        {
+          "id": "kokugo_l2s3_q3_c2",
+          "text": "ざぶとん"
+        },
+        {
+          "id": "kokugo_l2s3_q3_c3",
+          "text": "クッション"
+        }
+      ],
+      "answer": "kokugo_l2s3_q3_c3"
+    },
+    {
+      "id": "kokugo_l2s3_q4",
+      "phase": "route",
+      "text": "ひみつきちの なまえは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s3_q4_c1",
+          "text": "ほしぞらハウス"
+        },
+        {
+          "id": "kokugo_l2s3_q4_c2",
+          "text": "たいようハウス"
+        },
+        {
+          "id": "kokugo_l2s3_q4_c3",
+          "text": "うみのハウス"
+        }
+      ],
+      "answer": "kokugo_l2s3_q4_c1"
+    },
+    {
+      "id": "kokugo_l2s3_q5",
+      "phase": "boss",
+      "text": "ひかりが ほしのように みえたのは どうして？",
+      "choices": [
+        {
+          "id": "kokugo_l2s3_q5_c1",
+          "text": "ほんものの ほしが でた から"
+        },
+        {
+          "id": "kokugo_l2s3_q5_c2",
+          "text": "シーツの あなから ひかりが もれた から"
+        },
+        {
+          "id": "kokugo_l2s3_q5_c3",
+          "text": "でんきを けした から"
+        }
+      ],
+      "answer": "kokugo_l2s3_q5_c2"
+    },
+    {
+      "id": "kokugo_l2s3_q6",
+      "phase": "boss",
+      "text": "おやつの クッキーを たべて しまったのは だれ？",
+      "choices": [
+        {
+          "id": "kokugo_l2s3_q6_c1",
+          "text": "みみちゃん"
+        },
+        {
+          "id": "kokugo_l2s3_q6_c2",
+          "text": "ひなたくん"
+        },
+        {
+          "id": "kokugo_l2s3_q6_c3",
+          "text": "アロちゃん"
+        }
+      ],
+      "answer": "kokugo_l2s3_q6_c3"
+    },
+    {
+      "id": "kokugo_l2s3_q7",
+      "phase": "boss",
+      "text": "そとの あめの おとは なにのように きこえましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l2s3_q7_c1",
+          "text": "おんがく"
+        },
+        {
+          "id": "kokugo_l2s3_q7_c2",
+          "text": "かみなり"
+        },
+        {
+          "id": "kokugo_l2s3_q7_c3",
+          "text": "ひとの こえ"
+        }
+      ],
+      "answer": "kokugo_l2s3_q7_c1"
+    }
+  ]
 }

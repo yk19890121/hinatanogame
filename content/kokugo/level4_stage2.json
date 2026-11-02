@@ -1,6 +1,154 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l4s2",
+  "contentVersion": 1,
   "level": 4,
   "stage": 2,
-  "ready": false
+  "title": "マッチョ いっすんぼうし",
+  "pages": [
+    "むかしむかし、 こどもの いない ふうふが かみさまに いのって、 ゆびほどの ちいさな、 でも ムキムキの マッチョな おとこのこを さずかりました。 いっすんぼうしと よばれた その こは、 いくつに なっても せが のびません。 ある ひ、 いっすんぼうしは 「みやこへ いって えらく なりたい」と いいました。 おじいさんは、 おわんを ふねに、 はしを かいに、 ぬいばりを かたなに して あげました。 いっすんぼうしは かわを くだり、 とうとう みやこの おおきな やしきに つきました。 やしきの ごしゅじんは、 ちいさな かれを きに いって、 かかえて おくに あげて くれました。",
+    "ごしゅじんの むすめの おひめさまは、 いっすんぼうしを とても かわいがりました。 ある ひ、 ふたりが おまいりに でかけると、 おそろしい おにが あらわれて、 おひめさまを さらおうと しました。 いっすんぼうしは ぬいばりの かたなで たちむかい、 おにの おなかへ ぴょんと とびこみました。 そして なかから ちくちくと さしました。 おには たまらず 「まいった！」と さけんで、 うちでの こづちを おいて にげて いきました。 おひめさまが こづちを ふると、 いっすんぼうしは ぐんぐん おおきく なり、 りっぱな わかものに なりました。 ふたりは しあわせに くらしました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l4s2_q1",
+      "phase": "route",
+      "text": "いっすんぼうしの おおきさは どのくらい でしたか？",
+      "choices": [
+        {
+          "id": "kokugo_l4s2_q1_c1",
+          "text": "てのひらほど"
+        },
+        {
+          "id": "kokugo_l4s2_q1_c2",
+          "text": "ゆびほど"
+        },
+        {
+          "id": "kokugo_l4s2_q1_c3",
+          "text": "こぶしほど"
+        }
+      ],
+      "answer": "kokugo_l4s2_q1_c2"
+    },
+    {
+      "id": "kokugo_l4s2_q2",
+      "phase": "route",
+      "text": "いっすんぼうしは ちいさいけれど どんな おとこのこ？",
+      "choices": [
+        {
+          "id": "kokugo_l4s2_q2_c1",
+          "text": "ひょろひょろの よわむし"
+        },
+        {
+          "id": "kokugo_l4s2_q2_c2",
+          "text": "ねぼすけの なまけもの"
+        },
+        {
+          "id": "kokugo_l4s2_q2_c3",
+          "text": "ムキムキの マッチョ"
+        }
+      ],
+      "answer": "kokugo_l4s2_q2_c3"
+    },
+    {
+      "id": "kokugo_l4s2_q3",
+      "phase": "route",
+      "text": "いっすんぼうしの ふねに なったのは？",
+      "choices": [
+        {
+          "id": "kokugo_l4s2_q3_c1",
+          "text": "おわん"
+        },
+        {
+          "id": "kokugo_l4s2_q3_c2",
+          "text": "はこ"
+        },
+        {
+          "id": "kokugo_l4s2_q3_c3",
+          "text": "ざる"
+        }
+      ],
+      "answer": "kokugo_l4s2_q3_c1"
+    },
+    {
+      "id": "kokugo_l4s2_q4",
+      "phase": "route",
+      "text": "いっすんぼうしの かたなに なったのは？",
+      "choices": [
+        {
+          "id": "kokugo_l4s2_q4_c1",
+          "text": "はし"
+        },
+        {
+          "id": "kokugo_l4s2_q4_c2",
+          "text": "ぬいばり"
+        },
+        {
+          "id": "kokugo_l4s2_q4_c3",
+          "text": "えんぴつ"
+        }
+      ],
+      "answer": "kokugo_l4s2_q4_c2"
+    },
+    {
+      "id": "kokugo_l4s2_q5",
+      "phase": "boss",
+      "text": "おにが おひめさまを どう しようと しましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l4s2_q5_c1",
+          "text": "おこらせようと した"
+        },
+        {
+          "id": "kokugo_l4s2_q5_c2",
+          "text": "ごちそうしようと した"
+        },
+        {
+          "id": "kokugo_l4s2_q5_c3",
+          "text": "さらおうと した"
+        }
+      ],
+      "answer": "kokugo_l4s2_q5_c3"
+    },
+    {
+      "id": "kokugo_l4s2_q6",
+      "phase": "boss",
+      "text": "いっすんぼうしが おにの どこへ とびこみましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l4s2_q6_c1",
+          "text": "おなか"
+        },
+        {
+          "id": "kokugo_l4s2_q6_c2",
+          "text": "あたま"
+        },
+        {
+          "id": "kokugo_l4s2_q6_c3",
+          "text": "せなか"
+        }
+      ],
+      "answer": "kokugo_l4s2_q6_c1"
+    },
+    {
+      "id": "kokugo_l4s2_q7",
+      "phase": "boss",
+      "text": "うちでの こづちを ふると、 いっすんぼうしは どうなりましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l4s2_q7_c1",
+          "text": "おにに なった"
+        },
+        {
+          "id": "kokugo_l4s2_q7_c2",
+          "text": "おおきく なった"
+        },
+        {
+          "id": "kokugo_l4s2_q7_c3",
+          "text": "きえて しまった"
+        }
+      ],
+      "answer": "kokugo_l4s2_q7_c2"
+    }
+  ]
 }

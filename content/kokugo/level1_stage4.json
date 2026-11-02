@@ -1,6 +1,153 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l1s4",
+  "contentVersion": 1,
   "level": 1,
   "stage": 4,
-  "ready": false
+  "title": "マッチョの かくれんぼ",
+  "pages": [
+    "マッチョと みみちゃんは、 にわで かくれんぼを しました。 おには マッチョです。 マッチョは めを つぶって、 じゅうまで かぞえました。 みみちゃんは おおきな きの うしろに かくれました。 でも、 ちいさな りぼんが みえています。 マッチョは すぐに みつけました。 つぎは マッチョが かくれる ばんです。 マッチョは ものおきの なかに はいりました。 ところが、 アロちゃんが 「ワン！」と ほえて、 ばしょを おしえて しまいました。 ふたりは おなかを かかえて わらいました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l1s4_q1",
+      "phase": "route",
+      "text": "さいしょに おにに なったのは だれ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s4_q1_c1",
+          "text": "マッチョ"
+        },
+        {
+          "id": "kokugo_l1s4_q1_c2",
+          "text": "みみちゃん"
+        },
+        {
+          "id": "kokugo_l1s4_q1_c3",
+          "text": "アロちゃん"
+        }
+      ],
+      "answer": "kokugo_l1s4_q1_c1"
+    },
+    {
+      "id": "kokugo_l1s4_q2",
+      "phase": "route",
+      "text": "マッチョは いくつまで かぞえましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l1s4_q2_c1",
+          "text": "ごじゅう"
+        },
+        {
+          "id": "kokugo_l1s4_q2_c2",
+          "text": "じゅう"
+        },
+        {
+          "id": "kokugo_l1s4_q2_c3",
+          "text": "ひゃく"
+        }
+      ],
+      "answer": "kokugo_l1s4_q2_c2"
+    },
+    {
+      "id": "kokugo_l1s4_q3",
+      "phase": "route",
+      "text": "みみちゃんが かくれたのは どこ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s4_q3_c1",
+          "text": "ものおきの なか"
+        },
+        {
+          "id": "kokugo_l1s4_q3_c2",
+          "text": "いえの なか"
+        },
+        {
+          "id": "kokugo_l1s4_q3_c3",
+          "text": "おおきな きの うしろ"
+        }
+      ],
+      "answer": "kokugo_l1s4_q3_c3"
+    },
+    {
+      "id": "kokugo_l1s4_q4",
+      "phase": "route",
+      "text": "みみちゃんが かくれていても みえて いたのは なに？",
+      "choices": [
+        {
+          "id": "kokugo_l1s4_q4_c1",
+          "text": "ちいさな りぼん"
+        },
+        {
+          "id": "kokugo_l1s4_q4_c2",
+          "text": "あかい ぼうし"
+        },
+        {
+          "id": "kokugo_l1s4_q4_c3",
+          "text": "しろい くつ"
+        }
+      ],
+      "answer": "kokugo_l1s4_q4_c1"
+    },
+    {
+      "id": "kokugo_l1s4_q5",
+      "phase": "boss",
+      "text": "マッチョが かくれたのは どこ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s4_q5_c1",
+          "text": "ベンチの うしろ"
+        },
+        {
+          "id": "kokugo_l1s4_q5_c2",
+          "text": "ものおき"
+        },
+        {
+          "id": "kokugo_l1s4_q5_c3",
+          "text": "きの うえ"
+        }
+      ],
+      "answer": "kokugo_l1s4_q5_c2"
+    },
+    {
+      "id": "kokugo_l1s4_q6",
+      "phase": "boss",
+      "text": "マッチョの かくれた ばしょを おしえて しまったのは だれ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s4_q6_c1",
+          "text": "きほちゃん"
+        },
+        {
+          "id": "kokugo_l1s4_q6_c2",
+          "text": "とと"
+        },
+        {
+          "id": "kokugo_l1s4_q6_c3",
+          "text": "アロちゃん"
+        }
+      ],
+      "answer": "kokugo_l1s4_q6_c3"
+    },
+    {
+      "id": "kokugo_l1s4_q7",
+      "phase": "boss",
+      "text": "アロちゃんは なんと ほえましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l1s4_q7_c1",
+          "text": "ワン！"
+        },
+        {
+          "id": "kokugo_l1s4_q7_c2",
+          "text": "ニャー！"
+        },
+        {
+          "id": "kokugo_l1s4_q7_c3",
+          "text": "モー！"
+        }
+      ],
+      "answer": "kokugo_l1s4_q7_c1"
+    }
+  ]
 }

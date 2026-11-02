@@ -1,6 +1,153 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l1s3",
+  "contentVersion": 1,
   "level": 1,
   "stage": 3,
-  "ready": false
+  "title": "マッチョの おべんとう",
+  "pages": [
+    "きょうは えんそくの ひです。 マッチョは あさ はやく おきて、 ちゃんと いっしょに おべんとうを つくりました。 おにぎりの なかみは うめと さけです。 ちゃんは たまごやきを やいて くれました。 マッチョは おおきな てで、 たこの かたちの ウインナーを つくりました。 おべんとうばこは ピンクいろです。 バスに のって、 みんなで おおきな こうえんへ いきました。 おひるに おべんとうを ひらくと、 おともだちが 「おいしそう！」と いって くれました。 マッチョは とても うれしく なりました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l1s3_q1",
+      "phase": "route",
+      "text": "きょうは なんの ひですか？",
+      "choices": [
+        {
+          "id": "kokugo_l1s3_q1_c1",
+          "text": "うんどうかい"
+        },
+        {
+          "id": "kokugo_l1s3_q1_c2",
+          "text": "たんじょうび"
+        },
+        {
+          "id": "kokugo_l1s3_q1_c3",
+          "text": "えんそく"
+        }
+      ],
+      "answer": "kokugo_l1s3_q1_c3"
+    },
+    {
+      "id": "kokugo_l1s3_q2",
+      "phase": "route",
+      "text": "マッチョと いっしょに おべんとうを つくったのは だれ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s3_q2_c1",
+          "text": "ちゃん"
+        },
+        {
+          "id": "kokugo_l1s3_q2_c2",
+          "text": "とと"
+        },
+        {
+          "id": "kokugo_l1s3_q2_c3",
+          "text": "じじぱぱ"
+        }
+      ],
+      "answer": "kokugo_l1s3_q2_c1"
+    },
+    {
+      "id": "kokugo_l1s3_q3",
+      "phase": "route",
+      "text": "おにぎりの なかみは なにと なに？",
+      "choices": [
+        {
+          "id": "kokugo_l1s3_q3_c1",
+          "text": "ツナと おかか"
+        },
+        {
+          "id": "kokugo_l1s3_q3_c2",
+          "text": "うめと さけ"
+        },
+        {
+          "id": "kokugo_l1s3_q3_c3",
+          "text": "こんぶと たらこ"
+        }
+      ],
+      "answer": "kokugo_l1s3_q3_c2"
+    },
+    {
+      "id": "kokugo_l1s3_q4",
+      "phase": "route",
+      "text": "ちゃんが やいて くれたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l1s3_q4_c1",
+          "text": "やきざかな"
+        },
+        {
+          "id": "kokugo_l1s3_q4_c2",
+          "text": "ハンバーグ"
+        },
+        {
+          "id": "kokugo_l1s3_q4_c3",
+          "text": "たまごやき"
+        }
+      ],
+      "answer": "kokugo_l1s3_q4_c3"
+    },
+    {
+      "id": "kokugo_l1s3_q5",
+      "phase": "boss",
+      "text": "マッチョが つくった ウインナーは なんの かたち？",
+      "choices": [
+        {
+          "id": "kokugo_l1s3_q5_c1",
+          "text": "たこ"
+        },
+        {
+          "id": "kokugo_l1s3_q5_c2",
+          "text": "うさぎ"
+        },
+        {
+          "id": "kokugo_l1s3_q5_c3",
+          "text": "くるま"
+        }
+      ],
+      "answer": "kokugo_l1s3_q5_c1"
+    },
+    {
+      "id": "kokugo_l1s3_q6",
+      "phase": "boss",
+      "text": "おべんとうばこの いろは？",
+      "choices": [
+        {
+          "id": "kokugo_l1s3_q6_c1",
+          "text": "あおいろ"
+        },
+        {
+          "id": "kokugo_l1s3_q6_c2",
+          "text": "ピンクいろ"
+        },
+        {
+          "id": "kokugo_l1s3_q6_c3",
+          "text": "みどりいろ"
+        }
+      ],
+      "answer": "kokugo_l1s3_q6_c2"
+    },
+    {
+      "id": "kokugo_l1s3_q7",
+      "phase": "boss",
+      "text": "みんなは なにに のって こうえんへ いきましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l1s3_q7_c1",
+          "text": "でんしゃ"
+        },
+        {
+          "id": "kokugo_l1s3_q7_c2",
+          "text": "ひこうき"
+        },
+        {
+          "id": "kokugo_l1s3_q7_c3",
+          "text": "バス"
+        }
+      ],
+      "answer": "kokugo_l1s3_q7_c3"
+    }
+  ]
 }

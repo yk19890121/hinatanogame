@@ -1,6 +1,153 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l1s1",
+  "contentVersion": 1,
   "level": 1,
   "stage": 1,
-  "ready": false
+  "title": "マッチョの まどそうじ",
+  "pages": [
+    "きょうは にちようび。 マッチョは ひなたくんと いっしょに、 おうちの まどそうじを します。 マッチョは ぞうきんを もって、 まどを きゅっきゅっと ふきました。 ひなたくんは ばけつの みずを かえて くれました。 たかい ところは マッチョが ふきます。 ひなたくんは ひくい ところを がんばりました。 まどが ぴかぴかに なると、 そとから あかるい ひかりが さしこみました。 おわったあと、 ふたりで つめたい ジュースを のみました。 アロちゃんも うれしそうに しっぽを ふっていました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l1s1_q1",
+      "phase": "route",
+      "text": "マッチョが まどを ふくために つかったのは？",
+      "choices": [
+        {
+          "id": "kokugo_l1s1_q1_c1",
+          "text": "ぞうきん"
+        },
+        {
+          "id": "kokugo_l1s1_q1_c2",
+          "text": "ばけつ"
+        },
+        {
+          "id": "kokugo_l1s1_q1_c3",
+          "text": "ほうき"
+        }
+      ],
+      "answer": "kokugo_l1s1_q1_c1"
+    },
+    {
+      "id": "kokugo_l1s1_q2",
+      "phase": "route",
+      "text": "マッチョと いっしょに そうじを したのは だれ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s1_q2_c1",
+          "text": "きほちゃん"
+        },
+        {
+          "id": "kokugo_l1s1_q2_c2",
+          "text": "ひなたくん"
+        },
+        {
+          "id": "kokugo_l1s1_q2_c3",
+          "text": "じじぱぱ"
+        }
+      ],
+      "answer": "kokugo_l1s1_q2_c2"
+    },
+    {
+      "id": "kokugo_l1s1_q3",
+      "phase": "route",
+      "text": "ひなたくんが ふいたのは どこ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s1_q3_c1",
+          "text": "たかい ところ"
+        },
+        {
+          "id": "kokugo_l1s1_q3_c2",
+          "text": "ゆか"
+        },
+        {
+          "id": "kokugo_l1s1_q3_c3",
+          "text": "ひくい ところ"
+        }
+      ],
+      "answer": "kokugo_l1s1_q3_c3"
+    },
+    {
+      "id": "kokugo_l1s1_q4",
+      "phase": "route",
+      "text": "まどが きれいに なると、 そとから なにが さしこみましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l1s1_q4_c1",
+          "text": "あかるい ひかり"
+        },
+        {
+          "id": "kokugo_l1s1_q4_c2",
+          "text": "つよい かぜ"
+        },
+        {
+          "id": "kokugo_l1s1_q4_c3",
+          "text": "ふわふわの ゆき"
+        }
+      ],
+      "answer": "kokugo_l1s1_q4_c1"
+    },
+    {
+      "id": "kokugo_l1s1_q5",
+      "phase": "boss",
+      "text": "そうじが おわったあと、 ふたりが のんだのは？",
+      "choices": [
+        {
+          "id": "kokugo_l1s1_q5_c1",
+          "text": "あつい おちゃ"
+        },
+        {
+          "id": "kokugo_l1s1_q5_c2",
+          "text": "つめたい ジュース"
+        },
+        {
+          "id": "kokugo_l1s1_q5_c3",
+          "text": "ぎゅうにゅう"
+        }
+      ],
+      "answer": "kokugo_l1s1_q5_c2"
+    },
+    {
+      "id": "kokugo_l1s1_q6",
+      "phase": "boss",
+      "text": "たかい ところを ふいたのは だれ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s1_q6_c1",
+          "text": "ひなたくん"
+        },
+        {
+          "id": "kokugo_l1s1_q6_c2",
+          "text": "きほちゃん"
+        },
+        {
+          "id": "kokugo_l1s1_q6_c3",
+          "text": "マッチョ"
+        }
+      ],
+      "answer": "kokugo_l1s1_q6_c3"
+    },
+    {
+      "id": "kokugo_l1s1_q7",
+      "phase": "boss",
+      "text": "うれしそうに しっぽを ふっていたのは だれ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s1_q7_c1",
+          "text": "アロちゃん"
+        },
+        {
+          "id": "kokugo_l1s1_q7_c2",
+          "text": "みみちゃん"
+        },
+        {
+          "id": "kokugo_l1s1_q7_c3",
+          "text": "ちゃん"
+        }
+      ],
+      "answer": "kokugo_l1s1_q7_c1"
+    }
+  ]
 }

@@ -1,6 +1,154 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l3s3",
+  "contentVersion": 1,
   "level": 3,
   "stage": 3,
-  "ready": false
+  "title": "マッチョと つるの おんがえし",
+  "pages": [
+    "むかしむかし、 ゆきの ふかい むらに、 ムキムキの マッチョな わかものが すんでいました。 ある ひ、 わかものは わなに かかって くるしんで いる つるを みつけ、 そっと わなを はずして にがして あげました。 その よる、 とても うつくしい おんなのひとが たずねて きました。 「みちに まよいました。 どうか とめて ください」 わかものは こころよく うけいれ、 ふたりは いっしょに くらす ことに なりました。 おんなのひとは 「はたを おる へやを、 けっして のぞかないで ください」と おねがいしました。",
+    "おんなのひとが おった ぬのは みごとな うつくしさで、 たかい ねだんで うれました。 おかげで ふたりは らくに くらせるように なりました。 けれども、 わかものは どうしても きに なり、 やくそくを やぶって へやを のぞいて しまいました。 そこには、 じぶんの はねを ぬいて ぬのを おる、 いっぴきの つるが いました。 「しょうたいを みられては、 もう ここには いられません」 つるは かなしそうに そらへ とびたって、 にどと もどっては きませんでした。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l3s3_q1",
+      "phase": "route",
+      "text": "ゆきの ふかい むらに すんでいた わかものは どんな ひと？",
+      "choices": [
+        {
+          "id": "kokugo_l3s3_q1_c1",
+          "text": "ひょろひょろの がくしゃ"
+        },
+        {
+          "id": "kokugo_l3s3_q1_c2",
+          "text": "ムキムキの マッチョ"
+        },
+        {
+          "id": "kokugo_l3s3_q1_c3",
+          "text": "ちいさな こども"
+        }
+      ],
+      "answer": "kokugo_l3s3_q1_c2"
+    },
+    {
+      "id": "kokugo_l3s3_q2",
+      "phase": "route",
+      "text": "わかものが たすけたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l3s3_q2_c1",
+          "text": "きつね"
+        },
+        {
+          "id": "kokugo_l3s3_q2_c2",
+          "text": "ひよこ"
+        },
+        {
+          "id": "kokugo_l3s3_q2_c3",
+          "text": "つる"
+        }
+      ],
+      "answer": "kokugo_l3s3_q2_c3"
+    },
+    {
+      "id": "kokugo_l3s3_q3",
+      "phase": "route",
+      "text": "わかものが たすけた とき、 つるは どう なっていましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s3_q3_c1",
+          "text": "わなに かかって いた"
+        },
+        {
+          "id": "kokugo_l3s3_q3_c2",
+          "text": "けがを して いた"
+        },
+        {
+          "id": "kokugo_l3s3_q3_c3",
+          "text": "ねむって いた"
+        }
+      ],
+      "answer": "kokugo_l3s3_q3_c1"
+    },
+    {
+      "id": "kokugo_l3s3_q4",
+      "phase": "route",
+      "text": "おんなのひとが わかものに おねがいした ことは？",
+      "choices": [
+        {
+          "id": "kokugo_l3s3_q4_c1",
+          "text": "ごはんを つくらない"
+        },
+        {
+          "id": "kokugo_l3s3_q4_c2",
+          "text": "へやを のぞかない"
+        },
+        {
+          "id": "kokugo_l3s3_q4_c3",
+          "text": "そとへ でない"
+        }
+      ],
+      "answer": "kokugo_l3s3_q4_c2"
+    },
+    {
+      "id": "kokugo_l3s3_q5",
+      "phase": "boss",
+      "text": "おんなのひとは、 ぬのを どのように おって いましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s3_q5_c1",
+          "text": "いとを ふとらせて おった"
+        },
+        {
+          "id": "kokugo_l3s3_q5_c2",
+          "text": "はたけの わたで おった"
+        },
+        {
+          "id": "kokugo_l3s3_q5_c3",
+          "text": "じぶんの はねを ぬいて おった"
+        }
+      ],
+      "answer": "kokugo_l3s3_q5_c3"
+    },
+    {
+      "id": "kokugo_l3s3_q6",
+      "phase": "boss",
+      "text": "おんなのひとが おった ぬのは どう なりましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s3_q6_c1",
+          "text": "たかい ねだんで うれた"
+        },
+        {
+          "id": "kokugo_l3s3_q6_c2",
+          "text": "だれも かわなかった"
+        },
+        {
+          "id": "kokugo_l3s3_q6_c3",
+          "text": "ほかの ひとに あげた"
+        }
+      ],
+      "answer": "kokugo_l3s3_q6_c1"
+    },
+    {
+      "id": "kokugo_l3s3_q7",
+      "phase": "boss",
+      "text": "わかものが やくそくを やぶったあと、 つるは どうしましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s3_q7_c1",
+          "text": "いっしょに くらした"
+        },
+        {
+          "id": "kokugo_l3s3_q7_c2",
+          "text": "そらへ とびたった"
+        },
+        {
+          "id": "kokugo_l3s3_q7_c3",
+          "text": "ぬのを おくった"
+        }
+      ],
+      "answer": "kokugo_l3s3_q7_c2"
+    }
+  ]
 }

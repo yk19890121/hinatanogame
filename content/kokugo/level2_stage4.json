@@ -1,6 +1,153 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l2s4",
+  "contentVersion": 1,
   "level": 2,
   "stage": 4,
-  "ready": false
+  "title": "マッチョ、 アロちゃんを さがせ！",
+  "pages": [
+    "ゆうがた、 おうちの ドアが すこし あいていて、 アロちゃんの すがたが ありません。 「アロちゃんが いない！」と きほちゃんが さけびました。 マッチョと ととは いっしょに、 ちかくを さがしはじめました。 こうえん、 おおどおり、 かわの そば。 どこにも いません。 かえりみちで、 マッチョは あるものに きづきました。 ちいさな あしあとが、 おとなりの にわに つづいています。 そっと のぞくと、 アロちゃんは みみちゃんと いっしょに ボールで あそんでいました。 「ここに いたんだね！」と マッチョは アロちゃんを ぎゅっと だきしめました。 おうちに かえると、 みんなで ドアを しっかり しめる ことを やくそくしました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l2s4_q1",
+      "phase": "route",
+      "text": "アロちゃんが いなくなったのは いつ？",
+      "choices": [
+        {
+          "id": "kokugo_l2s4_q1_c1",
+          "text": "あさ"
+        },
+        {
+          "id": "kokugo_l2s4_q1_c2",
+          "text": "ゆうがた"
+        },
+        {
+          "id": "kokugo_l2s4_q1_c3",
+          "text": "よなか"
+        }
+      ],
+      "answer": "kokugo_l2s4_q1_c2"
+    },
+    {
+      "id": "kokugo_l2s4_q2",
+      "phase": "route",
+      "text": "おうちの ドアは どうなっていましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l2s4_q2_c1",
+          "text": "しまっていた"
+        },
+        {
+          "id": "kokugo_l2s4_q2_c2",
+          "text": "こわれていた"
+        },
+        {
+          "id": "kokugo_l2s4_q2_c3",
+          "text": "すこし あいていた"
+        }
+      ],
+      "answer": "kokugo_l2s4_q2_c3"
+    },
+    {
+      "id": "kokugo_l2s4_q3",
+      "phase": "route",
+      "text": "マッチョたちが さがさなかった ばしょは どれ？",
+      "choices": [
+        {
+          "id": "kokugo_l2s4_q3_c1",
+          "text": "プール"
+        },
+        {
+          "id": "kokugo_l2s4_q3_c2",
+          "text": "こうえん"
+        },
+        {
+          "id": "kokugo_l2s4_q3_c3",
+          "text": "かわの そば"
+        }
+      ],
+      "answer": "kokugo_l2s4_q3_c1"
+    },
+    {
+      "id": "kokugo_l2s4_q4",
+      "phase": "route",
+      "text": "マッチョが きづいた ものは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s4_q4_c1",
+          "text": "おおきな くつ"
+        },
+        {
+          "id": "kokugo_l2s4_q4_c2",
+          "text": "ちいさな あしあと"
+        },
+        {
+          "id": "kokugo_l2s4_q4_c3",
+          "text": "おちていた ぼうし"
+        }
+      ],
+      "answer": "kokugo_l2s4_q4_c2"
+    },
+    {
+      "id": "kokugo_l2s4_q5",
+      "phase": "boss",
+      "text": "あしあとは どこに つづいて いましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l2s4_q5_c1",
+          "text": "こうえん"
+        },
+        {
+          "id": "kokugo_l2s4_q5_c2",
+          "text": "かわ"
+        },
+        {
+          "id": "kokugo_l2s4_q5_c3",
+          "text": "おとなりの にわ"
+        }
+      ],
+      "answer": "kokugo_l2s4_q5_c3"
+    },
+    {
+      "id": "kokugo_l2s4_q6",
+      "phase": "boss",
+      "text": "アロちゃんは だれと あそんで いましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l2s4_q6_c1",
+          "text": "みみちゃん"
+        },
+        {
+          "id": "kokugo_l2s4_q6_c2",
+          "text": "ととと"
+        },
+        {
+          "id": "kokugo_l2s4_q6_c3",
+          "text": "じじぱぱ"
+        }
+      ],
+      "answer": "kokugo_l2s4_q6_c1"
+    },
+    {
+      "id": "kokugo_l2s4_q7",
+      "phase": "boss",
+      "text": "みんなが やくそくした ことは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s4_q7_c1",
+          "text": "さんぽに まいにち いく"
+        },
+        {
+          "id": "kokugo_l2s4_q7_c2",
+          "text": "ドアを しっかり しめる"
+        },
+        {
+          "id": "kokugo_l2s4_q7_c3",
+          "text": "おやつを あげない"
+        }
+      ],
+      "answer": "kokugo_l2s4_q7_c2"
+    }
+  ]
 }

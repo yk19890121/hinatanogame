@@ -1,6 +1,154 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l4s3",
+  "contentVersion": 1,
   "level": 4,
   "stage": 3,
-  "ready": false
+  "title": "マッチョがに さるかにがっせん",
+  "pages": [
+    "むかしむかし、 ムキムキの マッチョな かにが、 おにぎりを ひろいました。 そこへ ずるい さるが やって きて、 「この かきの たねと こうかんしよう」と いって、 おにぎりを とって しまいました。 かには しかたなく たねを もらい、 はたけに うえました。 「はやく めを だせ、 かきの たね」と うたうと、 たねは ぐんぐん そだち、 おおきな かきの きに なって、 たくさんの かきを みのらせました。 ところが かには たかい きに のぼれません。 さるが かわりに のぼりましたが、 あおくて かたい かきを かにに なげつけ、 じぶんは あかい かきばかり たべました。 かには おおけがを して しまいました。 さるは そのまま もりの おくへ にげて いきました。",
+    "かにの こどもたちは くやしくて、 くりと はち、 うす、 そして ながいたに たすけを たのみました。 さるの いえに しのびこむと、 くりは いろりの なかに かくれ、 はちは みずがめの うしろ、 うすは やねの うえで まちました。 かえって きた さるが いろりで あたろうと すると、 くりが ぱちんと はじけて やけど。 みずで ひやそうと すると、 はちが ちくり。 にげようと して そとへ でると、 やねから うすが どすんと おちて きました。 さるは ようやく はんせいし、 かにたちに あやまりました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l4s3_q1",
+      "phase": "route",
+      "text": "かにが ひろったのは なんですか？",
+      "choices": [
+        {
+          "id": "kokugo_l4s3_q1_c1",
+          "text": "かきの たね"
+        },
+        {
+          "id": "kokugo_l4s3_q1_c2",
+          "text": "おもち"
+        },
+        {
+          "id": "kokugo_l4s3_q1_c3",
+          "text": "おにぎり"
+        }
+      ],
+      "answer": "kokugo_l4s3_q1_c3"
+    },
+    {
+      "id": "kokugo_l4s3_q2",
+      "phase": "route",
+      "text": "さるが かにの おにぎりと こうかんした ものは？",
+      "choices": [
+        {
+          "id": "kokugo_l4s3_q2_c1",
+          "text": "かきの たね"
+        },
+        {
+          "id": "kokugo_l4s3_q2_c2",
+          "text": "おかね"
+        },
+        {
+          "id": "kokugo_l4s3_q2_c3",
+          "text": "くりの み"
+        }
+      ],
+      "answer": "kokugo_l4s3_q2_c1"
+    },
+    {
+      "id": "kokugo_l4s3_q3",
+      "phase": "route",
+      "text": "おにぎりを ひろった かには どんな かに？",
+      "choices": [
+        {
+          "id": "kokugo_l4s3_q3_c1",
+          "text": "とても ちいさな かに"
+        },
+        {
+          "id": "kokugo_l4s3_q3_c2",
+          "text": "ムキムキの マッチョ"
+        },
+        {
+          "id": "kokugo_l4s3_q3_c3",
+          "text": "まっしろな かに"
+        }
+      ],
+      "answer": "kokugo_l4s3_q3_c2"
+    },
+    {
+      "id": "kokugo_l4s3_q4",
+      "phase": "route",
+      "text": "かには どうして かきを とれませんでしたか？",
+      "choices": [
+        {
+          "id": "kokugo_l4s3_q4_c1",
+          "text": "かきが まだ なかった"
+        },
+        {
+          "id": "kokugo_l4s3_q4_c2",
+          "text": "さるに かくされた"
+        },
+        {
+          "id": "kokugo_l4s3_q4_c3",
+          "text": "たかい きに のぼれなかった"
+        }
+      ],
+      "answer": "kokugo_l4s3_q4_c3"
+    },
+    {
+      "id": "kokugo_l4s3_q5",
+      "phase": "boss",
+      "text": "さるが かにに なげつけたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l4s3_q5_c1",
+          "text": "あおくて かたい かき"
+        },
+        {
+          "id": "kokugo_l4s3_q5_c2",
+          "text": "あかくて あまい かき"
+        },
+        {
+          "id": "kokugo_l4s3_q5_c3",
+          "text": "おおきな いし"
+        }
+      ],
+      "answer": "kokugo_l4s3_q5_c1"
+    },
+    {
+      "id": "kokugo_l4s3_q6",
+      "phase": "boss",
+      "text": "さるが いろりで やけどを したのは、 なにが はじけたから？",
+      "choices": [
+        {
+          "id": "kokugo_l4s3_q6_c1",
+          "text": "まめ"
+        },
+        {
+          "id": "kokugo_l4s3_q6_c2",
+          "text": "くり"
+        },
+        {
+          "id": "kokugo_l4s3_q6_c3",
+          "text": "もち"
+        }
+      ],
+      "answer": "kokugo_l4s3_q6_c2"
+    },
+    {
+      "id": "kokugo_l4s3_q7",
+      "phase": "boss",
+      "text": "うすは どこで さるを まちぶせして いましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l4s3_q7_c1",
+          "text": "いろりの なか"
+        },
+        {
+          "id": "kokugo_l4s3_q7_c2",
+          "text": "みずがめの うしろ"
+        },
+        {
+          "id": "kokugo_l4s3_q7_c3",
+          "text": "やねの うえ"
+        }
+      ],
+      "answer": "kokugo_l4s3_q7_c3"
+    }
+  ]
 }

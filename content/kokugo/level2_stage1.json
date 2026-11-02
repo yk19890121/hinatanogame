@@ -1,6 +1,153 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l2s1",
+  "contentVersion": 1,
   "level": 2,
   "stage": 1,
-  "ready": false
+  "title": "マッチョの はたけ",
+  "pages": [
+    "なつやすみ、 マッチョと ひなたくんは じじぱぱの はたけへ あそびに いきました。 はたけには、 あかい トマトと ながい きゅうりが たくさん なっています。 じじぱぱは 「あさの うちに とるのが いちばん おいしいんだよ」と おしえて くれました。 マッチョは トマトを、 ひなたくんは きゅうりを とりました。 とった やさいを つめたい いどの みずで あらって、 そのまま がぶり。 「あまい！」と ふたりは めを まるくしました。 おひるには、 じじぱぱが やさいたっぷりの ひやしそうめんを つくって くれました。 かえる ときには、 おみやげに トウモロコシを もらいました。 マッチョは おおきな かごを かるがると かついで、 「らいねんも また くるね」と やくそくしました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l2s1_q1",
+      "phase": "route",
+      "text": "マッチョと ひなたくんが あそびに いったのは どこ？",
+      "choices": [
+        {
+          "id": "kokugo_l2s1_q1_c1",
+          "text": "うみ"
+        },
+        {
+          "id": "kokugo_l2s1_q1_c2",
+          "text": "じじぱぱの はたけ"
+        },
+        {
+          "id": "kokugo_l2s1_q1_c3",
+          "text": "どうぶつえん"
+        }
+      ],
+      "answer": "kokugo_l2s1_q1_c2"
+    },
+    {
+      "id": "kokugo_l2s1_q2",
+      "phase": "route",
+      "text": "じじぱぱは、 やさいを とるのは いつが いちばん おいしいと いいましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l2s1_q2_c1",
+          "text": "よる"
+        },
+        {
+          "id": "kokugo_l2s1_q2_c2",
+          "text": "ゆうがた"
+        },
+        {
+          "id": "kokugo_l2s1_q2_c3",
+          "text": "あさ"
+        }
+      ],
+      "answer": "kokugo_l2s1_q2_c3"
+    },
+    {
+      "id": "kokugo_l2s1_q3",
+      "phase": "route",
+      "text": "マッチョが とった やさいは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s1_q3_c1",
+          "text": "トマト"
+        },
+        {
+          "id": "kokugo_l2s1_q3_c2",
+          "text": "きゅうり"
+        },
+        {
+          "id": "kokugo_l2s1_q3_c3",
+          "text": "ナス"
+        }
+      ],
+      "answer": "kokugo_l2s1_q3_c1"
+    },
+    {
+      "id": "kokugo_l2s1_q4",
+      "phase": "route",
+      "text": "とった やさいを あらった みずは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s1_q4_c1",
+          "text": "うみの みず"
+        },
+        {
+          "id": "kokugo_l2s1_q4_c2",
+          "text": "いどの みず"
+        },
+        {
+          "id": "kokugo_l2s1_q4_c3",
+          "text": "あめの みず"
+        }
+      ],
+      "answer": "kokugo_l2s1_q4_c2"
+    },
+    {
+      "id": "kokugo_l2s1_q5",
+      "phase": "boss",
+      "text": "ふたりが がぶりと たべて、 めを まるくした わけは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s1_q5_c1",
+          "text": "すっぱかった から"
+        },
+        {
+          "id": "kokugo_l2s1_q5_c2",
+          "text": "からかった から"
+        },
+        {
+          "id": "kokugo_l2s1_q5_c3",
+          "text": "あまかった から"
+        }
+      ],
+      "answer": "kokugo_l2s1_q5_c3"
+    },
+    {
+      "id": "kokugo_l2s1_q6",
+      "phase": "boss",
+      "text": "おひるごはんに じじぱぱが つくって くれたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s1_q6_c1",
+          "text": "ひやしそうめん"
+        },
+        {
+          "id": "kokugo_l2s1_q6_c2",
+          "text": "カレーライス"
+        },
+        {
+          "id": "kokugo_l2s1_q6_c3",
+          "text": "やきそば"
+        }
+      ],
+      "answer": "kokugo_l2s1_q6_c1"
+    },
+    {
+      "id": "kokugo_l2s1_q7",
+      "phase": "boss",
+      "text": "かえる ときに もらった おみやげは？",
+      "choices": [
+        {
+          "id": "kokugo_l2s1_q7_c1",
+          "text": "スイカ"
+        },
+        {
+          "id": "kokugo_l2s1_q7_c2",
+          "text": "トウモロコシ"
+        },
+        {
+          "id": "kokugo_l2s1_q7_c3",
+          "text": "ジャガイモ"
+        }
+      ],
+      "answer": "kokugo_l2s1_q7_c2"
+    }
+  ]
 }

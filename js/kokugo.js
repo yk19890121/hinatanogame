@@ -26,8 +26,17 @@ const Kokugo = (() => {
     return [...new Set(out)].join('');
   }
 
+  // Excel の 項目名（schemaVersion・correctChoiceId）でも よめる ように そろえる
+  function normalize(d) {
+    if (!d || typeof d !== 'object') return d;
+    if (d.formatVersion == null && d.schemaVersion != null) d.formatVersion = d.schemaVersion;
+    if (Array.isArray(d.questions)) d.questions.forEach((q) => { if (q && q.answer == null && q.correctChoiceId != null) q.answer = q.correctChoiceId; });
+    return d;
+  }
+
   // データの かくにん → { ok, ready, errors: [...] }
   function validate(d, name) {
+    normalize(d);
     const errors = [];
     const err = (where, msg) => errors.push(`${name} ${where}: ${msg}`);
     if (!d || typeof d !== 'object') return { ok: false, ready: false, errors: [`${name}: JSON の 形が ちがいます`] };

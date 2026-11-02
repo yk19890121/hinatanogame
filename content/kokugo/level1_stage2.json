@@ -1,6 +1,153 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l1s2",
+  "contentVersion": 1,
   "level": 1,
   "stage": 2,
-  "ready": false
+  "title": "マッチョの おさんぽ",
+  "pages": [
+    "あさ、 マッチョは アロちゃんと おさんぽに でかけました。 アロちゃんは あかい くびわを つけています。 こうえんに つくと、 アロちゃんは しろい ちょうちょを みつけて、 おいかけました。 いけの そばで、 あひるが さんわ およいでいました。 マッチョが 「おはよう」と いうと、 あひるは 「ガーガー」と なきました。 かえりみちで、 アロちゃんは ベンチの したで ねむって しまいました。 マッチョは アロちゃんを かるがると だっこして、 おうちへ かえりました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l1s2_q1",
+      "phase": "route",
+      "text": "マッチョは だれと おさんぽに いきましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l1s2_q1_c1",
+          "text": "みみちゃん"
+        },
+        {
+          "id": "kokugo_l1s2_q1_c2",
+          "text": "アロちゃん"
+        },
+        {
+          "id": "kokugo_l1s2_q1_c3",
+          "text": "ひなたくん"
+        }
+      ],
+      "answer": "kokugo_l1s2_q1_c2"
+    },
+    {
+      "id": "kokugo_l1s2_q2",
+      "phase": "route",
+      "text": "アロちゃんの くびわの いろは？",
+      "choices": [
+        {
+          "id": "kokugo_l1s2_q2_c1",
+          "text": "あおい"
+        },
+        {
+          "id": "kokugo_l1s2_q2_c2",
+          "text": "きいろい"
+        },
+        {
+          "id": "kokugo_l1s2_q2_c3",
+          "text": "あかい"
+        }
+      ],
+      "answer": "kokugo_l1s2_q2_c3"
+    },
+    {
+      "id": "kokugo_l1s2_q3",
+      "phase": "route",
+      "text": "アロちゃんが おいかけたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l1s2_q3_c1",
+          "text": "しろい ちょうちょ"
+        },
+        {
+          "id": "kokugo_l1s2_q3_c2",
+          "text": "くろい ねこ"
+        },
+        {
+          "id": "kokugo_l1s2_q3_c3",
+          "text": "あかい とんぼ"
+        }
+      ],
+      "answer": "kokugo_l1s2_q3_c1"
+    },
+    {
+      "id": "kokugo_l1s2_q4",
+      "phase": "route",
+      "text": "いけの そばに いた あひるは なんわ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s2_q4_c1",
+          "text": "いちわ"
+        },
+        {
+          "id": "kokugo_l1s2_q4_c2",
+          "text": "さんわ"
+        },
+        {
+          "id": "kokugo_l1s2_q4_c3",
+          "text": "ごわ"
+        }
+      ],
+      "answer": "kokugo_l1s2_q4_c2"
+    },
+    {
+      "id": "kokugo_l1s2_q5",
+      "phase": "boss",
+      "text": "あひるは なんと なきましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l1s2_q5_c1",
+          "text": "ピーピー"
+        },
+        {
+          "id": "kokugo_l1s2_q5_c2",
+          "text": "ケロケロ"
+        },
+        {
+          "id": "kokugo_l1s2_q5_c3",
+          "text": "ガーガー"
+        }
+      ],
+      "answer": "kokugo_l1s2_q5_c3"
+    },
+    {
+      "id": "kokugo_l1s2_q6",
+      "phase": "boss",
+      "text": "アロちゃんが ねむって しまったのは どこ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s2_q6_c1",
+          "text": "ベンチの した"
+        },
+        {
+          "id": "kokugo_l1s2_q6_c2",
+          "text": "きの うえ"
+        },
+        {
+          "id": "kokugo_l1s2_q6_c3",
+          "text": "いけの なか"
+        }
+      ],
+      "answer": "kokugo_l1s2_q6_c1"
+    },
+    {
+      "id": "kokugo_l1s2_q7",
+      "phase": "boss",
+      "text": "ねむった アロちゃんを だっこしたのは だれ？",
+      "choices": [
+        {
+          "id": "kokugo_l1s2_q7_c1",
+          "text": "ひなたくん"
+        },
+        {
+          "id": "kokugo_l1s2_q7_c2",
+          "text": "マッチョ"
+        },
+        {
+          "id": "kokugo_l1s2_q7_c3",
+          "text": "ちゃん"
+        }
+      ],
+      "answer": "kokugo_l1s2_q7_c2"
+    }
+  ]
 }

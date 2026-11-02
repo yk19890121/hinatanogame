@@ -1,6 +1,154 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l3s2",
+  "contentVersion": 1,
   "level": 3,
   "stage": 2,
-  "ready": false
+  "title": "マッチョ うらしまたろう",
+  "pages": [
+    "むかしむかし、 うみべの むらに うらしまたろうと いう、 ムキムキの マッチョな りょうしが いました。 ある ひ、 はまべで こどもたちが かめを いじめて いるのを みつけました。 たろうは 「かわいそうだよ。 にがして あげなさい」と いって、 かめを うみに かえして あげました。 すうじつご、 うみで つりを して いると、 あの かめが あらわれました。 「この あいだの おれいに、 りゅうぐうじょうへ ごあんないします」 たろうは かめの せなかに のって、 うみの そこへ しずんで いきました。",
+    "りゅうぐうじょうでは、 うつくしい おとひめさまが むかえて くれました。 しかし、 やがて むらが こいしくなり、 たろうは かえりたいと つげました。 おとひめさまは 「これを おもちください。 けっして あけては いけません」と、 たまてばこを わたしました。 むらに もどると、 しらない ひとばかり。 たろうが いない あいだに、 とても ながい としつきが たって いたのです。 かなしくて たまてばこを あけると、 しろい けむりが でて、 たろうは おじいさんに なって しまいました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l3s2_q1",
+      "phase": "route",
+      "text": "うらしまたろうは どんな りょうしでしたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s2_q1_c1",
+          "text": "ムキムキの マッチョ"
+        },
+        {
+          "id": "kokugo_l3s2_q1_c2",
+          "text": "ちいさな こども"
+        },
+        {
+          "id": "kokugo_l3s2_q1_c3",
+          "text": "ひょろひょろの おじいさん"
+        }
+      ],
+      "answer": "kokugo_l3s2_q1_c1"
+    },
+    {
+      "id": "kokugo_l3s2_q2",
+      "phase": "route",
+      "text": "はまべで こどもたちに いじめられて いたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l3s2_q2_c1",
+          "text": "たこ"
+        },
+        {
+          "id": "kokugo_l3s2_q2_c2",
+          "text": "かめ"
+        },
+        {
+          "id": "kokugo_l3s2_q2_c3",
+          "text": "かに"
+        }
+      ],
+      "answer": "kokugo_l3s2_q2_c2"
+    },
+    {
+      "id": "kokugo_l3s2_q3",
+      "phase": "route",
+      "text": "たろうは こどもたちに なんと いいましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s2_q3_c1",
+          "text": "もっと あそびなさい"
+        },
+        {
+          "id": "kokugo_l3s2_q3_c2",
+          "text": "はやく かえりなさい"
+        },
+        {
+          "id": "kokugo_l3s2_q3_c3",
+          "text": "にがして あげなさい"
+        }
+      ],
+      "answer": "kokugo_l3s2_q3_c3"
+    },
+    {
+      "id": "kokugo_l3s2_q4",
+      "phase": "route",
+      "text": "かめは おれいに たろうを どこへ あんないしましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s2_q4_c1",
+          "text": "りゅうぐうじょう"
+        },
+        {
+          "id": "kokugo_l3s2_q4_c2",
+          "text": "おにがしま"
+        },
+        {
+          "id": "kokugo_l3s2_q4_c3",
+          "text": "うみべの むら"
+        }
+      ],
+      "answer": "kokugo_l3s2_q4_c1"
+    },
+    {
+      "id": "kokugo_l3s2_q5",
+      "phase": "boss",
+      "text": "りゅうぐうじょうで たろうを むかえて くれたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l3s2_q5_c1",
+          "text": "おひめさま"
+        },
+        {
+          "id": "kokugo_l3s2_q5_c2",
+          "text": "おとひめさま"
+        },
+        {
+          "id": "kokugo_l3s2_q5_c3",
+          "text": "うみの おうさま"
+        }
+      ],
+      "answer": "kokugo_l3s2_q5_c2"
+    },
+    {
+      "id": "kokugo_l3s2_q6",
+      "phase": "boss",
+      "text": "おとひめさまが たろうに わたしたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l3s2_q6_c1",
+          "text": "ほうせき"
+        },
+        {
+          "id": "kokugo_l3s2_q6_c2",
+          "text": "きびだんご"
+        },
+        {
+          "id": "kokugo_l3s2_q6_c3",
+          "text": "たまてばこ"
+        }
+      ],
+      "answer": "kokugo_l3s2_q6_c3"
+    },
+    {
+      "id": "kokugo_l3s2_q7",
+      "phase": "boss",
+      "text": "たまてばこを あけると、 たろうは どうなりましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l3s2_q7_c1",
+          "text": "おじいさんに なった"
+        },
+        {
+          "id": "kokugo_l3s2_q7_c2",
+          "text": "わかく なった"
+        },
+        {
+          "id": "kokugo_l3s2_q7_c3",
+          "text": "かめに なった"
+        }
+      ],
+      "answer": "kokugo_l3s2_q7_c1"
+    }
+  ]
 }

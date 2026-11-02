@@ -1,6 +1,154 @@
 {
   "formatVersion": 1,
+  "storyId": "kokugo_l4s1",
+  "contentVersion": 1,
   "level": 4,
   "stage": 1,
-  "ready": false
+  "title": "マッチョじいさんの はなさかじいさん",
+  "pages": [
+    "むかしむかし、 やさしくて ムキムキの マッチョな おじいさんと おばあさんが、 しろい こいぬを かわいがって そだてて いました。 ある ひ、 こいぬは はたけで 「ここほれ ワンワン」と なきました。 おじいさんが ほると、 おおばんこばんが ざくざくと でて きました。 それを きいた となりの いじわるな じいさんは、 むりやり こいぬを つれだして はたけを ほらせました。 ところが でて きたのは がらくたばかり。 おこった じいさんは、 こいぬを いじめて しまい、 こいぬは とうとう いのちを おとして しまいました。 おじいさんは かなしんで、 こいぬを はたけの すみに うめ、 そこに ちいさな きを うえました。",
+    "きは ぐんぐん のびて、 おおきな きに なりました。 おじいさんは その きで うすを つくり、 もちを つきました。 すると、 もちの なかから また おおばんこばんが ふって きました。 いじわるじいさんも まねして うすを かりましたが、 でて きたのは きたない がらくただけ。 おこって うすを もやして しまいました。 おじいさんは のこった はいを もらい、 かれきに まくと、 まんかいの さくらが ぱあっと さきました。 とおりかかった とのさまは おおよろこびで、 おじいさんに たくさんの ごほうびを くれました。"
+  ],
+  "questions": [
+    {
+      "id": "kokugo_l4s1_q1",
+      "phase": "route",
+      "text": "おじいさんと おばあさんが かわいがって いたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l4s1_q1_c1",
+          "text": "しろい こいぬ"
+        },
+        {
+          "id": "kokugo_l4s1_q1_c2",
+          "text": "くろい ねこ"
+        },
+        {
+          "id": "kokugo_l4s1_q1_c3",
+          "text": "ちいさな ことり"
+        }
+      ],
+      "answer": "kokugo_l4s1_q1_c1"
+    },
+    {
+      "id": "kokugo_l4s1_q2",
+      "phase": "route",
+      "text": "はたけを ほった おじいさんは どんな おじいさん？",
+      "choices": [
+        {
+          "id": "kokugo_l4s1_q2_c1",
+          "text": "ひょろひょろの おじいさん"
+        },
+        {
+          "id": "kokugo_l4s1_q2_c2",
+          "text": "ムキムキの マッチョ"
+        },
+        {
+          "id": "kokugo_l4s1_q2_c3",
+          "text": "ちいさな こども"
+        }
+      ],
+      "answer": "kokugo_l4s1_q2_c2"
+    },
+    {
+      "id": "kokugo_l4s1_q3",
+      "phase": "route",
+      "text": "おじいさんが ほったら なにが でて きましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l4s1_q3_c1",
+          "text": "きんの たまご"
+        },
+        {
+          "id": "kokugo_l4s1_q3_c2",
+          "text": "おおきな いも"
+        },
+        {
+          "id": "kokugo_l4s1_q3_c3",
+          "text": "おおばんこばん"
+        }
+      ],
+      "answer": "kokugo_l4s1_q3_c3"
+    },
+    {
+      "id": "kokugo_l4s1_q4",
+      "phase": "route",
+      "text": "いじわるな じいさんが ほって でて きたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l4s1_q4_c1",
+          "text": "がらくた"
+        },
+        {
+          "id": "kokugo_l4s1_q4_c2",
+          "text": "おかね"
+        },
+        {
+          "id": "kokugo_l4s1_q4_c3",
+          "text": "ごはん"
+        }
+      ],
+      "answer": "kokugo_l4s1_q4_c1"
+    },
+    {
+      "id": "kokugo_l4s1_q5",
+      "phase": "boss",
+      "text": "おじいさんが こいぬを うめた ところに うえたのは？",
+      "choices": [
+        {
+          "id": "kokugo_l4s1_q5_c1",
+          "text": "はな"
+        },
+        {
+          "id": "kokugo_l4s1_q5_c2",
+          "text": "ちいさな き"
+        },
+        {
+          "id": "kokugo_l4s1_q5_c3",
+          "text": "たけ"
+        }
+      ],
+      "answer": "kokugo_l4s1_q5_c2"
+    },
+    {
+      "id": "kokugo_l4s1_q6",
+      "phase": "boss",
+      "text": "おじいさんが おおきな きで つくったのは？",
+      "choices": [
+        {
+          "id": "kokugo_l4s1_q6_c1",
+          "text": "いす"
+        },
+        {
+          "id": "kokugo_l4s1_q6_c2",
+          "text": "ふね"
+        },
+        {
+          "id": "kokugo_l4s1_q6_c3",
+          "text": "うす"
+        }
+      ],
+      "answer": "kokugo_l4s1_q6_c3"
+    },
+    {
+      "id": "kokugo_l4s1_q7",
+      "phase": "boss",
+      "text": "おじいさんが はいを かれきに まくと、 なにが さきましたか？",
+      "choices": [
+        {
+          "id": "kokugo_l4s1_q7_c1",
+          "text": "さくら"
+        },
+        {
+          "id": "kokugo_l4s1_q7_c2",
+          "text": "うめ"
+        },
+        {
+          "id": "kokugo_l4s1_q7_c3",
+          "text": "ひまわり"
+        }
+      ],
+      "answer": "kokugo_l4s1_q7_c1"
+    }
+  ]
 }
