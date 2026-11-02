@@ -87,10 +87,25 @@ const Quiz = (() => {
     }
     recent.push(keyOf(q));
     if (recent.length > RECENT_MAX) recent.shift();
-    q.choices = choicesFor(q.answer, 99 * 99, rng);
+    // こたえが 2けた いじょうなら 一の位を そろえる（一の位だけで こたえが わからない ように）
+    q.choices = q.answer >= 10 ? sameOnesChoices(q.answer, rng) : choicesFor(q.answer, 99 * 99, rng);
     q.lv = L.lv;
     q.adult = true;
     return q;
+  }
+
+  // 一の位が こたえと おなじ まちがい: ±10・±20・±30（3けた いじょうは ±100・±200 も）。
+  // けた数も こたえと おなじ に する（けた数でも わからない ように）。ちかい ±10 を 1つは いれる
+  function sameOnesChoices(ans, rng) {
+    const lo = 10 ** (String(ans).length - 1), hi = 10 ** String(ans).length;
+    const ok = (v, out) => v >= lo && v < hi && !out.includes(v);
+    const near = shuffle([10, -10], rng).map((d) => ans + d);
+    const far = shuffle([20, -20, 30, -30, ...(ans >= 100 ? [100, -100, 200, -200] : [])], rng).map((d) => ans + d);
+    const out = [ans];
+    for (const v of near) if (out.length < 2 && ok(v, out)) out.push(v);
+    for (const v of [...far, ...near]) if (out.length < 3 && ok(v, out)) out.push(v);
+    for (let k = 4; out.length < 3; k++) if (ok(ans + k * 10, out)) out.push(ans + k * 10);
+    return shuffle(out, rng);
   }
 
   // lv: 1〜5、stage: 0〜3、adult: オトナモード
