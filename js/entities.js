@@ -685,7 +685,7 @@ class Gate {
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
     // 文章問題は たす・ひくを 見せない（こたえる まえに けいさんの しかたを 出さない）
-    const mark = this.active && this.quiz && !this.quiz.word ? Quiz.opMark(this.quiz.op) : '？';
+    const mark = this.active && this.quiz && !this.quiz.word && !this.quiz.kokugo ? Quiz.opMark(this.quiz.op) : '？';
     outlinedText(ctx, mark, cx, cy + 2, 40, '#ffffff', mix(th.wall.rune, '#000000', 0.6), 0.22);
   }
 }

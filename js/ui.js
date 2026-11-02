@@ -21,12 +21,14 @@ const UI = (() => {
 
   function init(g) {
     game = g;
-    for (const k of ['title', 'select', 'settings', 'pause', 'clear', 'over']) screens[k] = $('scr' + k[0].toUpperCase() + k.slice(1));
+    for (const k of ['title', 'select', 'settings', 'pause', 'clear', 'over', 'read']) screens[k] = $('scr' + k[0].toUpperCase() + k.slice(1));
+    initReading();
+    initChoices();
     click('btnPlay', () => {
       Sound.play('select');
       game.openSelect();
     });
-    // モード（通常・オトナ）。「あそぶ」で その モードの ステージえらびへ
+    // モード（さんすう・こくご・おとな）。「あそぶ」で その モードの ステージえらびへ
     $('modeSel').addEventListener('click', (e) => {
       const b = e.target.closest('button');
       if (!b) return;
@@ -80,14 +82,15 @@ const UI = (() => {
     });
     click('btnResume', () => game.resume());
     click('btnPauseSettings', () => openSettings('pause'));
-    click('btnRetry', () => game.startStage(game.stageIdx));
+    // さいしょから・つぎへ・もういちど: こくごモードは 物語を よむ 画面から（enterStage）
+    click('btnRetry', () => game.enterStage(game.stageIdx));
     click('btnToSelect', () => game.toSelect());
     click('btnNext', () => {
       const last = game.stageIdx >= STAGES.length - 1;
       if (last) game.toSelect();
-      else game.startStage(game.stageIdx + 1);
+      else game.enterStage(game.stageIdx + 1);
     });
-    click('btnAgain', () => game.startStage(game.stageIdx));
+    click('btnAgain', () => game.enterStage(game.stageIdx));
     click('btnClearSel', () => game.toSelect());
     click('btnVoice', () => game.repeatQuestion());
     document.querySelectorAll('.seg').forEach((seg) => {
@@ -123,17 +126,93 @@ const UI = (() => {
     if (name === 'select') refreshCards();
     document.body.classList.toggle('in-menu', !!name);
   }
+  const onScreen = (name) => screens[name].classList.contains('on');
 
-  // えらんでいる モードを 色・わくで しめす（オトナは せつめいも）
+  // えらんでいる モードを 色・わくで しめす（こくご・おとなは せつめいも）
   function syncMode() {
-    const adult = game.adult;
+    const mode = game.playMode;
     $('modeSel').querySelectorAll('button').forEach((b) => {
-      const on = (b.dataset.mode === 'adult') === adult;
+      const on = b.dataset.mode === mode;
       b.classList.toggle('on', on);
       b.setAttribute('aria-checked', String(on));
     });
-    $('modeNote').classList.toggle('on', adult);
-    document.body.classList.toggle('adult', adult);
+    document.querySelectorAll('.mode-note').forEach((n) => n.classList.toggle('on', n.dataset.mode === mode));
+    document.body.classList.toggle('adult', mode === 'adult');
+    document.body.classList.toggle('kokugo', mode === 'kokugo');
+  }
+
+  /* ---------------- こくご: 物語を よむ 画面 ----------------
+     1ページ 300文字 くらいまで、画面に おさまる ぶんだけ（文字は ちいさく しない）。データの ページの くぎりは まもり、
+     そのなかは 段落・文の くぎりで わける。「まえへ」「つぎへ」、さいごの ページに「スタート」。じどうで すすまない */
+  const read = { story: null, pages: [], i: 0 };
+  function initReading() {
+    click('btnReadPrev', () => turn(-1));
+    click('btnReadNext', () => turn(1));
+    click('btnReadStart', () => {
+      Sound.play('select');
+      game.startStage(game.stageIdx); // よむ 曲は ここで おわり、プレイの 曲へ
+    });
+    click('btnReadBack', () => {
+      Sound.play('select');
+      game.toSelect();
+    });
+    window.addEventListener('resize', () => { if (screens.read.classList.contains('on')) layoutReading(true); });
+  }
+  function turn(d) {
+    const n = clamp(read.i + d, 0, read.pages.length - 1);
+    if (n === read.i) return;
+    Sound.play('select');
+    read.i = n;
+    drawPage();
+  }
+  const paraHtml = (paras) => paras.map((p) => `<p>${esc(p)}</p>`).join('');
+  function layoutReading(keep) {
+    const body = $('readBody');
+    // いま よんでいる ページの さいしょの 文を おぼえて、わけなおした あとも その ページへ
+    const first = keep && read.pages[read.i] ? read.pages[read.i][0].slice(0, 12) : null;
+    const probe = $('readProbe');
+    probe.style.width = body.clientWidth + 'px';
+    probe.style.height = body.clientHeight + 'px';
+    read.pages = Kokugo.paginate(read.story, (paras) => {
+      probe.innerHTML = paraHtml(paras.map((p) => p.join('')));
+      return probe.scrollHeight <= probe.clientHeight + 1;
+    });
+    probe.innerHTML = '';
+    read.i = first ? Math.max(0, read.pages.findIndex((p) => p.join('').includes(first))) : 0;
+    drawPage();
+  }
+  function drawPage() {
+    const n = read.pages.length, last = read.i >= n - 1;
+    $('readBody').innerHTML = paraHtml(read.pages[read.i] || []);
+    $('readPage').textContent = `${read.i + 1}／${n}`;
+    $('btnReadPrev').hidden = read.i === 0;
+    $('btnReadNext').hidden = last;
+    $('btnReadStart').hidden = !last;
+  }
+  function showReading(story, lv, i) {
+    read.story = story;
+    $('readLevel').textContent = `こくご・レベル${lv}・ステージ${i + 1}`;
+    $('readTitle').textContent = story.title || '';
+    show('read');
+    layoutReading(false);
+  }
+
+  /* ---------------- こくご: 3択（たてに 3つ。1〜3キー・タップ） ---------------- */
+  function initChoices() {
+    $('qKokugo').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-n]');
+      if (!b) return;
+      e.preventDefault();
+      b.blur();
+      game.answerChoice(Number(b.dataset.n));
+      Input.reset(); // タップを ジャンプに しない
+    });
+  }
+  const quizOpen = () => $('quiz').classList.contains('show') && !$('quiz').classList.contains('solved');
+  function markChoice(n, ok) {
+    const b = $('qKokugo').querySelector(`button[data-n="${n}"]`);
+    if (b) b.classList.add(ok ? 'ok' : 'ng');
+    if (b && !ok) b.disabled = true;
   }
 
   function openSettings(from) {
@@ -173,8 +252,8 @@ const UI = (() => {
       grid.querySelectorAll('.stage-card').forEach((b) => b.addEventListener('click', () => {
         b.blur();
         Sound.init();
-        Sound.play('select');
-        game.startStage(Number(b.dataset.i));
+        if (!b.classList.contains('locked')) Sound.play('select');
+        game.enterStage(Number(b.dataset.i)); // こくごは 物語を よむ 画面へ（じゅんびちゅう なら はじめない）
       }));
       const imgs = [...grid.querySelectorAll('img[data-thumb]')];
       let k = 0;
@@ -190,11 +269,12 @@ const UI = (() => {
       setTimeout(next, 60);
     }
     // えらんでいる むずかしさ の ★ だけ を かきなおす（ふるい ひょうじを のこさない）。★は モードごと
-    const lv = game.levelNo, adult = game.adult, AL = ADULT_LEVELS[lv - 1];
-    $('selMode').textContent = adult ? 'オトナモード' : '通常モード';
+    const lv = game.levelNo, adult = game.adult, kokugo = game.kokugo, AL = ADULT_LEVELS[lv - 1];
+    $('selMode').textContent = adult ? 'おとなモード（さんすう）' : kokugo ? 'こくごモード' : 'さんすうモード';
     $('selMode').classList.toggle('adult', adult);
-    const levelsOf = adult ? ADULT_LEVELS : [...LEVELS, ...WORD_LEVELS];
-    const word = !adult && lv >= WORD_LV0;
+    $('selMode').classList.toggle('kokugo', kokugo);
+    const levelsOf = adult ? ADULT_LEVELS : kokugo ? KOKUGO_LEVELS : [...LEVELS, ...WORD_LEVELS];
+    const word = !adult && !kokugo && lv >= WORD_LV0;
     $('levelSel').querySelectorAll('button').forEach((b) => {
       const L = levelsOf[Number(b.dataset.lv) - 1];
       b.hidden = !L;
@@ -207,12 +287,32 @@ const UI = (() => {
       const n = game.starsFor(lv, i);
       b.querySelector('.card-stars').innerHTML = [0, 1, 2].map((j) => `<i class="${j < n ? 'got' : ''}">★</i>`).join('');
       b.querySelector('.num').textContent = `${lv}-${i + 1}`;
-      // オトナは 4ステージとも その レベルの もんだい
-      b.querySelector('.op').textContent = adult ? AL.mark : STAGES[i].mark;
-      b.querySelector('.card-label').textContent = adult ? AL.sub : word ? `ぶんしょう ${STAGE_LABEL[i]}` : STAGE_LABEL[i];
+      // オトナは 4ステージとも その レベルの もんだい。こくごは 物語の だいめい（ない ときは じゅんびちゅう）
+      let label = adult ? AL.sub : word ? `ぶんしょう ${STAGE_LABEL[i]}` : STAGE_LABEL[i], locked = false;
+      if (kokugo) {
+        const r = Kokugo.get(lv, i + 1);
+        if (!r) { label = 'よみこみちゅう…'; waitCards(lv, i); }
+        else if (r.status === 'ok') label = r.data.title || `ものがたり ${i + 1}`;
+        else { label = r.status === 'error' ? 'データ エラー' : 'じゅんびちゅう'; locked = true; }
+      }
+      b.querySelector('.op').textContent = adult ? AL.mark : kokugo ? 'あ' : STAGES[i].mark;
+      b.querySelector('.card-label').textContent = label;
       b.classList.toggle('word', word);
-      b.setAttribute('aria-label', `${adult ? 'オトナモード ' : ''}レベル${lv} ステージ${i + 1} ${STAGES[i].name}`);
+      b.classList.toggle('kokugo', kokugo);
+      b.classList.toggle('locked', locked);
+      b.setAttribute('aria-label', `${adult ? 'おとなモード ' : kokugo ? 'こくごモード ' : ''}レベル${lv} ステージ${i + 1} ${kokugo ? label : STAGES[i].name}`);
     });
+  }
+  // こくご: 物語の よみこみが おわったら カードを かきなおす（おなじ ステージは 1かい だけ）
+  const waiting = new Set();
+  function waitCards(lv, i) {
+    const key = `${lv}-${i}`;
+    if (waiting.has(key)) return;
+    waiting.add(key);
+    Kokugo.load(lv, i + 1).then(() => setTimeout(() => {
+      waiting.delete(key);
+      if (game.kokugo && game.levelNo === lv) refreshCards();
+    }, 0));
   }
 
   /* ---------------- HUD ---------------- */
@@ -250,10 +350,11 @@ const UI = (() => {
   function setStage(name) { $('stageChip').textContent = name; }
 
   // プレイ中の モード表示。オトナは のこり じかん（30びょう から あかく）
-  function setModeTag(adult, sec) {
-    const el = $('modeTag');
+  function setModeTag(mode, sec) {
+    const el = $('modeTag'), adult = mode === 'adult';
     el.classList.toggle('adult', adult);
-    el.querySelector('.mode-name').textContent = adult ? 'オトナ' : '通常モード';
+    el.classList.toggle('kokugo', mode === 'kokugo');
+    el.querySelector('.mode-name').textContent = adult ? 'おとな' : mode === 'kokugo' ? 'こくごモード' : 'さんすうモード';
     if (!adult) return;
     const s = Math.max(0, Math.ceil(sec));
     $('clockText').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -284,6 +385,8 @@ const UI = (() => {
     const el = $('quiz');
     // 文章問題: 文を 1ぶんずつ 行に わけて 出す（式・こたえは こたえた あとに だけ）
     el.classList.toggle('word', !!q.word);
+    el.classList.toggle('kokugo', !!q.kokugo);
+    if (q.kokugo) return showKokugo(el, q);
     $('qWord').innerHTML = q.word ? q.lines.map((s, i) => `<span class="ql${i === q.lines.length - 1 ? ' ask' : ''}">${s}</span>`).join('') + '<span class="ql q-word-ans" id="qWordAns"></span>' : '';
     $('qA').textContent = q.a;
     $('qB').textContent = q.b;
@@ -310,20 +413,42 @@ const UI = (() => {
     document.body.classList.add('quizzing');
   }
 
+  // こくご: 質問文 ＋ 選択肢 3つ（たてに ならべ、ながい 文は おりかえす。きらない）
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function showKokugo(el, q) {
+    $('qWord').innerHTML = '';
+    // 左右の ハート・ひとやすみ ボタンに かからない はばに する
+    const hl = $('hud').querySelector('.hud-left').getBoundingClientRect(), hr = $('hud').querySelector('.hud-right').getBoundingClientRect();
+    el.style.setProperty('--kl', `${Math.round(hl.right + 8)}px`);
+    el.style.setProperty('--kr', `${Math.round(window.innerWidth - hr.left + 8)}px`);
+    $('qKokugo').innerHTML = `<div class="kq">${q.bossLeft ? `<small class="k-boss">ボス のこり ${q.bossLeft}もん</small>` : `<small class="k-no">${q.no}もんめ</small>`}${esc(q.text)}</div>`
+      + `<div class="k-choices">${q.opts.map((o, i) => `<button type="button" data-n="${i + 1}"><b>${i + 1}</b><span>${esc(o.text)}</span></button>`).join('')}</div>`;
+    el.classList.remove('big', 'huge', 'adult', 'solved', 'wrong');
+    $('qLegend').classList.remove('on');
+    $('qHelp').textContent = '1・2・3 の キーか、こたえを タッチ！';
+    el.classList.add('show');
+    document.body.classList.add('quizzing');
+  }
+
   function quizWrong() {
     const el = $('quiz');
     el.classList.remove('wrong');
     void el.offsetWidth;
     el.classList.add('wrong');
-    $('qHelp').textContent = el.classList.contains('word') ? 'おしい！ もういちど よんで みよう'
+    $('qHelp').textContent = el.classList.contains('kokugo') ? 'おしい！ ものがたりを おもいだして もういちど'
+      : el.classList.contains('word') ? 'おしい！ もういちど よんで みよう'
       : el.classList.contains('adult') ? 'おしい！ もういちど けいさん しよう'
       : $('qLegend').classList.contains('on') ? 'おしい！ まとまりと ●を かぞえて みよう' : 'おしい！ ●を ゆびで かぞえて みよう';
   }
 
   function quizSolved(q) {
     const el = $('quiz');
-    $('qAns').textContent = q.answer;
-    if (q.word) $('qWordAns').textContent = `こたえ　${q.answer}（しき　${Word.formulaText(q)}）`; // こたえた あとに 式を みせる
+    if (q.kokugo) { // せいかいの 選択肢を みどりに（もう おせない）
+      markChoice(q.answer, true);
+      $('qKokugo').querySelectorAll('button').forEach((b) => { b.disabled = true; });
+    } else $('qAns').textContent = q.answer;
+    if (q.kokugo) ; // 式・●は ない
+    else if (q.word) $('qWordAns').textContent = `こたえ　${q.answer}（しき　${Word.formulaText(q)}）`; // こたえた あとに 式を みせる
     else if (!q.adult) amount($('dAns'), q.answer, 'ans'); // のこった かず（こたえ）
     $('qHelp').textContent = 'せいかい！ すごい！';
     el.classList.remove('wrong');
@@ -368,9 +493,10 @@ const UI = (() => {
     $('cCorrect').textContent = r.correct;
     $('cDb').textContent = r.db;
     const msgs = ['よく がんばったね！', 'すごい！ きんにくも さんすうも ばっちり！', 'かんぺき！ きみは さいきょうの マッチョだ！'];
-    $('cMsg').textContent = r.last ? `レベル${r.lv} ぜんぶ クリア！ きみは さんすうの チャンピオン！` : msgs[r.stars - 1];
+    if (r.kokugo) msgs[1] = 'すごい！ きんにくも こくごも ばっちり！';
+    $('cMsg').textContent = r.last ? `レベル${r.lv} ぜんぶ クリア！ きみは ${r.kokugo ? 'こくご' : 'さんすう'}の チャンピオン！` : msgs[r.stars - 1];
     $('btnNext').textContent = r.last ? 'むずかしさを えらぶ' : 'つぎの ステージへ';
-    $('clearLevel').textContent = `${r.adult ? 'オトナモード・' : ''}レベル${r.lv}${!r.adult && r.lv >= WORD_LV0 ? `（${WORD_LEVELS[r.lv - WORD_LV0].sub}）` : ''}・ステージ${game.stageIdx + 1}`;
+    $('clearLevel').textContent = `${r.adult ? 'おとなモード・' : r.kokugo ? 'こくごモード・' : ''}レベル${r.lv}${!r.adult && !r.kokugo && r.lv >= WORD_LV0 ? `（${WORD_LEVELS[r.lv - WORD_LV0].sub}）` : ''}・ステージ${game.stageIdx + 1}`;
     $('cTimeBox').hidden = !r.adult;
     if (r.adult) $('cTime').textContent = `${Math.floor(r.left / 60)}:${String(r.left % 60).padStart(2, '0')}`;
     renderLog(r.log || []);
@@ -379,7 +505,7 @@ const UI = (() => {
 
   /* ---------------- ゲームオーバー（オトナモード） ---------------- */
   function showOver(r) {
-    $('overLevel').textContent = `オトナモード・レベル${r.lv}・ステージ${r.stage + 1}`;
+    $('overLevel').textContent = `おとなモード・レベル${r.lv}・ステージ${r.stage + 1}`;
     $('overTitle').textContent = r.kind === 'time' ? 'タイムアップ！' : 'ゲームオーバー';
     $('overMsg').textContent = `${r.correct}もん せいかい！ もう一回、挑戦だ！`;
     show('over');
@@ -401,9 +527,14 @@ const UI = (() => {
     // 文章問題: 文の ぜんぶ ＋ 式・せいかい・えらんだ こたえ（じゅんに）
     const word = (e) => `<li class="word${e.miss ? ' miss' : ''}"><div class="wq">${e.lines.join('')}${boss(e)}</div>`
       + `<div class="wa"><span class="wf">${e.formula}</span><span class="wp">きみの こたえ　${e.picks.length ? e.picks.join(' → ') : 'ー'}</span><span class="r">${mark(e)}</span></div></li>`;
-    list.innerHTML = log.map((e) => (e.word ? word(e) : `<li${e.miss ? ' class="miss"' : ''}><span class="q">${e.a} ${Quiz.opMark(e.op)} ${e.b} ＝ ${e.answer}${boss(e)}</span><span class="r">${mark(e)}</span></li>`)).join('');
+    // こくご: 質問文 ＋ きみの こたえ（じゅんに）・せいかい。○×は さいしょの こたえで きめる
+    const optText = (e, id) => esc((e.opts.find((o) => o.id === id) || { text: id }).text);
+    const kokugo = (e) => `<li class="word kokugo${e.miss ? ' miss' : ''}"><div class="wq">${esc(e.text)}${boss(e)}</div>`
+      + `<div class="wa"><span class="wp">きみの こたえ　${e.picks.length ? e.picks.map((id) => optText(e, id)).join(' → ') : 'ー'}</span>`
+      + `<span class="wf">せいかい　${optText(e, e.answerId)}</span><span class="r">${mark(e)}</span></div></li>`;
+    list.innerHTML = log.map((e) => (e.kokugo ? kokugo(e) : e.word ? word(e) : `<li${e.miss ? ' class="miss"' : ''}><span class="q">${e.a} ${Quiz.opMark(e.op)} ${e.b} ＝ ${e.answer}${boss(e)}</span><span class="r">${mark(e)}</span></li>`)).join('');
     list.scrollTop = 0;
   }
 
-  return { init, show, hud, setHearts, setDb, setStage, setModeTag, showQuiz, quizWrong, quizSolved, hideQuiz, setHint, banner, showClear, showOver };
+  return { init, show, hud, setHearts, setDb, setStage, setModeTag, showQuiz, quizWrong, quizSolved, hideQuiz, setHint, banner, showClear, showOver, showReading, quizOpen, markChoice, onScreen };
 })();

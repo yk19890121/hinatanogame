@@ -85,7 +85,8 @@ const MediaAudio = (() => {
   let bgmBus = null; // BGM全体の 音量（オン・オフ と こえの あいだの さげ）
   let bgmDuck = 1;
   const players = [0, 1, 2].map(() => Object.assign(channel(1), { id: null, role: 'idle', vol: 0, from: 0, to: 0, ft: 0, fdur: 0, looping: false, fresh: false }));
-  const trackOf = (id) => (id === 'clear' ? MEDIA.bgm.clear : MEDIA.bgmPool.find((t) => t.id === id));
+  // 'clear'（クリアご）・'read'（こくごモードの 物語を よむ 画面）は きまった 曲、それいがいは ランダム候補
+  const trackOf = (id) => MEDIA.bgm[id] || MEDIA.bgmPool.find((t) => t.id === id);
   // すすみぐあい 0→1。フェードアウトは はじめ はやめに さげる（2きょくの あいだ 大きく なりすぎない。のこりは (1-p)²）
   const curve = (p, out) => (out ? 1 - (1 - p) * (1 - p) : p);
 

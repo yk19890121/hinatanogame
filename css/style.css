@@ -98,7 +98,7 @@ button:focus-visible { outline: 4px solid #7ae8ff; outline-offset: 3px; }
   color: transparent;
 }
 .l1 { font-size: calc(var(--u) * 17); transform: rotate(-3deg); letter-spacing: 0.02em; }
-.l2 { font-size: calc(var(--u) * 9.5); margin-top: calc(var(--u) * 0.5); }
+.l2 { font-size: calc(var(--u) * 10.5); margin-top: calc(var(--u) * 0.5); letter-spacing: 0.04em; }
 .l2 > span { background: linear-gradient(180deg, #ffffff 0%, #b4f2ff 45%, #3aa8ff 100%); -webkit-background-clip: text; background-clip: text; }
 .title-copy {
   margin: 0 0 calc(var(--u) * 1);
@@ -237,6 +237,9 @@ body.quizzing .stage-chip { opacity: 0; }
 .mode-sel button { font-weight: 900; font-size: max(14px, calc(var(--u) * 3)); padding: calc(var(--u) * 0.9) calc(var(--u) * 3); border-radius: 999px; color: #fff; opacity: 0.75; box-shadow: inset 0 0 0 2px transparent; transition: background 0.15s, opacity 0.15s, box-shadow 0.15s; }
 .mode-sel button.on { opacity: 1; background: linear-gradient(180deg, #8ef0ff, #2a8bff); box-shadow: inset 0 0 0 3px #fff, 0 3px 0 #0a4aa0; }
 .mode-sel button[data-mode='adult'].on { background: linear-gradient(180deg, #e7a6ff, #8a2ad0); box-shadow: inset 0 0 0 3px #fff, 0 3px 0 #4a0a80; }
+.mode-sel button[data-mode='kokugo'].on { background: linear-gradient(180deg, #a8f5a0, #24a83a); box-shadow: inset 0 0 0 3px #fff, 0 3px 0 #0a6a20; }
+.mode-sel button small { font-size: 0.72em; }
+.mode-note[data-mode='kokugo'] { background: rgba(10, 70, 30, 0.75); box-shadow: inset 0 0 0 2px rgba(150, 240, 160, 0.6); }
 .mode-note { display: none; margin: 0; max-width: min(92vw, 640px); text-align: center; font-weight: 800; font-size: max(12px, calc(var(--u) * 2.5)); line-height: 1.45; padding: calc(var(--u) * 0.8) calc(var(--u) * 2.6); border-radius: calc(var(--u) * 2); background: rgba(60, 10, 90, 0.72); box-shadow: inset 0 0 0 2px rgba(230, 170, 255, 0.6); }
 .mode-note.on { display: block; }
 /* ひくい がめん（スマホ よこ）: ロゴを すこし ちいさく して モードの ぶんを あける */
@@ -247,6 +250,37 @@ body.quizzing .stage-chip { opacity: 0; }
 }
 .sel-mode { display: inline-block; vertical-align: middle; margin-left: 0.4em; font-size: 0.6em; padding: 0.15em 0.8em; border-radius: 999px; background: linear-gradient(180deg, #8ef0ff, #2a8bff); box-shadow: inset 0 0 0 2px #fff; }
 .sel-mode.adult { background: linear-gradient(180deg, #e7a6ff, #8a2ad0); }
+.sel-mode.kokugo { background: linear-gradient(180deg, #a8f5a0, #24a83a); }
+.mode-tag.kokugo { background: linear-gradient(180deg, rgba(40, 150, 70, 0.88), rgba(15, 95, 40, 0.88)); }
+
+/* ---------------- こくご: 物語を よむ 画面 ---------------- */
+/* 文字は おおきく（ちいさく しない）。はいりきらない ぶんは ページを わける */
+.read-screen { justify-content: flex-start; gap: calc(var(--u) * 1.4); padding: max(calc(var(--u) * 2.4), env(safe-area-inset-top)) max(calc(var(--u) * 4), env(safe-area-inset-right)) max(calc(var(--u) * 2.4), env(safe-area-inset-bottom)) max(calc(var(--u) * 4), env(safe-area-inset-left)); background: linear-gradient(180deg, rgba(10, 6, 40, 0.78), rgba(10, 6, 40, 0.6)); }
+.read-head { display: flex; align-items: center; gap: calc(var(--u) * 2); width: min(100%, 1100px); }
+.read-titles { flex: 1; min-width: 0; text-align: center; }
+.read-level { font-weight: 800; font-size: max(11px, calc(var(--u) * 2.3)); color: #b8f5b0; }
+.read-title { margin: 0; font-weight: 900; font-size: max(17px, calc(var(--u) * 4.4)); line-height: 1.2; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.4); overflow-wrap: anywhere; }
+.read-page { min-width: 4.2em; text-align: right; font-weight: 900; font-size: max(15px, calc(var(--u) * 3.4)); font-variant-numeric: tabular-nums; }
+.small-btn { padding: calc(var(--u) * 1) calc(var(--u) * 3); font-size: max(13px, calc(var(--u) * 2.8)); }
+.read-paper { position: relative; flex: 1; min-height: 0; width: min(100%, 1100px); border-radius: calc(var(--u) * 3); background: linear-gradient(180deg, #fffdf2, #fff6dc); box-shadow: 0 calc(var(--u) * 1) 0 rgba(120, 80, 20, 0.35), 0 calc(var(--u) * 2) calc(var(--u) * 5) rgba(0, 0, 0, 0.35); padding: calc(var(--u) * 3) calc(var(--u) * 5); }
+.read-body { height: 100%; overflow: hidden; color: #2a1a3a; font-weight: 800; font-size: max(20px, calc(var(--u) * 4.4)); line-height: 1.75; letter-spacing: 0.04em; word-break: keep-all; overflow-wrap: anywhere; user-select: text; -webkit-user-select: text; }
+.read-body p { margin: 0 0 0.6em; }
+.read-body p:last-child { margin-bottom: 0; }
+.read-probe { position: absolute; visibility: hidden; pointer-events: none; left: 0; top: 0; }
+.read-nav { display: flex; align-items: center; justify-content: center; gap: calc(var(--u) * 3); }
+.read-nav .btn[hidden] { display: none; }
+@media (max-height: 500px) {
+  .read-screen { gap: 6px; }
+  .read-body { font-size: 19px; line-height: 1.65; }
+  .read-paper { padding: 10px 18px; border-radius: 14px; }
+  .read-nav .btn.big { font-size: 20px; padding: 6px 40px; }
+  .read-nav .btn { padding: 6px 22px; }
+}
+
+/* ステージえらび: こくご */
+.stage-card.kokugo .card-label { color: #1f9a3a; }
+.stage-card.locked { filter: grayscale(0.85) brightness(0.8); }
+.stage-card.locked .card-label { color: #8a8aa0; }
 .over-title { color: #c8102e; }
 .over-panel { display: flex; flex-direction: column; align-items: center; gap: calc(var(--u) * 1.6); }
 
@@ -399,6 +433,40 @@ body.quizzing .stage-chip { opacity: 0; }
 .quiz.word.solved .q-word-ans { display: block !important; }
 .quiz.word .quiz-card { padding: calc(var(--u) * 1.4) calc(var(--u) * 3) calc(var(--u) * 1); }
 @media (max-height: 500px) { .quiz.word .q-word { font-size: 13px; line-height: 1.3; } .quiz.word .q-help { font-size: 11px; } }
+/* こくご: 質問文 ＋ 選択肢 3つ（たてに ならべる。ながい 文は おりかえして きらない） */
+.q-kokugo { display: none; }
+.quiz.kokugo .q-row, .quiz.kokugo .voice, .quiz.kokugo .q-legend { display: none; }
+.quiz.kokugo { left: var(--kl, 16px); right: var(--kr, 16px); transform: translate(0, -170%); } /* HUD の あいだに おさめる */
+.quiz.kokugo.show { transform: translate(0, 0); }
+.quiz.kokugo .quiz-card { flex: 1 1 auto; max-width: 860px; margin: 0 auto; padding: calc(var(--u) * 1.4) calc(var(--u) * 2.6) calc(var(--u) * 1); }
+.quiz.kokugo .q-kokugo { display: flex; flex-direction: column; gap: calc(var(--u) * 1); }
+.kq { font-weight: 900; font-size: max(15px, calc(var(--u) * 3.6)); line-height: 1.4; color: #2a1a5a; word-break: keep-all; overflow-wrap: anywhere; }
+.kq small { display: inline-block; margin-right: 0.6em; padding: 0.05em 0.7em; border-radius: 999px; font-size: 0.72em; vertical-align: 0.12em; color: #fff; background: #5a7ae0; }
+.kq small.k-boss { background: #d8102e; }
+.k-choices { display: flex; flex-direction: column; gap: calc(var(--u) * 0.8); }
+.quiz.show .k-choices button { pointer-events: auto; }
+.k-choices button {
+  display: flex; align-items: center; gap: 0.6em; width: 100%; text-align: left;
+  padding: calc(var(--u) * 0.8) calc(var(--u) * 1.6); border-radius: calc(var(--u) * 1.8);
+  font-weight: 900; font-size: max(15px, calc(var(--u) * 3.3)); line-height: 1.3; color: #2a1a5a;
+  background: #fff; box-shadow: inset 0 0 0 3px #b9c6f2, 0 3px 0 #9aa8dc; white-space: normal; word-break: keep-all; overflow-wrap: anywhere;
+  transition: transform 0.08s, background 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+.k-choices button b { flex: none; display: grid; place-items: center; width: 1.7em; height: 1.7em; border-radius: 50%; color: #fff; background: linear-gradient(180deg, #ffc130, #ff8800); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); }
+.k-choices button:not(:disabled):hover { background: #fff8d8; }
+.k-choices button:not(:disabled):active { transform: translateY(2px); box-shadow: inset 0 0 0 3px #b9c6f2, 0 1px 0 #9aa8dc; }
+.k-choices button.ng { opacity: 0.5; background: #ffe2e8; box-shadow: inset 0 0 0 3px #ff8aa0; text-decoration: line-through; text-decoration-color: #d8102e; animation: shake 0.45s; }
+.k-choices button.ng b { background: #d8102e; }
+.k-choices button.ok { background: #dcffe4; box-shadow: inset 0 0 0 3px #3ac84a, 0 3px 0 #18943c; animation: popIn 0.4s both; }
+.k-choices button.ok b { background: #18943c; }
+.k-choices button:disabled { cursor: default; }
+@media (max-height: 500px) {
+  .kq { font-size: 14px; line-height: 1.3; }
+  .k-choices { gap: 4px; }
+  .k-choices button { font-size: 13.5px; padding: 4px 10px; border-radius: 10px; }
+  .quiz.kokugo .q-foot { display: none; } /* ひくい 画面: ブロックが かくれない ように（つかいかたは タイトルに かいてある） */
+}
+
 /* こたえが 4けた（オトナの 2けた×2けた）: わくから はみださない */
 .quiz.huge .q-num { font-size: max(22px, calc(var(--u) * 6.4)); min-width: max(42px, calc(var(--u) * 11)); }
 .quiz.adult .q-term { gap: 0; }
@@ -479,6 +547,7 @@ body.quizzing .stage-chip { opacity: 0; }
 
 /* ---------------- バナー ---------------- */
 .banner { position: absolute; inset: 0; z-index: 12; display: grid; place-items: center; pointer-events: none; }
+body.in-menu .banner { z-index: 30; } /* こくごの「じゅんびちゅう」などを メニューの うえに */
 .banner-item { text-align: center; animation: bannerIn 2.6s cubic-bezier(0.2, 1.2, 0.3, 1) forwards; }
 .b-main {
   font-weight: 900;
@@ -675,6 +744,7 @@ body.touchy.playing:not(.in-menu) .touch { display: flex; }
 .clear-log-list li.word .wf { color: #1a6aa8; font-variant-numeric: tabular-nums; }
 .clear-log-list li.word .wp { color: #7a6aa8; font-size: 0.9em; }
 .clear-log-list li.word .r { margin-left: auto; }
+.clear-log-list li.kokugo .wf { color: #18943c; font-weight: 900; }
 @media (max-width: 640px) { .clear-log-list li { font-size: 15px; } } /* ちいさい スマホの よこむき */
 @media (max-aspect-ratio: 1/1) {
   .panel.clear { flex-direction: column; align-items: center; }

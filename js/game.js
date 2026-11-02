@@ -24,7 +24,7 @@ const Game = {
   enemySolids: [],
   acc: 0,
   dprCap: 2,
-  playMode: 'normal', // 'normal'（通常モード）| 'adult'（オトナモード）。ひらく たびに 通常から
+  playMode: 'normal', // 'normal'（さんすうモード）| 'kokugo'（こくごモード）| 'adult'（おとなモード）。ひらく たびに さんすうから
   enemyShots: [],     // ボスの 弾（オトナモード）
   ally: null,         // レア仲間（1体 まで）
   bossAtk: null,      // ボスの こうげきの タイマー（オトナモード）
@@ -32,6 +32,7 @@ const Game = {
   jumpGuided: false,  // 「ボスの攻撃は、ジャンプでよけろ！」は さいしょの ボス戦で 1かい
 
   get adult() { return this.playMode === 'adult'; },
+  get kokugo() { return this.playMode === 'kokugo'; }, // こくごモード（物語を よんで 3択。ルールは さんすうモードと おなじ）
 
   init() {
     this.canvas = document.getElementById('game');
@@ -67,6 +68,13 @@ const Game = {
         MediaAudio.setHidden(false);
       }
     });
+    // こくごモード: 1〜3キー（テンキーも）で こたえる。ながおしの くりかえしは うけない
+    window.addEventListener('keydown', (e) => {
+      const m = /^(?:Digit|Numpad)([1-3])$/.exec(e.code);
+      if (!m || !this.kokugo || this.mode !== 'play') return;
+      e.preventDefault();
+      if (!e.repeat) this.answerChoice(Number(m[1]));
+    });
     window.addEventListener('keydown', (e) => {
       if (e.code !== 'Escape' && e.code !== 'KeyP') return;
       if (this.mode === 'play' && !this.ending) this.pause();
@@ -97,20 +105,24 @@ const Game = {
   },
   starKey(lv, stage) { return `${lv}-${stage + 1}`; },
   // モードごとの せいせき。オトナモードは べつに ほぞん（通常モードの きろく progress2 は そのまま）
+  // こくごモードも べつに ほぞん（progressKokugo）
+  // 開発用の 仮データ（?kokugo=sample）で あそんだ きろくは べつ（正式の ★に まざらない）
+  recordKey() { return this.adult ? 'progressAdult' : this.kokugo ? (Kokugo.sample ? 'progressKokugoSample' : 'progressKokugo') : 'progress2'; },
   record() {
-    if (!this.adult) return this.progress;
-    if (!this.progressAdult) {
-      const pa = Store.get('progressAdult', null);
-      this.progressAdult = pa && pa.stars && typeof pa.stars === 'object' && !Array.isArray(pa.stars) ? pa : { v: 1, stars: {}, best: {} };
+    if (!this.adult && !this.kokugo) return this.progress;
+    const k = this.recordKey(), slot = this.adult ? 'progressAdult' : 'progressKokugo';
+    if (!this[slot]) {
+      const pa = Store.get(k, null);
+      this[slot] = pa && pa.stars && typeof pa.stars === 'object' && !Array.isArray(pa.stars) ? pa : { v: 1, stars: {}, best: {} };
     }
-    return this.progressAdult;
+    return this[slot];
   },
   starsFor(lv, stage) { return this.record().stars[this.starKey(lv, stage)] || 0; },
 
-  // 通常モード: レベル1〜5（けいさん）＋ 6〜8（ぶんしょうもんだい）、オトナモード: 1〜5
-  maxLevel() { return this.adult ? ADULT_LEVELS.length : LEVELS.length + WORD_LEVELS.length; },
+  // さんすう（通常）: レベル1〜5（けいさん）＋ 6〜8（ぶんしょうもんだい）、おとな・こくご: 1〜5
+  maxLevel() { return this.adult ? ADULT_LEVELS.length : this.kokugo ? KOKUGO_LEVELS.length : LEVELS.length + WORD_LEVELS.length; },
   setPlayMode(m) {
-    this.playMode = m === 'adult' ? 'adult' : 'normal';
+    this.playMode = ['adult', 'kokugo'].includes(m) ? m : 'normal';
     // オトナに レベル6〜8は ない（おぼえている 通常の レベルは そのまま）
     this.levelNo = clamp(Number(Store.get('level', this.levelNo)) || 1, 1, this.maxLevel());
   },
@@ -258,6 +270,29 @@ const Game = {
   },
 
   /* ---------------- ステージ ---------------- */
+  // ステージに はいる（えらぶ・もういちど・つぎへ・さいしょから）: こくごモードは かならず 物語を よむ 画面から
+  enterStage(i) {
+    if (!this.kokugo) return this.startStage(i);
+    const lv = this.levelNo, r = Kokugo.get(lv, i + 1);
+    if (!r) { // まだ よみこみ中: おわったら もういちど（ステージえらびに いる とき だけ）
+      Kokugo.load(lv, i + 1).then(() => setTimeout(() => { if (this.mode === 'demo' && this.levelNo === lv && UI.onScreen('select')) this.enterStage(i); }, 0));
+      return;
+    }
+    if (r.status !== 'ok') { // じゅんびちゅう・データ エラー
+      Sound.play('bump');
+      UI.banner(r.status === 'error' ? 'データに もんだいが あります' : 'じゅんびちゅう', r.status === 'error' ? 'くわしくは コンソールを みてね' : 'この ものがたりは まだ ないよ');
+      return;
+    }
+    Sound.init();
+    MediaAudio.unlock();
+    if (this.mode !== 'demo') this.startDemo();
+    else this.resetScene();
+    Sound.suspend(false);
+    this.stageIdx = i;
+    MediaAudio.BGM.play('read'); // よむ 画面 専用の 曲（ページを めくっても あたまに もどさない・ループ）
+    UI.showReading(r.data, this.levelNo, i);
+  },
+
   startStage(i) {
     Sound.init();
     MediaAudio.unlock();
@@ -285,15 +320,22 @@ const Game = {
     const bossId = `L${lv}_S${i + 1}`;
     bossGate.boss.setup(bossId, this.adult ? ADULT.BOSS_HP[lv - 1] : 3);
     this.hero.hearts = this.hero.maxHearts = this.adult ? ADULT.LIVES : 3;
+    // こくご: この ステージの 物語（1〜4問め=かべ、5〜7問め=ボス）。ブロックは たたいても こたえに ならないので やじるしも ださない
+    this.story = null;
+    if (this.kokugo) {
+      const r = Kokugo.get(lv, i + 1);
+      this.story = r && r.status === 'ok' ? r.data : null;
+      L.gates.forEach((g) => { g.hint = false; });
+    }
     Input.reset();
     UI.show(null);
     UI.hud(true);
-    UI.setStage(`${this.adult ? 'オトナ・' : ''}レベル${lv}・ステージ${i + 1}`);
+    UI.setStage(`${this.adult ? 'おとな・' : this.kokugo ? 'こくご・' : ''}レベル${lv}・ステージ${i + 1}`);
     UI.setHearts(this.hero.hearts, this.hero.maxHearts);
     UI.setDb(0);
-    UI.setModeTag(this.adult, ADULT.TIME);
+    UI.setModeTag(this.playMode, ADULT.TIME);
     UI.hideQuiz();
-    UI.banner(`レベル${lv}・ステージ ${i + 1}`, this.adult ? `オトナモード　${st.name}` : st.name);
+    UI.banner(`レベル${lv}・ステージ ${i + 1}`, this.adult ? `おとなモード　${st.name}` : this.story ? this.story.title : st.name);
     // BGM候補から あたらしく ランダムに（やりなおし・つぎの ステージ でも）
     MediaAudio.BGM.shuffle();
     Cheers.preload(3);
@@ -382,7 +424,7 @@ const Game = {
     const s = Math.ceil(c.left);
     if (s !== c.shown) {
       c.shown = s;
-      UI.setModeTag(true, s);
+      UI.setModeTag('adult', s);
     }
     if (c.left <= 0) this.gameOver('time'); // 演出中でも ここで おわり
   },
@@ -645,7 +687,8 @@ const Game = {
 
   newQuestion(g) {
     if (g.state !== 'locked' || this.ending) return;
-    const q = Quiz.make(this.levelNo, this.stageIdx, Math.random, this.adult);
+    const q = this.kokugo ? this.kokugoQuestion(g) : Quiz.make(this.levelNo, this.stageIdx, Math.random, this.adult);
+    if (!q) return;
     // オトナモードの ボス: さいしょの もんだいが でて 操作できる ように なってから 約10びょうで はじめての こうげき
     if (this.adult && g.kind === 'boss' && !this.bossAtk) this.bossAtk = { gate: g, phase: 'wait', t: ADULT.ATTACK_EVERY - ADULT.WARN, ok: 0, w: 0 };
     g.quiz = q;
@@ -655,6 +698,7 @@ const Game = {
     // picks: えらんだ こたえ（じゅんに）。文章問題は 文と 式も のこす（ふりかえり用）
     g.log = { a: q.a, op: q.op, b: q.b, answer: q.answer, boss: g.kind === 'boss', miss: false, solved: false, picks: [] };
     if (q.word) Object.assign(g.log, { word: true, lines: q.lines, formula: Word.formulaText(q) });
+    if (q.kokugo) Object.assign(g.log, { kokugo: true, qid: q.id, text: q.text, opts: q.opts, answerId: q.answerId });
     this.qlog.push(g.log);
     g.blocks.forEach((b, i) => {
       b.value = q.choices[i];
@@ -662,13 +706,44 @@ const Game = {
       b.pop = 0;
     });
     Sound.play('pop');
+    this.quizAt = this.time; // こくご: 表示が でて すこし たってから こたえを うけつける
     UI.showQuiz(q, this.settings.hint && !this.adult); // オトナは ●の ヒントなし
-    if (!q.word) MediaAudio.Voice.say(Quiz.askText(q)); // ほかの こえの あとに よむ（かさならない）。文章問題は よみあげない
+    if (!q.word && !q.kokugo) MediaAudio.Voice.say(Quiz.askText(q)); // ほかの こえの あとに よむ（かさならない）。文章問題・こくごは よみあげない
+  },
+
+  /* こくご: かべ（4つ）は 1〜4問め、ボスは 5〜7問め（ボスに 正解する たびに つぎ）。データの じゅんばんの まま
+     ブロックの 数字は 1・2・3（選択肢の じゅん）、正解は 選択肢の ID で きめる */
+  kokugoQuestion(g) {
+    if (!this.story) return null;
+    const idx = g.kind === 'boss' ? KOKUGO_ROAD + (g.qNo || 0) : this.level.gates.indexOf(g);
+    const src = this.story.questions[idx];
+    if (!src) return null;
+    const pos = src.choices.findIndex((c) => c.id === src.answer);
+    return {
+      kokugo: true, id: src.id, text: src.text, opts: src.choices.map((c) => ({ id: c.id, text: c.text })), answerId: src.answer,
+      choices: [1, 2, 3], answer: pos + 1, no: idx + 1, bossLeft: g.kind === 'boss' ? KOKUGO_BOSS - (g.qNo || 0) : 0,
+    };
+  },
+
+  // こくご: 1〜3キー・選択肢の タップ。もんだいが みえて 操作できる ときだけ（演出中・きりかわり中・あとから の れんだは うけない）
+  answerChoice(n) {
+    const g = this.activeGate, q = g && g.quiz;
+    if (!this.kokugo || this.mode !== 'play' || this.ending || !q || !q.kokugo || g.state !== 'locked') return;
+    if (this.answering || this.cutin || !UI.quizOpen() || this.time - (this.quizAt || 0) < 0.35 || this.time < (this.answerLock || 0)) return;
+    const b = g.blocks.find((x) => x.value === n);
+    if (!b || b.state !== 'idle') return; // まちがえた 選択肢は もう えらべない
+    this.answerLock = this.time + 0.3;
+    g.log.picks.push(q.opts[n - 1].id);
+    if (n === q.answer) this.correct(b);
+    else {
+      UI.markChoice(n, false);
+      this.wrong(b);
+    }
   },
 
   repeatQuestion() {
     const g = this.activeGate;
-    if (g && g.quiz && !g.quiz.word && !this.answering && !this.cutin) MediaAudio.Voice.say(Quiz.askText(g.quiz), { interrupt: true });
+    if (g && g.quiz && !g.quiz.word && !g.quiz.kokugo && !this.answering && !this.cutin) MediaAudio.Voice.say(Quiz.askText(g.quiz), { interrupt: true });
   },
 
   onHeadHit(h, what) {
@@ -686,6 +761,10 @@ const Game = {
     g.hint = false;
     if (this.mode !== 'play') return;
     if (!g.active) this.activateGate(g);
+    if (this.kokugo) { // こくご: ブロックを たたいても こたえに ならない（1〜3キー・タップで こたえる）
+      Sound.play('bump');
+      return;
+    }
     // 1かいの ジャンプで こたえられるのは 1かい だけ（ちゃくちしたら また こたえられる）
     if (b.state !== 'idle' || g.state !== 'locked' || this.answering || !g.quiz || b.value == null || !this.hero.canAnswer || this.ending) {
       Sound.play('bump');
@@ -1059,13 +1138,13 @@ const Game = {
     if (this.adult) {
       rec.best = rec.best || {};
       rec.best[key] = Math.max(rec.best[key] || 0, left); // のこり じかんの さいこう
-      Store.set('progressAdult', rec);
-    } else Store.set('progress2', rec);
+    }
+    Store.set(this.recordKey(), rec); // モードごとに べつの きろく
     this.after(2.8, () => {
       this.mode = 'clear';
       UI.hud(false);
       // けっか画面に きりかわっても BGM・こえ・はなびの おとは そのまま（やりなおさない）
-      UI.showClear({ stars, correct: st.correct, db: st.db, last: this.stageIdx >= STAGES.length - 1, lv: this.levelNo, log: this.qlog, adult: this.adult, left });
+      UI.showClear({ stars, correct: st.correct, db: st.db, last: this.stageIdx >= STAGES.length - 1, lv: this.levelNo, log: this.qlog, adult: this.adult, kokugo: this.kokugo, left });
     });
   },
 

@@ -10,6 +10,15 @@ const MEDIA = {
       "start": 0.0,
       "end": 54.83,
       "duration": 54.83
+    },
+    "read": {
+      "src": "assets/bgm/reading.mp3",
+      "orig": "monndaibunSE.mp3",
+      "lufs": -18.2,
+      "gain": 1.012,
+      "start": 0.0,
+      "end": 184.63,
+      "duration": 184.63
     }
   },
   "bgmPool": [

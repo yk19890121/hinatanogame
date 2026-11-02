@@ -21,6 +21,8 @@ N = lambda s: unicodedata.normalize("NFC", s)
 
 # ゴール → けっか → クリアごの ステージえらび（ランダム選曲には いれない）
 BGM_CLEAR = ("ステージクリア後(ステージ選ぶ.mp3", "afterclear")
+# こくごモード: 物語を よむ 画面 だけで ながす（ランダムには いれない）
+BGM_READ = ("monndaibunSE.mp3", "reading")
 SFX = {
     "fireworks": ("ステージクリアの花時の音_花火大会.mp3", "fireworks", None),  # 「花時」は ZIP の じっさいの 名前
     # 正解カットインの スライドインの「シャキーン」（ZIP の Dry 版。Delay 版は 余韻が 3びょう ちかく 声援に かぶる）
@@ -237,6 +239,10 @@ def main():
         media["bgmPool"].append({"id": os.path.splitext(os.path.basename(src))[0], "src": src, "orig": name, "lufs": L, "gain": gain(L), "start": s, "end": e, "duration": d})
     s, e, d = music_bounds(need(BGM_CLEAR[0]))
     media["bgm"]["clear"] = {"src": clear_src, "orig": N(BGM_CLEAR[0]), "lufs": clear_lufs, "gain": gain(clear_lufs), "start": s, "end": e, "duration": d}
+    read_src = copy(BGM_READ[0], f"assets/bgm/{BGM_READ[1]}.mp3")
+    read_lufs = loudness(need(BGM_READ[0]))
+    s, e, d = music_bounds(need(BGM_READ[0]))
+    media["bgm"]["read"] = {"src": read_src, "orig": N(BGM_READ[0]), "lufs": read_lufs, "gain": gain(read_lufs), "start": s, "end": e, "duration": d}
     media["bgmTargetLufs"] = target
 
     for k, (name, fn, start) in SFX.items():

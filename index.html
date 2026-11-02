@@ -7,13 +7,13 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="description" content="マッチョと いっしょに たしざん・ひきざん！ よこスクロール アクション ゲーム">
-<title>マッチョ さんすうラン！</title>
+<meta name="description" content="マッチョと いっしょに さんすうと こくご！ よこスクロール アクション ゲーム">
+<title>マッチョ RUN！！</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='26' width='56' height='12' rx='4' fill='%23aab'/%3E%3Crect x='6' y='14' width='12' height='36' rx='4' fill='%23334'/%3E%3Crect x='46' y='14' width='12' height='36' rx='4' fill='%23334'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261102b">
+<link rel="stylesheet" href="css/style.css?v=20261102k">
 </head>
 <body>
 <div id="app">
@@ -29,7 +29,7 @@
           <span id="dbCount">0</span>
         </div>
         <!-- いまの モード（オトナは のこり じかんも） -->
-        <div id="modeTag" class="pill mode-tag"><b class="mode-name">通常モード</b><span class="clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 9v4.5l3 2M9.5 2.5h5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><span id="clockText">3:00</span></span></div>
+        <div id="modeTag" class="pill mode-tag"><b class="mode-name">さんすうモード</b><span class="clock"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 9v4.5l3 2M9.5 2.5h5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><span id="clockText">3:00</span></span></div>
       </div>
     </div>
     <div id="stageChip" class="pill stage-chip"></div>
@@ -53,6 +53,8 @@
         <div class="q-term"><div class="q-num q-ans" id="qAns">？</div><div class="dots" id="dAns"></div></div>
       </div>
       <div class="q-word" id="qWord"></div>
+      <!-- こくご: 質問文と 選択肢 3つ（1〜3キー・タップ） -->
+      <div class="q-kokugo" id="qKokugo"></div>
       <div class="q-foot"><div class="q-help" id="qHelp"></div><div class="q-legend" id="qLegend"><span><i class="pv-t a"></i>＝10</span><span><i class="pv-h a mini"></i>＝100</span></div></div>
     </div>
     <button id="btnVoice" class="round-btn voice" aria-label="もういちど きく">
@@ -80,14 +82,16 @@
       <div class="title-sub">ひなたの ゲーム</div>
       <h1 class="logo">
         <span class="logo-line l1" data-text="マッチョ"><span>マッチョ</span></span>
-        <span class="logo-line l2" data-text="さんすうラン！"><span>さんすうラン！</span></span>
+        <span class="logo-line l2" data-text="RUN!!"><span>RUN!!</span></span>
       </h1>
-      <p class="title-copy">たしざん・ひきざんで きんにくパワー ぜんかい！</p>
+      <p class="title-copy">さんすうと こくごで きんにくパワー ぜんかい！</p>
       <div id="modeSel" class="mode-sel" role="radiogroup" aria-label="モード">
-        <button data-mode="normal" class="on" role="radio" aria-checked="true">通常モード</button>
-        <button data-mode="adult" role="radio" aria-checked="false">オトナモード</button>
+        <button data-mode="normal" class="on" role="radio" aria-checked="true">さんすうモード</button>
+        <button data-mode="kokugo" role="radio" aria-checked="false">こくごモード</button>
+        <button data-mode="adult" role="radio" aria-checked="false">おとなモード<small>（さんすう）</small></button>
       </div>
-      <p id="modeNote" class="mode-note">1ステージ3分、ライフは3つ！<br>計算ミスや敵への接触でライフが減るぞ。ボスの攻撃はジャンプでよけよう！</p>
+      <p class="mode-note" data-mode="kokugo">ものがたりを よんでから スタート！<br>もんだいは 1・2・3 の キーか、こたえを タッチ。</p>
+      <p id="modeNote" class="mode-note" data-mode="adult">1ステージ3分、ライフは3つ！<br>計算ミスや敵への接触でライフが減るぞ。ボスの攻撃はジャンプでよけよう！</p>
       <button id="btnPlay" class="btn big pulse">あそぶ</button>
       <div class="title-tools">
         <button id="btnSettings" class="round-btn" aria-label="せってい"><svg viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm8.4 4.6-1.9-.3a6.7 6.7 0 0 1-.6 1.5l1.1 1.6-1.6 1.6-1.6-1.1c-.5.3-1 .5-1.5.6l-.3 1.9h-2.2l-.3-1.9a6.7 6.7 0 0 1-1.5-.6l-1.6 1.1-1.6-1.6 1.1-1.6a6.7 6.7 0 0 1-.6-1.5l-1.9-.3v-2.2l1.9-.3c.1-.5.3-1 .6-1.5L5.1 7.1l1.6-1.6 1.6 1.1c.5-.3 1-.5 1.5-.6l.3-1.9h2.2l.3 1.9c.5.1 1 .3 1.5.6l1.6-1.1 1.6 1.6-1.1 1.6c.3.5.5 1 .6 1.5l1.9.3z"/></svg></button>
@@ -99,10 +103,25 @@
 
   <!-- ステージ えらび -->
   <section id="scrSelect" class="screen select-screen">
-    <h2 class="screen-title">ステージを えらぼう <span id="selMode" class="sel-mode">通常モード</span></h2>
+    <h2 class="screen-title">ステージを えらぼう <span id="selMode" class="sel-mode">さんすうモード</span></h2>
     <div class="level-row"><span class="level-cap">むずかしさ</span><div id="levelSel" class="levels"></div></div>
     <div id="stageGrid" class="stage-grid"></div>
     <button id="btnSelBack" class="btn ghost">もどる</button>
+  </section>
+
+  <!-- こくご: 物語を よむ（ページを めくって、さいごに スタート） -->
+  <section id="scrRead" class="screen read-screen">
+    <div class="read-head">
+      <button id="btnReadBack" class="btn ghost small-btn">もどる</button>
+      <div class="read-titles"><div id="readLevel" class="read-level"></div><h2 id="readTitle" class="read-title"></h2></div>
+      <div id="readPage" class="read-page">1／1</div>
+    </div>
+    <div class="read-paper"><div id="readBody" class="read-body"></div><div id="readProbe" class="read-body read-probe" aria-hidden="true"></div></div>
+    <div class="read-nav">
+      <button id="btnReadPrev" class="btn ghost">まえへ</button>
+      <button id="btnReadNext" class="btn">つぎへ</button>
+      <button id="btnReadStart" class="btn big pulse" hidden>スタート</button>
+    </div>
   </section>
 
   <!-- せってい -->
@@ -158,7 +177,7 @@
     </div>
   </section>
 
-  <!-- ゲームオーバー（オトナモード: ライフ切れ・時間切れ） -->
+  <!-- ゲームオーバー（おとなモード: ライフ切れ・時間切れ） -->
   <section id="scrOver" class="screen dim">
     <div class="panel small over-panel">
       <div id="overLevel" class="clear-level"></div>
@@ -172,27 +191,28 @@
   <div id="rotate" class="rotate"><div class="phone"></div><p>よこむきに してね</p></div>
 </div>
 
-<script src="js/util.js?v=20261102b"></script>
-<script src="js/quiz.js?v=20261102b"></script>
-<script src="js/word.js?v=20261102b"></script>
-<script src="js/media.js?v=20261102b"></script>
-<script src="js/audio.js?v=20261102b"></script>
-<script src="js/media-audio.js?v=20261102b"></script>
-<script src="js/input.js?v=20261102b"></script>
-<script src="js/themes.js?v=20261102b"></script>
-<script src="js/assets.js?v=20261102b"></script>
-<script src="js/sprite-meta.js?v=20261102b"></script>
-<script src="js/sprites.js?v=20261102b"></script>
-<script src="js/hero.js?v=20261102b"></script>
-<script src="js/entities.js?v=20261102b"></script>
-<script src="js/level.js?v=20261102b"></script>
-<script src="js/chara-data.js?v=20261102b"></script>
-<script src="js/boss68-data.js?v=20261102b"></script>
-<script src="js/rare10-data.js?v=20261102b"></script>
-<script src="js/chara.js?v=20261102b"></script>
-<script src="js/render.js?v=20261102b"></script>
-<script src="js/cutin.js?v=20261102b"></script>
-<script src="js/ui.js?v=20261102b"></script>
-<script src="js/game.js?v=20261102b"></script>
+<script src="js/util.js?v=20261102k"></script>
+<script src="js/quiz.js?v=20261102k"></script>
+<script src="js/word.js?v=20261102k"></script>
+<script src="js/kokugo.js?v=20261102k"></script>
+<script src="js/media.js?v=20261102k"></script>
+<script src="js/audio.js?v=20261102k"></script>
+<script src="js/media-audio.js?v=20261102k"></script>
+<script src="js/input.js?v=20261102k"></script>
+<script src="js/themes.js?v=20261102k"></script>
+<script src="js/assets.js?v=20261102k"></script>
+<script src="js/sprite-meta.js?v=20261102k"></script>
+<script src="js/sprites.js?v=20261102k"></script>
+<script src="js/hero.js?v=20261102k"></script>
+<script src="js/entities.js?v=20261102k"></script>
+<script src="js/level.js?v=20261102k"></script>
+<script src="js/chara-data.js?v=20261102k"></script>
+<script src="js/boss68-data.js?v=20261102k"></script>
+<script src="js/rare10-data.js?v=20261102k"></script>
+<script src="js/chara.js?v=20261102k"></script>
+<script src="js/render.js?v=20261102k"></script>
+<script src="js/cutin.js?v=20261102k"></script>
+<script src="js/ui.js?v=20261102k"></script>
+<script src="js/game.js?v=20261102k"></script>
 </body>
 </html>
